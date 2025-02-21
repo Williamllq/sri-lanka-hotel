@@ -1,6 +1,7 @@
 // AI助手功能将在这里实现
 class AIAssistant {
     constructor() {
+        console.log('AI Assistant initializing...'); // 调试日志
         this.initializeUI();
         this.isCollapsed = true;
         this.apiKey = config.apiKey; // 从配置文件获取 API key
@@ -15,10 +16,21 @@ class AIAssistant {
         this.toggleButton = document.getElementById('toggleAI');
         this.showButton = document.getElementById('showAI');
 
+        // 检查元素是否正确获取
+        console.log('Show button:', this.showButton); // 调试日志
+
         // 绑定事件
+        this.showButton.addEventListener('click', () => {
+            console.log('Show button clicked'); // 调试日志
+            this.showChat();
+        });
+
+        this.toggleButton.addEventListener('click', () => {
+            console.log('Toggle button clicked'); // 调试日志
+            this.toggleChat();
+        });
+
         this.sendButton.addEventListener('click', () => this.sendMessage());
-        this.toggleButton.addEventListener('click', () => this.toggleChat());
-        this.showButton.addEventListener('click', () => this.showChat());
         
         // 添加输入框事件
         this.userInput.addEventListener('keypress', (e) => {
@@ -36,6 +48,7 @@ class AIAssistant {
     }
 
     showChat() {
+        console.log('Showing chat...'); // 调试日志
         this.aiContainer.classList.add('active');
         this.showButton.style.display = 'none';
         this.isCollapsed = false;
@@ -43,6 +56,7 @@ class AIAssistant {
     }
 
     toggleChat() {
+        console.log('Toggling chat...'); // 调试日志
         this.isCollapsed = !this.isCollapsed;
         if (this.isCollapsed) {
             this.aiContainer.classList.remove('active');
@@ -123,6 +137,7 @@ class AIAssistant {
 
 // 初始化AI助手
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Document loaded, initializing AI Assistant...'); // 调试日志
     window.aiAssistant = new AIAssistant();
 });
 
