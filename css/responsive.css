@@ -1,0 +1,19 @@
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .main-nav {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        width: 100%;
+        text-align: center;
+        padding: 1rem 0;
+        gap: 1rem;
+    }
+
+    .logo {
+        margin-bottom: 1rem;
+    }
+} 
