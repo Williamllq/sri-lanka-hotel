@@ -23,6 +23,16 @@ document.addEventListener('DOMContentLoaded', function() {
         'nav-contact': '<i class="fas fa-envelope"></i> '
     };
 
+    // 导航栏滚动效果
+    const nav = document.querySelector('.main-nav');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 100) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
+        }
+    });
+
     // 语言切换功能
     const languageSelect = document.querySelector('#languageSelect');
     

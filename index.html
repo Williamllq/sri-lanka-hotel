@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,16 +15,16 @@
                 <h1>Sri Lanka Stay & Explore</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="#home"><i class="fas fa-home"></i> 首页</a></li>
-                <li><a href="#rooms"><i class="fas fa-bed"></i> 客房预订</a></li>
-                <li><a href="#facilities"><i class="fas fa-concierge-bell"></i> 酒店设施</a></li>
-                <li><a href="#explore"><i class="fas fa-compass"></i> 探索斯里兰卡</a></li>
-                <li><a href="#contact"><i class="fas fa-envelope"></i> 联系我们</a></li>
+                <li><a href="#home"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="#rooms"><i class="fas fa-bed"></i> Rooms</a></li>
+                <li><a href="#facilities"><i class="fas fa-concierge-bell"></i> Facilities</a></li>
+                <li><a href="#explore"><i class="fas fa-compass"></i> Explore</a></li>
+                <li><a href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
             </ul>
             <div class="language-switch">
                 <select id="languageSelect">
-                    <option value="zh">中文</option>
                     <option value="en">English</option>
+                    <option value="zh">中文</option>
                     <option value="de">Deutsch</option>
                 </select>
             </div>
@@ -32,18 +32,147 @@
     </header>
 
     <main>
-        <section id="home" class="fade-in">
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h2 class="fade-in">Discover the Pearl of Indian Ocean</h2>
+                <p class="fade-in">Experience luxury and serenity in the heart of Sri Lanka</p>
+                <a href="#rooms" class="btn fade-in">Book Your Stay</a>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="section">
             <div class="container">
-                <h2>欢迎来到斯里兰卡的天堂之旅</h2>
-                <p>在这里，体验独特的文化与自然之美</p>
-                <a href="#rooms" class="btn">立即预订</a>
+                <h2 class="section-title">Welcome to Your Tropical Haven</h2>
+                <div class="about-grid">
+                    <div class="about-text">
+                        <p>Nestled in the heart of Sri Lanka, our resort offers an unforgettable escape where modern luxury meets traditional charm. Experience world-class amenities while being surrounded by the natural beauty of the island.</p>
+                    </div>
+                    <div class="about-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-star"></i>
+                            <h3>5-Star Service</h3>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-wifi"></i>
+                            <h3>Free Wi-Fi</h3>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-swimming-pool"></i>
+                            <h3>Infinity Pool</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Rooms Section -->
+        <section id="rooms" class="section">
+            <div class="container">
+                <h2 class="section-title">Luxurious Accommodations</h2>
+                <div class="rooms-grid">
+                    <div class="room-card">
+                        <div class="room-image">
+                            <!-- 图片通过 CSS background-image 设置 -->
+                        </div>
+                        <h3>Ocean View Suite</h3>
+                        <p>Wake up to breathtaking views of the Indian Ocean</p>
+                        <div class="room-details">
+                            <span><i class="fas fa-bed"></i> King Bed</span>
+                            <span><i class="fas fa-ruler-combined"></i> 55 m²</span>
+                            <span><i class="fas fa-wifi"></i> Free WiFi</span>
+                        </div>
+                        <a href="#" class="btn-secondary">From $250/night</a>
+                    </div>
+                    <div class="room-card">
+                        <div class="room-image">
+                            <!-- 图片通过 CSS background-image 设置 -->
+                        </div>
+                        <h3>Tropical Garden Suite</h3>
+                        <p>Immerse yourself in lush tropical gardens</p>
+                        <div class="room-details">
+                            <span><i class="fas fa-bed"></i> Queen Bed</span>
+                            <span><i class="fas fa-ruler-combined"></i> 45 m²</span>
+                            <span><i class="fas fa-wifi"></i> Free WiFi</span>
+                        </div>
+                        <a href="#" class="btn-secondary">From $180/night</a>
+                    </div>
+                    <div class="room-card">
+                        <div class="room-image">
+                            <!-- 图片通过 CSS background-image 设置 -->
+                        </div>
+                        <h3>Private Pool Villa</h3>
+                        <p>Ultimate luxury with your own infinity pool</p>
+                        <div class="room-details">
+                            <span><i class="fas fa-bed"></i> King Bed</span>
+                            <span><i class="fas fa-ruler-combined"></i> 120 m²</span>
+                            <span><i class="fas fa-wifi"></i> Free WiFi</span>
+                        </div>
+                        <a href="#" class="btn-secondary">From $450/night</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Explore Section -->
+        <section id="explore" class="section">
+            <div class="container">
+                <h2 class="section-title">Explore Sri Lanka</h2>
+                <div class="explore-grid">
+                    <div class="explore-card">
+                        <i class="fas fa-landmark"></i>
+                        <h3>Cultural Heritage</h3>
+                        <p>Discover ancient temples and historical sites</p>
+                    </div>
+                    <div class="explore-card">
+                        <i class="fas fa-umbrella-beach"></i>
+                        <h3>Beautiful Beaches</h3>
+                        <p>Relax on pristine tropical beaches</p>
+                    </div>
+                    <div class="explore-card">
+                        <i class="fas fa-leaf"></i>
+                        <h3>Wildlife Safari</h3>
+                        <p>Experience unique wildlife encounters</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section">
+            <div class="container">
+                <h2 class="section-title">Contact Us</h2>
+                <div class="contact-grid">
+                    <div class="contact-info">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <p>123 Beach Road, Colombo, Sri Lanka</p>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-phone"></i>
+                            <p>+94 123 456 789</p>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-envelope"></i>
+                            <p>info@srilankastay.com</p>
+                        </div>
+                    </div>
+                    <form class="contact-form">
+                        <input type="text" placeholder="Name" required>
+                        <input type="email" placeholder="Email" required>
+                        <textarea placeholder="Message" required></textarea>
+                        <button type="submit" class="btn">Send Message</button>
+                    </form>
+                </div>
             </div>
         </section>
     </main>
 
+    <!-- AI Assistant -->
     <div id="ai-assistant" class="ai-assistant">
         <div class="ai-header">
-            <span class="ai-title"><i class="fas fa-robot"></i> AI Travel Assistant</span>
+            <span class="ai-title"><i class="fas fa-robot"></i> Travel Assistant</span>
             <button id="toggleAI" class="toggle-ai">
                 <i class="fas fa-chevron-up"></i>
             </button>
@@ -51,7 +180,7 @@
         <div class="ai-content">
             <div id="chatMessages" class="chat-messages"></div>
             <div class="chat-input">
-                <textarea id="userInput" placeholder="询问任何关于斯里兰卡旅游的问题..."></textarea>
+                <textarea id="userInput" placeholder="Ask anything about Sri Lanka..."></textarea>
                 <button id="sendMessage">
                     <i class="fas fa-paper-plane"></i>
                 </button>
@@ -63,7 +192,7 @@
         <div class="footer-content">
             <div class="footer-info">
                 <h3>Sri Lanka Stay & Explore</h3>
-                <p>您在斯里兰卡的完美住宿之选</p>
+                <p>Your Perfect Stay in Sri Lanka</p>
                 <div class="social-links">
                     <a href="#"><i class="fab fa-facebook"></i></a>
                     <a href="#"><i class="fab fa-instagram"></i></a>
@@ -73,6 +202,7 @@
         </div>
     </footer>
 
+    <script src="js/config.js"></script>
     <script src="js/translations.js"></script>
     <script src="js/main.js"></script>
     <script src="js/ai-assistant.js"></script>
