@@ -172,16 +172,34 @@
     <!-- AI Assistant -->
     <div id="ai-assistant" class="ai-assistant">
         <div class="ai-header">
-            <span class="ai-title"><i class="fas fa-robot"></i> Travel Assistant</span>
+            <span class="ai-title">
+                <i class="fas fa-robot"></i>
+                <span>Travel Assistant</span>
+            </span>
             <button id="toggleAI" class="toggle-ai">
                 <i class="fas fa-chevron-up"></i>
             </button>
         </div>
         <div class="ai-content">
-            <div id="chatMessages" class="chat-messages"></div>
+            <div id="chatMessages" class="chat-messages">
+                <!-- 默认欢迎消息 -->
+                <div class="message ai-message">
+                    Hello! I'm your Sri Lanka travel assistant. I can help you with:
+                    <ul>
+                        <li>Hotel information</li>
+                        <li>Local attractions</li>
+                        <li>Travel tips</li>
+                        <li>Booking assistance</li>
+                    </ul>
+                    How may I assist you today?
+                </div>
+            </div>
             <div class="chat-input">
-                <textarea id="userInput" placeholder="Ask anything about Sri Lanka..."></textarea>
-                <button id="sendMessage">
+                <textarea id="userInput" 
+                          placeholder="Ask me anything about Sri Lanka..." 
+                          rows="1"
+                          maxlength="500"></textarea>
+                <button id="sendMessage" class="send-button">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
