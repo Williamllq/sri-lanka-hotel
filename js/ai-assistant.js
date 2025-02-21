@@ -102,7 +102,8 @@ class AIAssistant {
             return data.choices[0].message.content;
         } catch (error) {
             console.error('API request error:', error);
-            throw error;
+            // 如果 API 调用失败，返回一个友好的错误消息
+            return "I'm currently experiencing some technical difficulties. In the meantime, you can reach our staff at info@srilankastay.com or call +94 123 456 789 for immediate assistance.";
         }
     }
 
