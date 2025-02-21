@@ -255,6 +255,13 @@ body {
     border: 1px solid rgba(0, 166, 166, 0.1);
     transition: all 0.3s ease;
     overflow: hidden;
+    transform: translateY(100%);
+    visibility: hidden;
+}
+
+.ai-assistant.active {
+    transform: translateY(0);
+    visibility: visible;
 }
 
 .ai-header {
@@ -404,4 +411,32 @@ footer {
 
 .social-links a:hover {
     color: var(--accent-color);
+}
+
+/* AI Assistant 悬浮按钮 */
+.show-ai-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--primary-color);
+    color: var(--light-text);
+    border: none;
+    border-radius: 50px;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 166, 166, 0.2);
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+.show-ai-btn:hover {
+    background: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.show-ai-btn i {
+    font-size: 1.2rem;
 } 

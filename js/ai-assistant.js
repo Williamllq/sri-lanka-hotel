@@ -2,7 +2,8 @@
 class AIAssistant {
     constructor() {
         this.initializeUI();
-        this.isCollapsed = false;
+        this.isCollapsed = true;
+        this.apiKey = config.apiKey; // 从配置文件获取 API key
     }
 
     initializeUI() {
@@ -12,10 +13,12 @@ class AIAssistant {
         this.userInput = document.getElementById('userInput');
         this.sendButton = document.getElementById('sendMessage');
         this.toggleButton = document.getElementById('toggleAI');
+        this.showButton = document.getElementById('showAI');
 
         // 绑定事件
         this.sendButton.addEventListener('click', () => this.sendMessage());
         this.toggleButton.addEventListener('click', () => this.toggleChat());
+        this.showButton.addEventListener('click', () => this.showChat());
         
         // 添加输入框事件
         this.userInput.addEventListener('keypress', (e) => {
@@ -32,12 +35,20 @@ class AIAssistant {
         });
     }
 
+    showChat() {
+        this.aiContainer.classList.add('active');
+        this.showButton.style.display = 'none';
+        this.isCollapsed = false;
+        this.aiContainer.classList.remove('collapsed');
+    }
+
     toggleChat() {
         this.isCollapsed = !this.isCollapsed;
+        if (this.isCollapsed) {
+            this.aiContainer.classList.remove('active');
+            this.showButton.style.display = 'flex';
+        }
         this.aiContainer.classList.toggle('collapsed');
-        const icon = this.toggleButton.querySelector('i');
-        icon.classList.toggle('fa-chevron-up');
-        icon.classList.toggle('fa-chevron-down');
     }
 
     async sendMessage() {
@@ -53,17 +64,45 @@ class AIAssistant {
         const loadingId = this.addMessage('Thinking...', 'ai');
 
         try {
-            // 模拟AI响应（这里可以替换为实际的API调用）
-            const response = await this.getAIResponse(message);
-            
-            // 移除加载消息
+            const response = await this.callDeepseekAPI(message);
             document.getElementById(loadingId).remove();
-            
-            // 添加AI响应
             this.addMessage(response, 'ai');
         } catch (error) {
+            console.error('API Error:', error);
             document.getElementById(loadingId).remove();
             this.addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+        }
+    }
+
+    async callDeepseekAPI(message) {
+        try {
+            const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{
+                        role: "system",
+                        content: "You are a knowledgeable Sri Lanka travel assistant. Help visitors with hotel information, local attractions, travel tips, and booking assistance. Be friendly and concise."
+                    }, {
+                        role: "user",
+                        content: message
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (error) {
+            console.error('API request error:', error);
+            throw error;
         }
     }
 
@@ -78,29 +117,6 @@ class AIAssistant {
         this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
         
         return messageId;
-    }
-
-    async getAIResponse(message) {
-        // 模拟API响应延迟
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // 简单的响应逻辑
-        const responses = {
-            'hello': 'Hello! How can I help you with your Sri Lanka travel plans?',
-            'rooms': 'We offer three types of rooms: Ocean View Suite, Tropical Garden Suite, and Private Pool Villa. Which one would you like to know more about?',
-            'price': 'Our room rates start from $180 per night for the Garden Suite. Would you like to know about specific room rates?',
-            'location': 'We are located in a prime beach area in Colombo, Sri Lanka. Would you like directions or transportation information?',
-            'default': 'I can help you with information about our rooms, facilities, local attractions, and booking assistance. What would you like to know?'
-        };
-
-        // 简单的关键词匹配
-        for (let key in responses) {
-            if (message.toLowerCase().includes(key)) {
-                return responses[key];
-            }
-        }
-
-        return responses.default;
     }
 }
 
