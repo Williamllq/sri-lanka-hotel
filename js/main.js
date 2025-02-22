@@ -107,4 +107,35 @@ document.addEventListener('DOMContentLoaded', function() {
             options[3].text = translations[language].luxury;
         }
     }
+
+    // 图片轮播功能
+    const track = document.querySelector('.carousel-track');
+    const slides = Array.from(track.children);
+    const nextButton = document.querySelector('.carousel-button.next');
+    const prevButton = document.querySelector('.carousel-button.prev');
+    
+    let currentIndex = 0;
+    const slideWidth = slides[0].getBoundingClientRect().width;
+    
+    // 设置幻灯片位置
+    slides.forEach((slide, index) => {
+        slide.style.left = slideWidth * index + 'px';
+    });
+    
+    // 移动幻灯片
+    const moveToSlide = (track, currentIndex) => {
+        track.style.transform = 'translateX(-' + currentIndex * slideWidth + 'px)';
+    };
+    
+    // 下一张
+    nextButton.addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % slides.length;
+        moveToSlide(track, currentIndex);
+    });
+    
+    // 上一张
+    prevButton.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        moveToSlide(track, currentIndex);
+    });
 }); 

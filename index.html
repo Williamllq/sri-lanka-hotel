@@ -17,9 +17,6 @@
 <body>
     <header>
         <nav class="main-nav">
-            <div class="logo">
-                <img src="images/logo.jpg" alt="Sri Lanka Stay & Explore" class="logo-img">
-            </div>
             <ul class="nav-links">
                 <li><a href="#home"><i class="fas fa-home"></i> Home</a></li>
                 <li><a href="#transport"><i class="fas fa-car"></i> Transport</a></li>
@@ -210,21 +207,63 @@
         <section id="explore" class="section">
             <div class="container">
                 <h2 class="section-title">Explore Sri Lanka</h2>
+                
+                <!-- 添加图片网格 -->
                 <div class="explore-grid">
                     <div class="explore-card">
-                        <i class="fas fa-landmark"></i>
-                        <h3>Cultural Heritage</h3>
-                        <p>Discover ancient temples and historical sites</p>
+                        <div class="explore-image">
+                            <img src="images/cultural.jpg" alt="Cultural Heritage">
+                        </div>
+                        <div class="explore-content">
+                            <i class="fas fa-landmark"></i>
+                            <h3>Cultural Heritage</h3>
+                            <p>Discover ancient temples and historical sites</p>
+                        </div>
                     </div>
+                    
                     <div class="explore-card">
-                        <i class="fas fa-umbrella-beach"></i>
-                        <h3>Beautiful Beaches</h3>
-                        <p>Relax on pristine tropical beaches</p>
+                        <div class="explore-image">
+                            <img src="images/beach.jpg" alt="Beautiful Beaches">
+                        </div>
+                        <div class="explore-content">
+                            <i class="fas fa-umbrella-beach"></i>
+                            <h3>Beautiful Beaches</h3>
+                            <p>Relax on pristine tropical beaches</p>
+                        </div>
                     </div>
+                    
                     <div class="explore-card">
-                        <i class="fas fa-leaf"></i>
-                        <h3>Wildlife Safari</h3>
-                        <p>Experience unique wildlife encounters</p>
+                        <div class="explore-image">
+                            <img src="images/wildlife.jpg" alt="Wildlife Safari">
+                        </div>
+                        <div class="explore-content">
+                            <i class="fas fa-leaf"></i>
+                            <h3>Wildlife Safari</h3>
+                            <p>Experience unique wildlife encounters</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 添加图片轮播 -->
+                <div class="image-showcase">
+                    <h3>Discover More</h3>
+                    <div class="image-carousel">
+                        <div class="carousel-track">
+                            <div class="carousel-slide">
+                                <img src="images/temple.jpg" alt="Ancient Temple">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="images/elephant.jpg" alt="Wild Elephant">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="images/tea.jpg" alt="Tea Plantations">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="images/waterfall.jpg" alt="Waterfall">
+                            </div>
+                        </div>
+                        <button class="carousel-button prev">❮</button>
+                        <button class="carousel-button next">❯</button>
                     </div>
                 </div>
             </div>
