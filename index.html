@@ -81,124 +81,119 @@
             <div class="container">
                 <h2 class="section-title">Transport Services</h2>
                 <div class="transport-grid">
-                    <div class="transport-info">
-                        <h3>Our Services</h3>
-                        <div class="service-types">
-                            <div class="service-item" data-service="airport">
-                                <i class="fas fa-plane-arrival"></i>
-                                <h4>Pick-up Service</h4>
-                                <p>Safe and comfortable transfer service</p>
-                            </div>
-                            <div class="service-item" data-service="charter">
-                                <i class="fas fa-car"></i>
-                                <h4>Private Car Charter</h4>
-                                <p>Explore Sri Lanka with our professional drivers</p>
-                            </div>
-                            <div class="service-item" data-service="city">
-                                <i class="fas fa-route"></i>
-                                <h4>City Tours</h4>
-                                <p>Customized tours with experienced guides</p>
-                            </div>
+                    <div class="transport-card">
+                        <img src="images/Car1.jpg" alt="Luxury Sedan">
+                        <h3>Luxury Sedan</h3>
+                        <p>Perfect for couples and small families</p>
+                    </div>
+                    <div class="transport-card">
+                        <img src="images/Car2.jpg" alt="Premium SUV">
+                        <h3>Premium SUV</h3>
+                        <p>Ideal for group travel</p>
+                    </div>
+                    <div class="transport-card">
+                        <img src="images/Car3.jpg" alt="Comfortable Van">
+                        <h3>Comfortable Van</h3>
+                        <p>Best for large groups</p>
+                    </div>
+                </div>
+                
+                <div class="booking-form">
+                    <h3>Book Your Transport</h3>
+                    <form id="transportForm">
+                        <div class="form-group">
+                            <label>Service Type</label>
+                            <select id="serviceType" required>
+                                <option value="">Select a service</option>
+                                <option value="airport">Pick-up Service</option>
+                                <option value="charter">Private Car Charter</option>
+                                <option value="city">City Tour</option>
+                            </select>
                         </div>
-                    </div>
-                    
-                    <div class="booking-form">
-                        <h3>Book Your Transport</h3>
-                        <form id="transportForm">
-                            <div class="form-group">
-                                <label>Service Type</label>
-                                <select id="serviceType" required>
-                                    <option value="">Select a service</option>
-                                    <option value="airport">Pick-up Service</option>
-                                    <option value="charter">Private Car Charter</option>
-                                    <option value="city">City Tour</option>
-                                </select>
-                            </div>
-                            
-                            <!-- 机场接送特有字段 -->
-                            <div class="form-group airport-field" style="display: none;">
-                                <label>Flight Number</label>
-                                <input type="text" id="flightNumber" placeholder="e.g., SQ469" pattern="[A-Z0-9]+" title="Please enter a valid flight number">
-                            </div>
-                            
-                            <!-- 包车特有字段 -->
-                            <div class="form-group charter-field" style="display: none;">
-                                <label>Duration</label>
-                                <select id="duration" required>
-                                    <option value="half-day">Half Day (4 hours)</option>
-                                    <option value="full-day">Full Day (8 hours)</option>
-                                    <option value="multi-day">Multiple Days</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group charter-field" style="display: none;">
-                                <label>Vehicle Type</label>
-                                <select id="vehicleType" required>
-                                    <option value="sedan">Sedan (max 3 passengers)</option>
-                                    <option value="suv">SUV (max 5 passengers)</option>
-                                    <option value="van">Van (max 8 passengers)</option>
-                                    <option value="luxury">Luxury Car (max 3 passengers)</option>
-                                </select>
-                            </div>
-                            
-                            <!-- 通用字段 -->
-                            <div class="form-group">
-                                <label>Date</label>
-                                <input type="date" id="serviceDate" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Time</label>
-                                <input type="time" id="serviceTime" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Number of Passengers</label>
-                                <select id="passengers" required>
-                                    <option value="1">1 person</option>
-                                    <option value="2">2 persons</option>
-                                    <option value="3">3 persons</option>
-                                    <option value="4">4 persons</option>
-                                    <option value="5">5 persons</option>
-                                    <option value="6">6 persons</option>
-                                    <option value="7">7 persons</option>
-                                    <option value="8">8 persons</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Pickup Location</label>
-                                <input type="text" 
-                                       id="pickupLocation" 
-                                       class="location-input"
-                                       placeholder="Enter pickup location" 
-                                       required>
-                                <div id="pickupMap" class="location-map"></div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Destination</label>
-                                <input type="text" 
-                                       id="destination" 
-                                       class="location-input"
-                                       placeholder="Enter destination" 
-                                       required>
-                                <div id="destinationMap" class="location-map"></div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Special Requirements</label>
-                                <textarea id="requirements" placeholder="Any special requirements?"></textarea>
-                            </div>
-                            
-                            <div class="price-estimate">
-                                <span>Estimated Price: </span>
-                                <span id="estimatedPrice">Select service type to see price</span>
-                            </div>
-                            
-                            <button type="submit" class="btn">Book Transport</button>
-                        </form>
-                    </div>
+                        
+                        <!-- 机场接送特有字段 -->
+                        <div class="form-group airport-field" style="display: none;">
+                            <label>Flight Number</label>
+                            <input type="text" id="flightNumber" placeholder="e.g., SQ469" pattern="[A-Z0-9]+" title="Please enter a valid flight number">
+                        </div>
+                        
+                        <!-- 包车特有字段 -->
+                        <div class="form-group charter-field" style="display: none;">
+                            <label>Duration</label>
+                            <select id="duration" required>
+                                <option value="half-day">Half Day (4 hours)</option>
+                                <option value="full-day">Full Day (8 hours)</option>
+                                <option value="multi-day">Multiple Days</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group charter-field" style="display: none;">
+                            <label>Vehicle Type</label>
+                            <select id="vehicleType" required>
+                                <option value="sedan">Sedan (max 3 passengers)</option>
+                                <option value="suv">SUV (max 5 passengers)</option>
+                                <option value="van">Van (max 8 passengers)</option>
+                                <option value="luxury">Luxury Car (max 3 passengers)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 通用字段 -->
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="serviceDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Time</label>
+                            <input type="time" id="serviceTime" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Number of Passengers</label>
+                            <select id="passengers" required>
+                                <option value="1">1 person</option>
+                                <option value="2">2 persons</option>
+                                <option value="3">3 persons</option>
+                                <option value="4">4 persons</option>
+                                <option value="5">5 persons</option>
+                                <option value="6">6 persons</option>
+                                <option value="7">7 persons</option>
+                                <option value="8">8 persons</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Pickup Location</label>
+                            <input type="text" 
+                                   id="pickupLocation" 
+                                   class="location-input"
+                                   placeholder="Enter pickup location" 
+                                   required>
+                            <div id="pickupMap" class="location-map"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Destination</label>
+                            <input type="text" 
+                                   id="destination" 
+                                   class="location-input"
+                                   placeholder="Enter destination" 
+                                   required>
+                            <div id="destinationMap" class="location-map"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Special Requirements</label>
+                            <textarea id="requirements" placeholder="Any special requirements?"></textarea>
+                        </div>
+                        
+                        <div class="price-estimate">
+                            <span>Estimated Price: </span>
+                            <span id="estimatedPrice">Select service type to see price</span>
+                        </div>
+                        
+                        <button type="submit" class="btn">Book Transport</button>
+                    </form>
                 </div>
             </div>
         </section>
@@ -212,34 +207,34 @@
                 <div class="explore-grid">
                     <div class="explore-card">
                         <div class="explore-image">
-                            <img src="images/temple_of_tooth.jpg" alt="Cultural Heritage">
+                            <img src="images/Tea factory 1.jpg" alt="Tea Plantations">
+                        </div>
+                        <div class="explore-content">
+                            <i class="fas fa-leaf"></i>
+                            <h3>Tea Plantations</h3>
+                            <p>Visit world-famous Ceylon tea plantations</p>
+                        </div>
+                    </div>
+                    
+                    <div class="explore-card">
+                        <div class="explore-image">
+                            <img src="images/Scenery in Sir Lanka elephant 1.jpg" alt="Wildlife Safari">
+                        </div>
+                        <div class="explore-content">
+                            <i class="fas fa-paw"></i>
+                            <h3>Wildlife Safari</h3>
+                            <p>Experience unique wildlife encounters</p>
+                        </div>
+                    </div>
+                    
+                    <div class="explore-card">
+                        <div class="explore-image">
+                            <img src="images/Scenery in Sir Lanka 4.jpg" alt="Cultural Heritage">
                         </div>
                         <div class="explore-content">
                             <i class="fas fa-landmark"></i>
                             <h3>Cultural Heritage</h3>
                             <p>Discover ancient temples and historical sites</p>
-                        </div>
-                    </div>
-                    
-                    <div class="explore-card">
-                        <div class="explore-image">
-                            <img src="images/unawatuna_beach.jpg" alt="Beautiful Beaches">
-                        </div>
-                        <div class="explore-content">
-                            <i class="fas fa-umbrella-beach"></i>
-                            <h3>Beautiful Beaches</h3>
-                            <p>Relax on pristine tropical beaches</p>
-                        </div>
-                    </div>
-                    
-                    <div class="explore-card">
-                        <div class="explore-image">
-                            <img src="images/yala_elephants.jpg" alt="Wildlife Safari">
-                        </div>
-                        <div class="explore-content">
-                            <i class="fas fa-leaf"></i>
-                            <h3>Wildlife Safari</h3>
-                            <p>Experience unique wildlife encounters</p>
                         </div>
                     </div>
                 </div>
@@ -250,16 +245,16 @@
                     <div class="image-carousel">
                         <div class="carousel-track">
                             <div class="carousel-slide">
-                                <img src="images/dambulla_cave.jpg" alt="Dambulla Cave Temple">
+                                <img src="images/Scenery in Sir Lanka 12.jpg" alt="Beautiful Scenery">
                             </div>
                             <div class="carousel-slide">
-                                <img src="images/tea_plantation.jpg" alt="Tea Plantations">
+                                <img src="images/Scenery in Sir Lanka 13.jpg" alt="Beach View">
                             </div>
                             <div class="carousel-slide">
-                                <img src="images/galle_fort.jpg" alt="Galle Fort">
+                                <img src="images/Scenery in Sir Lanka 14.jpg" alt="Nature">
                             </div>
                             <div class="carousel-slide">
-                                <img src="images/nine_arch.jpg" alt="Nine Arch Bridge">
+                                <img src="images/Scenery in Sir Lanka 15.jpg" alt="Landscape">
                             </div>
                         </div>
                         <button class="carousel-button prev">❮</button>

@@ -71,7 +71,7 @@ body {
 .hero {
     height: 100vh;
     background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
-                url('../images/sigiriya.jpg') center/cover;  /* 使用狮子岩的照片作为主页背景 */
+                url('images/Scenery in Sir Lanka 1.jpg') center/cover;  /* 使用斯里兰卡标志性风景 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -144,15 +144,15 @@ body {
 }
 
 .room-card:nth-child(1) .room-image {
-    background-image: url('../images/ocean_suite.jpg');
+    background-image: url('images/Image (16).jpg');
 }
 
 .room-card:nth-child(2) .room-image {
-    background-image: url('../images/garden_suite.jpg');
+    background-image: url('images/Image (17).jpg');
 }
 
 .room-card:nth-child(3) .room-image {
-    background-image: url('../images/pool_villa.jpg');
+    background-image: url('images/Image (23).jpg');
 }
 
 .room-card h3 {
