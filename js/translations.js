@@ -9,7 +9,12 @@ const translations = {
         experience: "在这里，体验独特的文化与自然之美",
         bookNow: "立即预订",
         footerTitle: "Sri Lanka Stay & Explore",
-        footerDesc: "您在斯里兰卡的完美住宿之选"
+        footerDesc: "您在斯里兰卡的完美住宿之选",
+        transport: "车辆服务",
+        airportPickup: "机场接送",
+        privateCharter: "包车服务",
+        cityTours: "城市观光",
+        bookTransport: "预订用车"
     },
     en: {
         home: "Home",
@@ -21,7 +26,12 @@ const translations = {
         experience: "Experience unique culture and natural beauty here",
         bookNow: "Book Now",
         footerTitle: "Sri Lanka Stay & Explore",
-        footerDesc: "Your Perfect Stay in Sri Lanka"
+        footerDesc: "Your Perfect Stay in Sri Lanka",
+        transport: "Transport",
+        airportPickup: "Airport Pickup",
+        privateCharter: "Private Charter",
+        cityTours: "City Tours",
+        bookTransport: "Book Transport"
     },
     de: {
         home: "Startseite",
@@ -33,6 +43,11 @@ const translations = {
         experience: "Erleben Sie hier einzigartige Kultur und natürliche Schönheit",
         bookNow: "Jetzt Buchen",
         footerTitle: "Sri Lanka Stay & Explore",
-        footerDesc: "Ihr perfekter Aufenthalt in Sri Lanka"
+        footerDesc: "Ihr perfekter Aufenthalt in Sri Lanka",
+        transport: "Transport",
+        airportPickup: "Flughafen Transfer",
+        privateCharter: "Privater Charter",
+        cityTours: "Stadtrundfahrten",
+        bookTransport: "Transport Buchen"
     }
 }; 
