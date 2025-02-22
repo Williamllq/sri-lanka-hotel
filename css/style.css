@@ -14,11 +14,24 @@
     box-sizing: border-box;
 }
 
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
 body {
     font-family: 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.6;
     color: var(--text-color);
     background-color: var(--bg-light);
+    overflow-x: hidden;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
 }
 
 /* Header & Navigation */
@@ -1135,4 +1148,10 @@ footer {
 
 .map-search .btn {
     padding: 0.8rem 1.5rem;
+}
+
+/* 图片响应式 */
+img {
+    max-width: 100%;
+    height: auto;
 } 
