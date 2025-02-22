@@ -70,8 +70,8 @@ body {
 /* Hero Section */
 .hero {
     height: 100vh;
-    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
-                url('images/Scenery in Sir Lanka 1.jpg') center/cover;  /* 使用斯里兰卡标志性风景 */
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                url('../images/hero-bg.jpg') center/cover;  /* 使用新下载的海滩日落照片 */
     display: flex;
     align-items: center;
     justify-content: center;
