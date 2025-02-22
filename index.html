@@ -17,6 +17,19 @@
     <!-- JavaScript -->
     <script src="js/translations.js"></script>
     <script src="js/main.js"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR-GA-ID"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'YOUR-GA-ID');
+    </script>
+
+    <!-- Cloudflare Web Analytics -->
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "YOUR-TOKEN"}'></script>
 </head>
 <body>
     <header>
@@ -63,7 +76,7 @@
                     <!-- 左侧：服务展示 -->
                     <div class="transport-info">
                         <div class="transport-card">
-                            <img src="images/Car3.jpg" alt="Comfortable Vehicle">
+                            <img src="images/Car4.jpg" alt="Comfortable Vehicle">
                             <h3>Safe & Comfortable Vehicle</h3>
                             <p>Clean and well-maintained vehicle ensuring a comfortable journey in Sri Lanka</p>
                             <ul class="vehicle-features">
@@ -222,6 +235,56 @@
                         </div>
                         <button class="carousel-button prev">❮</button>
                         <button class="carousel-button next">❯</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section id="testimonials" class="section">
+            <div class="container">
+                <h2 class="section-title">What Our Clients Say</h2>
+                <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <i class="fas fa-quote-left"></i>
+                            <p>Excellent service! The driver was very professional and knowledgeable. Made our trip in Sri Lanka unforgettable.</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="images/avatar1.jpg" alt="Client">
+                            <div class="author-info">
+                                <h4>Sarah Johnson</h4>
+                                <p>from United Kingdom</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <i class="fas fa-quote-left"></i>
+                            <p>Very comfortable vehicle and reliable service. The driver was punctual and friendly. Highly recommended!</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="images/avatar2.jpg" alt="Client">
+                            <div class="author-info">
+                                <h4>Michael Chen</h4>
+                                <p>from China</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <i class="fas fa-quote-left"></i>
+                            <p>Great experience! The driver knew all the best spots and helped us discover the real Sri Lanka.</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="images/avatar3.jpg" alt="Client">
+                            <div class="author-info">
+                                <h4>Anna Schmidt</h4>
+                                <p>from Germany</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
