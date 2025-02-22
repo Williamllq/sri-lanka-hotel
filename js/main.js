@@ -1,25 +1,55 @@
 // 主要JavaScript功能
 document.addEventListener('DOMContentLoaded', function() {
+    // 检查 translations 是否正确加载
+    if (typeof translations === 'undefined') {
+        console.error('translations.js not loaded!');
+        return;
+    }
+
     // 获取语言选择器
     const languageSelect = document.getElementById('languageSelect');
     
     // 定义需要翻译的元素
     const translatableElements = {
-        // Hero Section
-        heroTitle: document.querySelector('.hero-content h2'),
-        heroSubtitle: document.querySelector('.hero-content p'),
-        bookTransportBtn: document.querySelector('.hero-buttons .btn'),
-        exploreSriLankaBtn: document.querySelector('.hero-buttons .btn-secondary'),
-        
         // Navigation
-        navHome: document.querySelector('a[href="#home"]'),
-        navTransport: document.querySelector('a[href="#transport"]'),
-        navExplore: document.querySelector('a[href="#explore"]'),
-        navContact: document.querySelector('a[href="#contact"]'),
+        navHome: {
+            element: document.querySelector('a[href="#home"]'),
+            icon: '<i class="fas fa-home"></i> '
+        },
+        navTransport: {
+            element: document.querySelector('a[href="#transport"]'),
+            icon: '<i class="fas fa-car"></i> '
+        },
+        navExplore: {
+            element: document.querySelector('a[href="#explore"]'),
+            icon: '<i class="fas fa-compass"></i> '
+        },
+        navContact: {
+            element: document.querySelector('a[href="#contact"]'),
+            icon: '<i class="fas fa-envelope"></i> '
+        },
+        
+        // Hero Section
+        heroTitle: {
+            element: document.querySelector('.hero-content h2')
+        },
+        heroSubtitle: {
+            element: document.querySelector('.hero-content p')
+        },
+        bookTransport: {
+            element: document.querySelector('.hero-buttons .btn')
+        },
+        exploreSriLanka: {
+            element: document.querySelector('.hero-buttons .btn-secondary')
+        },
         
         // Why Choose Us
-        whyChooseUsTitle: document.querySelector('#about .section-title'),
-        aboutText: document.querySelector('.about-text p'),
+        whyChooseUs: {
+            element: document.querySelector('#about .section-title')
+        },
+        aboutText: {
+            element: document.querySelector('.about-text p')
+        },
         support247: document.querySelector('.about-features .feature-item:nth-child(1) span'),
         pricing: document.querySelector('.about-features .feature-item:nth-child(2) span'),
         guides: document.querySelector('.about-features .feature-item:nth-child(3) span'),
@@ -33,7 +63,9 @@ document.addEventListener('DOMContentLoaded', function() {
         serviceDesc: document.querySelector('.stat-item:nth-child(3) p'),
         
         // Transport Section
-        transportTitle: document.querySelector('#transport .section-title'),
+        transportServices: {
+            element: document.querySelector('#transport .section-title')
+        },
         sedanTitle: document.querySelector('.transport-card:nth-child(1) h3'),
         sedanDesc: document.querySelector('.transport-card:nth-child(1) p'),
         suvTitle: document.querySelector('.transport-card:nth-child(2) h3'),
@@ -48,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 更新页面文本的函数
     function updatePageText(language) {
-        // 检查语言文件是否存在
         if (!translations[language]) {
             console.error('Translation not found for language:', language);
             return;
@@ -56,14 +87,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 更新所有可翻译元素
         for (let key in translatableElements) {
-            const element = translatableElements[key];
-            if (element && translations[language][key]) {
-                // 保存图标（如果存在）
-                const icon = element.querySelector('i');
-                const iconHtml = icon ? icon.outerHTML : '';
-                
-                // 更新文本
-                element.innerHTML = iconHtml + translations[language][key];
+            const item = translatableElements[key];
+            const translation = translations[language][key];
+            
+            if (item.element && translation) {
+                item.element.innerHTML = (item.icon || '') + translation;
             }
         }
 
@@ -102,18 +130,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const element = document.getElementById(id);
             if (!element) continue;
 
-            // 更新标签
             const label = element.previousElementSibling;
             if (label && label.tagName === 'LABEL') {
                 label.textContent = translations[language][formElements[id].label];
             }
 
-            // 更新占位符
             if (formElements[id].placeholder) {
                 element.placeholder = translations[language][formElements[id].placeholder];
             }
 
-            // 更新选项
             if (formElements[id].options) {
                 const options = element.getElementsByTagName('option');
                 formElements[id].options.forEach((optionKey, index) => {
@@ -127,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 监听语言选择变化
     languageSelect.addEventListener('change', function() {
+        console.log('Language changed to:', this.value);  // 调试日志
         updatePageText(this.value);
     });
     
