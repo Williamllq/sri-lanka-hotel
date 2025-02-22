@@ -71,7 +71,7 @@ body {
 .hero {
     height: 100vh;
     background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-                url('../images/hero-bg.jpg') center/cover;  /* 使用新下载的海滩日落照片 */
+                url('../images/hero-bg.jpg') center/cover;
     display: flex;
     align-items: center;
     justify-content: center;
