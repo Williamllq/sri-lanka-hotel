@@ -55,88 +55,103 @@
             </div>
         </section>
 
-        <!-- About Section -->
-        <section id="about" class="section">
-            <div class="container">
-                <h2 class="section-title">Why Choose Us</h2>
-                <div class="about-grid">
-                    <div class="about-text">
-                        <p>With years of experience in Sri Lanka tourism, we provide professional transport services and personalized travel experiences. Our team of expert drivers and guides ensure your journey is safe, comfortable and memorable.</p>
-                        <div class="about-features">
-                            <div class="feature-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>24/7 Customer Support</span>
-                            </div>
-                            <div class="feature-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Competitive Pricing</span>
-                            </div>
-                            <div class="feature-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Experienced Local Guides</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="about-stats">
-                        <div class="stat-item">
-                            <i class="fas fa-car-side"></i>
-                            <h3>Professional Drivers</h3>
-                            <p>Skilled and courteous drivers with extensive local knowledge</p>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-route"></i>
-                            <h3>Custom Tours</h3>
-                            <p>Personalized itineraries tailored to your preferences</p>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-clock"></i>
-                            <h3>24/7 Service</h3>
-                            <p>Round-the-clock availability for your convenience</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Transport Section -->
         <section id="transport" class="section">
             <div class="container">
-                <h2 class="section-title">Transport Services</h2>
-                <div class="transport-grid">
-                    <div class="transport-card">
-                        <img src="images/Car1.jpg" alt="Premium SUV">
-                        <h3>Premium SUV</h3>
-                        <p>Comfortable and spacious Toyota Prado, perfect for your Sri Lanka journey</p>
-                        <ul class="vehicle-features">
-                            <li><i class="fas fa-users"></i> Up to 4 passengers</li>
-                            <li><i class="fas fa-suitcase"></i> Large luggage space</li>
-                            <li><i class="fas fa-snowflake"></i> Air conditioning</li>
-                            <li><i class="fas fa-shield-alt"></i> Safety features</li>
-                        </ul>
-                    </div>
+                <h2 class="section-title">Premium Transport Service</h2>
+                <div class="transport-card">
+                    <img src="images/Car1.jpg" alt="Premium SUV">
+                    <h3>Toyota Prado</h3>
+                    <p>Luxury SUV with professional local driver for your Sri Lanka journey</p>
+                    <ul class="vehicle-features">
+                        <li><i class="fas fa-users"></i> Up to 4 passengers</li>
+                        <li><i class="fas fa-suitcase"></i> Large luggage space</li>
+                        <li><i class="fas fa-snowflake"></i> Air conditioning</li>
+                        <li><i class="fas fa-shield-alt"></i> Safety features</li>
+                    </ul>
                 </div>
                 
                 <div class="service-features">
                     <div class="feature-card">
                         <i class="fas fa-car"></i>
-                        <h3>Well-Maintained Vehicle</h3>
-                        <p>Latest model Toyota Prado with regular maintenance and perfect condition</p>
+                        <h3>Premium Vehicle</h3>
+                        <p>Latest model Toyota Prado, regularly maintained for your comfort and safety</p>
                     </div>
                     <div class="feature-card">
                         <i class="fas fa-id-card"></i>
-                        <h3>Professional Local Driver</h3>
-                        <p>Experienced, English-speaking local driver with excellent driving record</p>
+                        <h3>Local Expert Driver</h3>
+                        <p>Professional English-speaking driver with extensive local knowledge</p>
                     </div>
                     <div class="feature-card">
                         <i class="fas fa-shield-alt"></i>
-                        <h3>24/7 Protection</h3>
-                        <p>Full accompaniment and protection throughout your journey</p>
+                        <h3>Complete Protection</h3>
+                        <p>24/7 accompaniment and security throughout your journey</p>
                     </div>
                     <div class="feature-card">
                         <i class="fas fa-map-marked-alt"></i>
-                        <h3>Local Expertise</h3>
-                        <p>Insider knowledge of routes, attractions, and local customs</p>
+                        <h3>Insider Knowledge</h3>
+                        <p>Access to hidden gems and authentic local experiences</p>
                     </div>
+                </div>
+
+                <!-- 预订表单 -->
+                <div class="booking-form">
+                    <h3>Book Your Journey</h3>
+                    <form id="transportForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Service Type</label>
+                                <select id="serviceType" required>
+                                    <option value="">Select a service</option>
+                                    <option value="airport">Airport Transfer</option>
+                                    <option value="charter">Private Charter</option>
+                                    <option value="tour">Guided Tour</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="serviceDate" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Time</label>
+                                <input type="time" id="serviceTime" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Number of Passengers</label>
+                                <select id="passengers" required>
+                                    <option value="1">1 Person</option>
+                                    <option value="2">2 People</option>
+                                    <option value="3">3 People</option>
+                                    <option value="4">4 People</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label>Pickup Location</label>
+                                <input type="text" id="pickupLocation" placeholder="Enter pickup location" required>
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label>Destination</label>
+                                <input type="text" id="destination" placeholder="Enter destination" required>
+                            </div>
+                            
+                            <div class="form-group full-width">
+                                <label>Special Requirements</label>
+                                <textarea id="requirements" placeholder="Any special requirements?"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="price-estimate">
+                            <span>Estimated Price: </span>
+                            <span id="estimatedPrice">Select service type to see price</span>
+                        </div>
+                        
+                        <button type="submit" class="btn">Book Now</button>
+                    </form>
                 </div>
             </div>
         </section>
@@ -144,7 +159,7 @@
         <!-- Explore Section -->
         <section id="explore" class="section">
             <div class="container">
-                <h2 class="section-title">Explore Sri Lanka</h2>
+                <h2 class="section-title">Discover Sri Lanka</h2>
                 
                 <!-- 添加图片网格 -->
                 <div class="explore-grid">
@@ -259,27 +274,21 @@
         <section id="contact" class="section">
             <div class="container">
                 <h2 class="section-title">Contact Us</h2>
-                <div class="contact-grid">
-                    <div class="contact-info">
-                        <div class="info-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <p>123 Beach Road, Colombo, Sri Lanka</p>
-                        </div>
-                        <div class="info-item">
+                <div class="contact-info">
+                    <div class="contact-details">
+                        <div class="contact-item">
                             <i class="fas fa-phone"></i>
-                            <p>+94 123 456 789</p>
+                            <p>+94 XX XXX XXXX</p>
                         </div>
-                        <div class="info-item">
+                        <div class="contact-item">
                             <i class="fas fa-envelope"></i>
                             <p>info@srilankastay.com</p>
                         </div>
+                        <div class="contact-item">
+                            <i class="fab fa-whatsapp"></i>
+                            <p>WhatsApp: +94 XX XXX XXXX</p>
+                        </div>
                     </div>
-                    <form class="contact-form">
-                        <input type="text" placeholder="Name" required>
-                        <input type="email" placeholder="Email" required>
-                        <textarea placeholder="Message" required></textarea>
-                        <button type="submit" class="btn">Send Message</button>
-                    </form>
                 </div>
             </div>
         </section>
