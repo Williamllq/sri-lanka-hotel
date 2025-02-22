@@ -109,72 +109,72 @@
         <!-- Transport Section -->
         <section id="transport" class="section">
             <div class="container">
-                <h2 class="section-title">Transport Services</h2>
+                <h2 class="section-title" data-i18n="transport-services">Transport Services</h2>
                 <div class="transport-booking-grid">
                     <!-- 左侧：服务展示 -->
                     <div class="transport-info">
                         <div class="transport-card">
                             <img src="images/Car4.jpg" alt="Comfortable Vehicle">
-                            <h3>Safe & Comfortable Vehicle</h3>
-                            <p>Clean and well-maintained vehicle ensuring a comfortable journey in Sri Lanka</p>
+                            <h3 data-i18n="safe-comfortable">Safe & Comfortable Vehicle</h3>
+                            <p data-i18n="vehicle-desc">Clean and well-maintained vehicle ensuring a comfortable journey in Sri Lanka</p>
                             <ul class="vehicle-features">
-                                <li><i class="fas fa-users"></i> Up to 4 passengers</li>
-                                <li><i class="fas fa-suitcase"></i> Large luggage space</li>
-                                <li><i class="fas fa-snowflake"></i> Air conditioning</li>
-                                <li><i class="fas fa-shield-alt"></i> Safety features</li>
+                                <li><i class="fas fa-users"></i> <span data-i18n="passengers">Up to 4 passengers</span></li>
+                                <li><i class="fas fa-suitcase"></i> <span data-i18n="luggage">Large luggage space</span></li>
+                                <li><i class="fas fa-snowflake"></i> <span data-i18n="ac">Air conditioning</span></li>
+                                <li><i class="fas fa-shield-alt"></i> <span data-i18n="safety">Safety features</span></li>
                             </ul>
                         </div>
                         
                         <div class="service-features">
                             <div class="feature-card">
                                 <i class="fas fa-car"></i>
-                                <h3>Quality Vehicle</h3>
-                                <p>Well-maintained vehicle ensuring your comfort and safety throughout the journey</p>
+                                <h3 data-i18n="quality-vehicle">Quality Vehicle</h3>
+                                <p data-i18n="quality-desc">Well-maintained vehicle ensuring your comfort and safety throughout the journey</p>
                             </div>
                             <div class="feature-card">
                                 <i class="fas fa-id-card"></i>
-                                <h3>Local Expert Driver</h3>
-                                <p>Professional English-speaking driver with extensive local knowledge</p>
+                                <h3 data-i18n="expert-driver">Local Expert Driver</h3>
+                                <p data-i18n="driver-desc">Professional English-speaking driver with extensive local knowledge</p>
                             </div>
                             <div class="feature-card">
                                 <i class="fas fa-shield-alt"></i>
-                                <h3>Complete Protection</h3>
-                                <p>24/7 accompaniment and security throughout your journey</p>
+                                <h3 data-i18n="protection">Complete Protection</h3>
+                                <p data-i18n="protection-desc">24/7 accompaniment and security throughout your journey</p>
                             </div>
                             <div class="feature-card">
                                 <i class="fas fa-map-marked-alt"></i>
-                                <h3>Insider Knowledge</h3>
-                                <p>Access to hidden gems and authentic local experiences</p>
+                                <h3 data-i18n="insider">Insider Knowledge</h3>
+                                <p data-i18n="insider-desc">Access to hidden gems and authentic local experiences</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- 右侧：预订表单 -->
                     <div class="booking-form">
-                        <h3>Book Your Journey</h3>
+                        <h3 data-i18n="book-journey">Book Your Journey</h3>
                         <div class="deposit-info">
                             <i class="fas fa-info-circle"></i>
-                            <p>A 30% deposit is required to confirm your booking</p>
+                            <p data-i18n="deposit-info">A 30% deposit is required to confirm your booking</p>
                         </div>
                         <form id="transportForm">
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label>Service Type</label>
+                                    <label data-i18n="service-type">Service Type</label>
                                     <select id="serviceType" required>
-                                        <option value="">Select a service</option>
-                                        <option value="airport">Airport Transfer</option>
-                                        <option value="charter">Private Charter</option>
-                                        <option value="tour">Guided Tour</option>
+                                        <option value="" data-i18n="select-service">Select a service</option>
+                                        <option value="airport" data-i18n="airport-transfer">Airport Transfer</option>
+                                        <option value="charter" data-i18n="private-charter">Private Charter</option>
+                                        <option value="tour" data-i18n="guided-tour">Guided Tour</option>
                                     </select>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label>Date</label>
+                                    <label data-i18n="date">Date</label>
                                     <input type="date" id="serviceDate" required>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label>Time</label>
+                                    <label data-i18n="time">Time</label>
                                     <input type="time" id="serviceTime" required>
                                 </div>
                                 

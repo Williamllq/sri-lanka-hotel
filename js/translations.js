@@ -770,17 +770,35 @@ const translations = {
 };
 
 function switchLanguage(lang) {
+    localStorage.setItem('selectedLanguage', lang);
+    
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
         if (translations[lang] && translations[lang][key]) {
-            element.textContent = translations[lang][key];
+            if (element.tagName === 'OPTION') {
+                element.text = translations[lang][key];
+            } else if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                element.placeholder = translations[lang][key];
+            } else {
+                element.textContent = translations[lang][key];
+            }
         }
     });
+
+    // 更新文档标题
+    document.title = translations[lang]['page-title'] || 'Best Travel, Best Choice | Sri Lanka Stay & Explore';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     const languageSelect = document.getElementById('languageSelect');
     if (languageSelect) {
+        // 从本地存储中获取之前选择的语言
+        const savedLanguage = localStorage.getItem('selectedLanguage');
+        if (savedLanguage) {
+            languageSelect.value = savedLanguage;
+            switchLanguage(savedLanguage);
+        }
+        
         languageSelect.addEventListener('change', function() {
             switchLanguage(this.value);
         });
