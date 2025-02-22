@@ -43,13 +43,15 @@ body {
 .logo {
     display: flex;
     align-items: center;
+    margin-right: 2rem;  /* 添加右边距 */
 }
 
 .logo-img {
-    height: 50px;  /* 调整为合适的大小 */
+    height: 50px;
     width: auto;
     transition: transform 0.3s ease;
-    border-radius: 8px;  /* 如果需要圆角 */
+    border-radius: 8px;
+    object-fit: contain;  /* 确保图片比例正确 */
 }
 
 .logo-img:hover {
@@ -628,5 +630,7 @@ footer {
 
 /* 支付相关样式 */
 .payment-section {
-    ...
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(0, 166, 166, 0.2);
 } 
