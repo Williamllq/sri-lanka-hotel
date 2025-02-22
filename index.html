@@ -31,12 +31,40 @@
     <!-- Cloudflare Web Analytics -->
     <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "YOUR-TOKEN"}'></script>
 
-    <!-- Mapbox -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-    <!-- Mapbox Geocoder -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css">
+    <!-- 在 body 末尾添加 -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="admin-header">
+            <h3>Admin Dashboard</h3>
+            <button class="close-admin">&times;</button>
+        </div>
+        <div class="admin-content">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <h4>Total Visits</h4>
+                    <div class="stat-number" id="totalVisits">0</div>
+                    <div class="stat-chart" id="visitsChart"></div>
+                </div>
+                <div class="stat-box">
+                    <h4>Bookings</h4>
+                    <div class="stat-number" id="totalBookings">0</div>
+                    <div class="stat-chart" id="bookingsChart"></div>
+                </div>
+                <div class="stat-box">
+                    <h4>Average Rating</h4>
+                    <div class="stat-number" id="avgRating">0.0</div>
+                    <div class="stat-chart" id="ratingsChart"></div>
+                </div>
+                <div class="stat-box">
+                    <h4>Popular Routes</h4>
+                    <div class="stat-list" id="popularRoutes"></div>
+                </div>
+            </div>
+            <div class="recent-feedback">
+                <h4>Recent Feedback</h4>
+                <div id="feedbackList"></div>
+            </div>
+        </div>
+    </div>
 </head>
 <body>
     <header>
@@ -159,22 +187,12 @@
                                 
                                 <div class="form-group full-width">
                                     <label>Pickup Location</label>
-                                    <div class="location-input">
-                                        <input type="text" id="pickupLocation" placeholder="Enter pickup location" required readonly>
-                                        <button type="button" class="map-btn" onclick="openMap('pickup')">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                        </button>
-                                    </div>
+                                    <input type="text" id="pickupLocation" placeholder="Enter pickup location" required>
                                 </div>
                                 
                                 <div class="form-group full-width">
                                     <label>Destination</label>
-                                    <div class="location-input">
-                                        <input type="text" id="destination" placeholder="Enter destination" required readonly>
-                                        <button type="button" class="map-btn" onclick="openMap('destination')">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                        </button>
-                                    </div>
+                                    <input type="text" id="destination" placeholder="Enter destination" required>
                                 </div>
                                 
                                 <div class="form-group full-width">
@@ -502,54 +520,5 @@
     <script src="js/config.js"></script>
     <script src="js/ai-assistant.js"></script>
     <script src="js/transport.js"></script>
-    <script src="js/map.js"></script>
-
-    <!-- 在 body 末尾添加 -->
-    <div id="adminPanel" class="admin-panel">
-        <div class="admin-header">
-            <h3>Admin Dashboard</h3>
-            <button class="close-admin">&times;</button>
-        </div>
-        <div class="admin-content">
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <h4>Total Visits</h4>
-                    <div class="stat-number" id="totalVisits">0</div>
-                    <div class="stat-chart" id="visitsChart"></div>
-                </div>
-                <div class="stat-box">
-                    <h4>Bookings</h4>
-                    <div class="stat-number" id="totalBookings">0</div>
-                    <div class="stat-chart" id="bookingsChart"></div>
-                </div>
-                <div class="stat-box">
-                    <h4>Average Rating</h4>
-                    <div class="stat-number" id="avgRating">0.0</div>
-                    <div class="stat-chart" id="ratingsChart"></div>
-                </div>
-                <div class="stat-box">
-                    <h4>Popular Routes</h4>
-                    <div class="stat-list" id="popularRoutes"></div>
-                </div>
-            </div>
-            <div class="recent-feedback">
-                <h4>Recent Feedback</h4>
-                <div id="feedbackList"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 地图模态框 -->
-    <div id="mapModal" class="modal">
-        <div class="modal-content map-modal">
-            <span class="close-modal">&times;</span>
-            <h3>Select Location</h3>
-            <div id="map"></div>
-            <div class="map-search">
-                <input type="text" id="searchLocation" placeholder="Search location...">
-                <button type="button" class="btn" onclick="confirmLocation()">Confirm Location</button>
-            </div>
-        </div>
-    </div>
 </body>
 </html> 
