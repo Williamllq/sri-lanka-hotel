@@ -13,15 +13,13 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_API_KEY&libraries=places"></script>
-    <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
     <header>
         <nav class="main-nav">
             <div class="logo">
                 <a href="#home">
-                    <img src="images/logo.png" alt="Sri Lanka Stay & Explore" class="logo-img">
+                    <img src="images/logo.jpg" alt="Sri Lanka Stay & Explore" class="logo-img">
                 </a>
             </div>
             <ul class="nav-links">
@@ -201,21 +199,6 @@
                             <div class="price-estimate">
                                 <span>Estimated Price: </span>
                                 <span id="estimatedPrice">Select service type to see price</span>
-                            </div>
-                            
-                            <div class="payment-section">
-                                <h4>Deposit Payment</h4>
-                                <div class="deposit-info">
-                                    <p>A deposit of 30% is required to confirm your booking.</p>
-                                    <div class="deposit-amount">
-                                        <span>Deposit Amount: </span>
-                                        <span id="depositAmount">$0</span>
-                                    </div>
-                                </div>
-                                <div id="card-element">
-                                    <!-- Stripe Card Element will be inserted here -->
-                                </div>
-                                <div id="card-errors" role="alert"></div>
                             </div>
                             
                             <button type="submit" class="btn">Book Transport</button>

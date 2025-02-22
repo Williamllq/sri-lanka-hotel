@@ -4,7 +4,9 @@ class AIAssistant {
         console.log('AI Assistant initializing...'); // 调试日志
         this.initializeUI();
         this.isCollapsed = true;
-        this.apiKey = config.apiKey; // 从配置文件获取 API key
+        // 存储两个 API key
+        this.deepseekKey = config.apiKey;
+        this.qianwenKey = 'sk-57d00c3d7e0544128b9c39a04cb7cbb3';
     }
 
     initializeUI() {
@@ -69,22 +71,28 @@ class AIAssistant {
         const message = this.userInput.value.trim();
         if (!message) return;
 
-        // 添加用户消息
         this.addMessage(message, 'user');
         this.userInput.value = '';
         this.userInput.style.height = 'auto';
 
-        // 显示加载状态
         const loadingId = this.addMessage('Thinking...', 'ai');
 
         try {
-            const response = await this.callDeepseekAPI(message);
+            // 首先尝试使用 Deepseek API
+            let response = await this.callDeepseekAPI(message);
+            
+            // 如果 Deepseek 失败，尝试使用千问 API
+            if (response.includes('technical difficulties')) {
+                console.log('Deepseek API failed, trying Qianwen API...');
+                response = await this.callQianwenAPI(message);
+            }
+
             document.getElementById(loadingId).remove();
             this.addMessage(response, 'ai');
         } catch (error) {
-            console.error('API Error:', error);
+            console.error('Both APIs failed:', error);
             document.getElementById(loadingId).remove();
-            this.addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+            this.addMessage('Sorry, I encountered an error. Please try again later.', 'ai');
         }
     }
 
@@ -94,7 +102,7 @@ class AIAssistant {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.apiKey}`
+                    'Authorization': `Bearer ${this.deepseekKey}`
                 },
                 body: JSON.stringify({
                     model: "deepseek-chat",
@@ -109,15 +117,46 @@ class AIAssistant {
             });
 
             if (!response.ok) {
-                throw new Error(`API request failed: ${response.status}`);
+                throw new Error(`Deepseek API failed: ${response.status}`);
             }
 
             const data = await response.json();
             return data.choices[0].message.content;
         } catch (error) {
-            console.error('API request error:', error);
-            // 如果 API 调用失败，返回一个友好的错误消息
-            return "I'm currently experiencing some technical difficulties. In the meantime, you can reach our staff at info@srilankastay.com or call +94 123 456 789 for immediate assistance.";
+            console.error('Deepseek API error:', error);
+            return "I'm currently experiencing some technical difficulties. Trying alternative service...";
+        }
+    }
+
+    async callQianwenAPI(message) {
+        try {
+            const response = await fetch('https://api.qianwen.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.qianwenKey}`
+                },
+                body: JSON.stringify({
+                    model: "qwen-max",
+                    messages: [{
+                        role: "system",
+                        content: "You are a knowledgeable Sri Lanka travel assistant. Help visitors with hotel information, local attractions, travel tips, and booking assistance. Be friendly and concise."
+                    }, {
+                        role: "user",
+                        content: message
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Qianwen API failed: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (error) {
+            console.error('Qianwen API error:', error);
+            throw error;
         }
     }
 
