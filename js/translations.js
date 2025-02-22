@@ -73,7 +73,7 @@ const translations = {
         culturalHeritage: "文化遗产",
         culturalDesc: "探索古老的寺庙和历史遗迹",
         discoverMore: "发现更多",
-        heroTitle: "最佳旅行，最佳选择",
+        heroTitle: "最佳旅行 - 最佳选择",
         heroSubtitle: "您在斯里兰卡的优质旅行体验",
         bookTransport: "预订交通",
         exploreLanka: "探索斯里兰卡",
@@ -169,7 +169,7 @@ const translations = {
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
         discoverMore: "Discover More",
-        heroTitle: "Best Travel, Best Choice",
+        heroTitle: "Best Travel - Best Choice",
         heroSubtitle: "Your premium travel experience in Sri Lanka",
         bookTransport: "Book Transport",
         exploreLanka: "Explore Sri Lanka",
@@ -265,7 +265,7 @@ const translations = {
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
         discoverMore: "Discover More",
-        heroTitle: "Best Travel, Best Choice",
+        heroTitle: "Beste Reise - Beste Wahl",
         heroSubtitle: "Your premium travel experience in Sri Lanka",
         bookTransport: "Book Transport",
         exploreLanka: "Explore Sri Lanka",
@@ -361,7 +361,7 @@ const translations = {
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
         discoverMore: "Discover More",
-        heroTitle: "Best Travel, Best Choice",
+        heroTitle: "Best Travel - Best Choice",
         heroSubtitle: "Your premium travel experience in Sri Lanka",
         bookTransport: "Book Transport",
         exploreLanka: "Explore Sri Lanka",
@@ -457,7 +457,7 @@ const translations = {
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
         discoverMore: "Discover More",
-        heroTitle: "Best Travel, Best Choice",
+        heroTitle: "Best Travel - Best Choice",
         heroSubtitle: "Your premium travel experience in Sri Lanka",
         bookTransport: "Book Transport",
         exploreLanka: "Explore Sri Lanka",
@@ -553,7 +553,7 @@ const translations = {
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
         discoverMore: "Discover More",
-        heroTitle: "Best Travel, Best Choice",
+        heroTitle: "Лучшее Путешествие - Лучший Выбор",
         heroSubtitle: "Your premium travel experience in Sri Lanka",
         bookTransport: "Book Transport",
         exploreLanka: "Explore Sri Lanka",
@@ -649,7 +649,7 @@ const translations = {
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
         discoverMore: "Discover More",
-        heroTitle: "Best Travel, Best Choice",
+        heroTitle: "Meilleur Voyage - Meilleur Choix",
         heroSubtitle: "Your premium travel experience in Sri Lanka",
         bookTransport: "Book Transport",
         exploreLanka: "Explore Sri Lanka",
@@ -745,7 +745,7 @@ const translations = {
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
         discoverMore: "Discover More",
-        heroTitle: "Best Travel, Best Choice",
+        heroTitle: "Mejor Viaje - Mejor Elección",
         heroSubtitle: "Your premium travel experience in Sri Lanka",
         bookTransport: "Book Transport",
         exploreLanka: "Explore Sri Lanka",
@@ -786,7 +786,7 @@ function switchLanguage(lang) {
     });
 
     // 更新文档标题
-    document.title = translations[lang]['page-title'] || 'Best Travel, Best Choice | Sri Lanka Stay & Explore';
+    document.title = translations[lang]['page-title'] || 'Best Travel - Best Choice | Sri Lanka Stay & Explore';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
