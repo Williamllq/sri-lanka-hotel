@@ -43,15 +43,15 @@ body {
 .logo {
     display: flex;
     align-items: center;
-    margin-right: 2rem;  /* 添加右边距 */
+    margin-right: 2rem;
 }
 
 .logo-img {
     height: 50px;
     width: auto;
     transition: transform 0.3s ease;
-    border-radius: 8px;
-    object-fit: contain;  /* 确保图片比例正确 */
+    object-fit: contain;
+    display: block; /* 确保图片显示 */
 }
 
 .logo-img:hover {
