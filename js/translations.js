@@ -93,7 +93,9 @@ const translations = {
         insider: "Insider Knowledge",
         insiderDesc: "Access to hidden gems and authentic local experiences",
         bookJourney: "Book Your Journey",
-        depositInfo: "A 30% deposit is required to confirm your booking"
+        depositInfo: "A 30% deposit is required to confirm your booking",
+        page-title: "Sri Lanka Stay & Explore | 最佳旅行 - 最佳选择",
+        slogan: "最佳旅行 - 最佳选择"
     },
     en: {
         home: "Home",
@@ -189,7 +191,9 @@ const translations = {
         insider: "Insider Knowledge",
         insiderDesc: "Access to hidden gems and authentic local experiences",
         bookJourney: "Book Your Journey",
-        depositInfo: "A 30% deposit is required to confirm your booking"
+        depositInfo: "A 30% deposit is required to confirm your booking",
+        page-title: "Sri Lanka Stay & Explore | Best Travel - Best Choice",
+        slogan: "Best Travel - Best Choice"
     },
     de: {
         home: "Startseite",
@@ -285,7 +289,9 @@ const translations = {
         insider: "Insider Knowledge",
         insiderDesc: "Access to hidden gems and authentic local experiences",
         bookJourney: "Book Your Journey",
-        depositInfo: "A 30% deposit is required to confirm your booking"
+        depositInfo: "A 30% deposit is required to confirm your booking",
+        page-title: "Sri Lanka Stay & Explore | Best Travel - Best Choice",
+        slogan: "Best Travel - Best Choice"
     },
     si: {
         home: "මුල් පිටුව",
@@ -381,7 +387,9 @@ const translations = {
         insider: "Insider Knowledge",
         insiderDesc: "Access to hidden gems and authentic local experiences",
         bookJourney: "Book Your Journey",
-        depositInfo: "A 30% deposit is required to confirm your booking"
+        depositInfo: "A 30% deposit is required to confirm your booking",
+        page-title: "Sri Lanka Stay & Explore | Best Travel - Best Choice",
+        slogan: "Best Travel - Best Choice"
     },
     ta: {
         home: "முகப்பு",
@@ -477,7 +485,9 @@ const translations = {
         insider: "Insider Knowledge",
         insiderDesc: "Access to hidden gems and authentic local experiences",
         bookJourney: "Book Your Journey",
-        depositInfo: "A 30% deposit is required to confirm your booking"
+        depositInfo: "A 30% deposit is required to confirm your booking",
+        page-title: "Sri Lanka Stay & Explore | Best Travel - Best Choice",
+        slogan: "Best Travel - Best Choice"
     },
     ru: {
         home: "Главная",
@@ -573,7 +583,9 @@ const translations = {
         insider: "Insider Knowledge",
         insiderDesc: "Access to hidden gems and authentic local experiences",
         bookJourney: "Book Your Journey",
-        depositInfo: "A 30% deposit is required to confirm your booking"
+        depositInfo: "A 30% deposit is required to confirm your booking",
+        page-title: "Sri Lanka Stay & Explore | Best Travel - Best Choice",
+        slogan: "Best Travel - Best Choice"
     },
     fr: {
         home: "Accueil",
@@ -669,7 +681,9 @@ const translations = {
         insider: "Insider Knowledge",
         insiderDesc: "Access to hidden gems and authentic local experiences",
         bookJourney: "Book Your Journey",
-        depositInfo: "A 30% deposit is required to confirm your booking"
+        depositInfo: "A 30% deposit is required to confirm your booking",
+        page-title: "Sri Lanka Stay & Explore | Best Travel - Best Choice",
+        slogan: "Best Travel - Best Choice"
     },
     es: {
         home: "Inicio",
@@ -765,7 +779,9 @@ const translations = {
         insider: "Insider Knowledge",
         insiderDesc: "Access to hidden gems and authentic local experiences",
         bookJourney: "Book Your Journey",
-        depositInfo: "A 30% deposit is required to confirm your booking"
+        depositInfo: "A 30% deposit is required to confirm your booking",
+        page-title: "Sri Lanka Stay & Explore | Best Travel - Best Choice",
+        slogan: "Best Travel - Best Choice"
     }
 };
 
