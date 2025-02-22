@@ -770,4 +770,52 @@ footer {
 .booking-form .btn {
     width: 100%;
     margin-top: 1rem;
+}
+
+/* Transport Section Layout */
+.transport-booking-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+    margin-top: 2rem;
+}
+
+.transport-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.transport-card {
+    max-width: 100%;  /* 修改宽度限制 */
+    margin: 0;  /* 移除自动边距 */
+}
+
+.service-features {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.booking-form {
+    margin: 0;  /* 移除上下边距 */
+    height: 100%;  /* 确保与左侧等高 */
+}
+
+/* 响应式调整 */
+@media (max-width: 1024px) {
+    .transport-booking-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .service-features {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .booking-form {
+        margin-top: 2rem;
+    }
 } 

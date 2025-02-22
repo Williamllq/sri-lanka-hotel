@@ -58,100 +58,105 @@
         <!-- Transport Section -->
         <section id="transport" class="section">
             <div class="container">
-                <h2 class="section-title">Premium Transport Service</h2>
-                <div class="transport-card">
-                    <img src="images/Car1.jpg" alt="Premium SUV">
-                    <h3>Toyota Prado</h3>
-                    <p>Luxury SUV with professional local driver for your Sri Lanka journey</p>
-                    <ul class="vehicle-features">
-                        <li><i class="fas fa-users"></i> Up to 4 passengers</li>
-                        <li><i class="fas fa-suitcase"></i> Large luggage space</li>
-                        <li><i class="fas fa-snowflake"></i> Air conditioning</li>
-                        <li><i class="fas fa-shield-alt"></i> Safety features</li>
-                    </ul>
-                </div>
-                
-                <div class="service-features">
-                    <div class="feature-card">
-                        <i class="fas fa-car"></i>
-                        <h3>Premium Vehicle</h3>
-                        <p>Latest model Toyota Prado, regularly maintained for your comfort and safety</p>
+                <h2 class="section-title">Transport Services</h2>
+                <div class="transport-booking-grid">
+                    <!-- 左侧：服务展示 -->
+                    <div class="transport-info">
+                        <div class="transport-card">
+                            <img src="images/Car1.jpg" alt="Premium SUV">
+                            <h3>Toyota Prado</h3>
+                            <p>Luxury SUV with professional local driver for your Sri Lanka journey</p>
+                            <ul class="vehicle-features">
+                                <li><i class="fas fa-users"></i> Up to 4 passengers</li>
+                                <li><i class="fas fa-suitcase"></i> Large luggage space</li>
+                                <li><i class="fas fa-snowflake"></i> Air conditioning</li>
+                                <li><i class="fas fa-shield-alt"></i> Safety features</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="service-features">
+                            <div class="feature-card">
+                                <i class="fas fa-car"></i>
+                                <h3>Premium Vehicle</h3>
+                                <p>Latest model Toyota Prado, regularly maintained for your comfort and safety</p>
+                            </div>
+                            <div class="feature-card">
+                                <i class="fas fa-id-card"></i>
+                                <h3>Local Expert Driver</h3>
+                                <p>Professional English-speaking driver with extensive local knowledge</p>
+                            </div>
+                            <div class="feature-card">
+                                <i class="fas fa-shield-alt"></i>
+                                <h3>Complete Protection</h3>
+                                <p>24/7 accompaniment and security throughout your journey</p>
+                            </div>
+                            <div class="feature-card">
+                                <i class="fas fa-map-marked-alt"></i>
+                                <h3>Insider Knowledge</h3>
+                                <p>Access to hidden gems and authentic local experiences</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="feature-card">
-                        <i class="fas fa-id-card"></i>
-                        <h3>Local Expert Driver</h3>
-                        <p>Professional English-speaking driver with extensive local knowledge</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="fas fa-shield-alt"></i>
-                        <h3>Complete Protection</h3>
-                        <p>24/7 accompaniment and security throughout your journey</p>
-                    </div>
-                    <div class="feature-card">
-                        <i class="fas fa-map-marked-alt"></i>
-                        <h3>Insider Knowledge</h3>
-                        <p>Access to hidden gems and authentic local experiences</p>
-                    </div>
-                </div>
 
-                <!-- 预订表单 -->
-                <div class="booking-form">
-                    <h3>Book Your Journey</h3>
-                    <form id="transportForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Service Type</label>
-                                <select id="serviceType" required>
-                                    <option value="">Select a service</option>
-                                    <option value="airport">Airport Transfer</option>
-                                    <option value="charter">Private Charter</option>
-                                    <option value="tour">Guided Tour</option>
-                                </select>
+                    <!-- 右侧：预订表单 -->
+                    <div class="booking-form">
+                        <h3>Book Your Journey</h3>
+                        <form id="transportForm">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Service Type</label>
+                                    <select id="serviceType" required>
+                                        <option value="">Select a service</option>
+                                        <option value="airport">Airport Transfer</option>
+                                        <option value="charter">Private Charter</option>
+                                        <option value="tour">Guided Tour</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Date</label>
+                                    <input type="date" id="serviceDate" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Time</label>
+                                    <input type="time" id="serviceTime" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Number of Passengers</label>
+                                    <select id="passengers" required>
+                                        <option value="1">1 Person</option>
+                                        <option value="2">2 People</option>
+                                        <option value="3">3 People</option>
+                                        <option value="4">4 People</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label>Pickup Location</label>
+                                    <input type="text" id="pickupLocation" placeholder="Enter pickup location" required>
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label>Destination</label>
+                                    <input type="text" id="destination" placeholder="Enter destination" required>
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label>Special Requirements</label>
+                                    <textarea id="requirements" placeholder="Any special requirements?"></textarea>
+                                </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label>Date</label>
-                                <input type="date" id="serviceDate" required>
+                            <div class="price-estimate">
+                                <span>Estimated Price: </span>
+                                <span id="estimatedPrice">Select service type to see price</span>
                             </div>
                             
-                            <div class="form-group">
-                                <label>Time</label>
-                                <input type="time" id="serviceTime" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Number of Passengers</label>
-                                <select id="passengers" required>
-                                    <option value="1">1 Person</option>
-                                    <option value="2">2 People</option>
-                                    <option value="3">3 People</option>
-                                    <option value="4">4 People</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group full-width">
-                                <label>Pickup Location</label>
-                                <input type="text" id="pickupLocation" placeholder="Enter pickup location" required>
-                            </div>
-                            
-                            <div class="form-group full-width">
-                                <label>Destination</label>
-                                <input type="text" id="destination" placeholder="Enter destination" required>
-                            </div>
-                            
-                            <div class="form-group full-width">
-                                <label>Special Requirements</label>
-                                <textarea id="requirements" placeholder="Any special requirements?"></textarea>
-                            </div>
-                        </div>
-                        
-                        <div class="price-estimate">
-                            <span>Estimated Price: </span>
-                            <span id="estimatedPrice">Select service type to see price</span>
-                        </div>
-                        
-                        <button type="submit" class="btn">Book Now</button>
-                    </form>
+                            <button type="submit" class="btn">Book Now</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </section>
