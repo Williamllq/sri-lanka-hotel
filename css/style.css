@@ -506,11 +506,17 @@ footer {
     border-radius: 15px;
     text-align: center;
     box-shadow: 0 5px 15px rgba(0, 166, 166, 0.1);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
 }
 
 .service-item:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 166, 166, 0.2);
+}
+
+.service-item.active {
+    border: 2px solid var(--primary-color);
 }
 
 .service-item i {

@@ -132,4 +132,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const today = new Date().toISOString().split('T')[0];
         dateInput.min = today;
     }
+
+    // 添加服务项点击事件
+    document.querySelectorAll('.service-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const serviceType = this.dataset.service;
+            const selectElement = document.getElementById('serviceType');
+            selectElement.value = serviceType;
+            
+            // 触发 change 事件以更新表单
+            const event = new Event('change');
+            selectElement.dispatchEvent(event);
+            
+            // 滚动到预订表单
+            document.querySelector('.booking-form').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        });
+    });
 }); 

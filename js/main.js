@@ -51,6 +51,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function updateLanguage(language) {
+        // 遍历所有带有 data-translate 属性的元素
+        document.querySelectorAll('[data-translate]').forEach(element => {
+            const key = element.getAttribute('data-translate');
+            if (translations[language][key]) {
+                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                    element.placeholder = translations[language][key];
+                } else {
+                    element.textContent = translations[language][key];
+                }
+            }
+        });
+
+        // 更新表单选项
+        updateFormOptions(language);
+
         // 更新导航菜单
         translatableElements['nav-home'].innerHTML = navIcons['nav-home'] + translations[language].home;
         translatableElements['nav-rooms'].innerHTML = navIcons['nav-rooms'] + translations[language].rooms;
@@ -69,5 +84,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 更新文档语言
         document.documentElement.lang = language;
+    }
+
+    function updateFormOptions(language) {
+        // 更新服务类型选择
+        const serviceType = document.getElementById('serviceType');
+        if (serviceType) {
+            const options = serviceType.options;
+            options[0].text = translations[language].selectService;
+            options[1].text = translations[language].pickupService;
+            options[2].text = translations[language].privateCharter;
+            options[3].text = translations[language].cityTours;
+        }
+
+        // 更新车型选择
+        const vehicleType = document.getElementById('vehicleType');
+        if (vehicleType) {
+            const options = vehicleType.options;
+            options[0].text = translations[language].sedan;
+            options[1].text = translations[language].suv;
+            options[2].text = translations[language].van;
+            options[3].text = translations[language].luxury;
+        }
     }
 }); 
