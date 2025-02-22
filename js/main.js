@@ -3,16 +3,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // 获取语言选择器
     const languageSelect = document.getElementById('languageSelect');
     
-    // 获取所有需要翻译的元素
+    // 定义需要翻译的元素
     const translatableElements = {
         // Hero Section
         heroTitle: document.querySelector('.hero-content h2'),
         heroSubtitle: document.querySelector('.hero-content p'),
-        bookTransport: document.querySelector('.hero-buttons .btn'),
-        exploreSriLanka: document.querySelector('.hero-buttons .btn-secondary'),
+        bookTransportBtn: document.querySelector('.hero-buttons .btn'),
+        exploreSriLankaBtn: document.querySelector('.hero-buttons .btn-secondary'),
+        
+        // Navigation
+        navHome: document.querySelector('a[href="#home"]'),
+        navTransport: document.querySelector('a[href="#transport"]'),
+        navExplore: document.querySelector('a[href="#explore"]'),
+        navContact: document.querySelector('a[href="#contact"]'),
         
         // Why Choose Us
-        whyChooseUs: document.querySelector('#about .section-title'),
+        whyChooseUsTitle: document.querySelector('#about .section-title'),
         aboutText: document.querySelector('.about-text p'),
         support247: document.querySelector('.about-features .feature-item:nth-child(1) span'),
         pricing: document.querySelector('.about-features .feature-item:nth-child(2) span'),
@@ -27,63 +33,94 @@ document.addEventListener('DOMContentLoaded', function() {
         serviceDesc: document.querySelector('.stat-item:nth-child(3) p'),
         
         // Transport Section
-        transportServices: document.querySelector('#transport .section-title'),
-        // ... 添加更多元素
+        transportTitle: document.querySelector('#transport .section-title'),
+        sedanTitle: document.querySelector('.transport-card:nth-child(1) h3'),
+        sedanDesc: document.querySelector('.transport-card:nth-child(1) p'),
+        suvTitle: document.querySelector('.transport-card:nth-child(2) h3'),
+        suvDesc: document.querySelector('.transport-card:nth-child(2) p'),
+        vanTitle: document.querySelector('.transport-card:nth-child(3) h3'),
+        vanDesc: document.querySelector('.transport-card:nth-child(3) p'),
+        
+        // Booking Form
+        bookingTitle: document.querySelector('.booking-form h3'),
+        // ... 添加更多表单元素
     };
     
     // 更新页面文本的函数
     function updatePageText(language) {
+        // 检查语言文件是否存在
+        if (!translations[language]) {
+            console.error('Translation not found for language:', language);
+            return;
+        }
+
+        // 更新所有可翻译元素
         for (let key in translatableElements) {
-            if (translatableElements[key] && translations[language][key]) {
-                translatableElements[key].textContent = translations[language][key];
+            const element = translatableElements[key];
+            if (element && translations[language][key]) {
+                // 保存图标（如果存在）
+                const icon = element.querySelector('i');
+                const iconHtml = icon ? icon.outerHTML : '';
+                
+                // 更新文本
+                element.innerHTML = iconHtml + translations[language][key];
             }
         }
-        
-        // 更新导航链接
-        document.querySelectorAll('.nav-links a').forEach(link => {
-            const href = link.getAttribute('href').replace('#', '');
-            if (translations[language][href]) {
-                const icon = link.querySelector('i').outerHTML; // 保存图标
-                link.innerHTML = icon + ' ' + translations[language][href];
-            }
-        });
-        
+
         // 更新表单元素
         updateFormElements(language);
     }
     
     // 更新表单元素的函数
     function updateFormElements(language) {
-        // 更新选择框选项
-        const serviceType = document.getElementById('serviceType');
-        if (serviceType) {
-            serviceType.options[0].text = translations[language].selectService;
-            serviceType.options[1].text = translations[language].pickupService;
-            serviceType.options[2].text = translations[language].privateCharter;
-            serviceType.options[3].text = translations[language].cityTour;
-        }
-        
-        // 更新标签和占位符
-        const formLabels = {
-            'serviceType': 'serviceType',
-            'vehicleType': 'vehicleType',
-            'serviceDate': 'date',
-            'serviceTime': 'time',
-            'pickupLocation': 'pickupLocation',
-            'destination': 'destination',
-            'requirements': 'specialRequirements'
+        const formElements = {
+            serviceType: {
+                label: 'serviceType',
+                options: ['selectService', 'pickupService', 'privateCharter', 'cityTour']
+            },
+            vehicleType: {
+                label: 'vehicleType',
+                options: ['sedan', 'suv', 'van']
+            },
+            serviceDate: { label: 'date' },
+            serviceTime: { label: 'time' },
+            pickupLocation: { 
+                label: 'pickupLocation',
+                placeholder: 'enterPickup'
+            },
+            destination: {
+                label: 'destination',
+                placeholder: 'enterDestination'
+            },
+            requirements: {
+                label: 'specialRequirements',
+                placeholder: 'anyRequirements'
+            }
         };
-        
-        for (let id in formLabels) {
+
+        for (let id in formElements) {
             const element = document.getElementById(id);
-            if (element) {
-                const label = element.previousElementSibling;
-                if (label && label.tagName === 'LABEL') {
-                    label.textContent = translations[language][formLabels[id]];
-                }
-                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                    element.placeholder = translations[language]['enter' + formLabels[id].charAt(0).toUpperCase() + formLabels[id].slice(1)];
-                }
+            if (!element) continue;
+
+            // 更新标签
+            const label = element.previousElementSibling;
+            if (label && label.tagName === 'LABEL') {
+                label.textContent = translations[language][formElements[id].label];
+            }
+
+            // 更新占位符
+            if (formElements[id].placeholder) {
+                element.placeholder = translations[language][formElements[id].placeholder];
+            }
+
+            // 更新选项
+            if (formElements[id].options) {
+                const options = element.getElementsByTagName('option');
+                formElements[id].options.forEach((optionKey, index) => {
+                    if (options[index]) {
+                        options[index].textContent = translations[language][optionKey];
+                    }
+                });
             }
         }
     }
