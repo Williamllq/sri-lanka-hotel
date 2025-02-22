@@ -6,6 +6,7 @@ let destinationMarker;
 
 // 初始化地图
 function initMap() {
+    console.log('initMap called');
     map = L.map('map').setView([7.8731, 80.7718], 8); // 斯里兰卡中心点
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -77,9 +78,11 @@ function setMarker(latlng) {
 
 // 打开地图
 function openMap(field) {
+    console.log('Opening map for:', field);
     currentField = field;
     document.getElementById('mapModal').style.display = 'block';
     if (!map) {
+        console.log('Initializing map');
         initMap();
     }
     setTimeout(() => {
@@ -120,10 +123,21 @@ function confirmLocation() {
 
 // 关闭模态框
 document.addEventListener('DOMContentLoaded', function() {
+    // 初始化关闭按钮
     const closeButtons = document.getElementsByClassName('close-modal');
     for (let button of closeButtons) {
         button.onclick = function() {
             this.closest('.modal').style.display = 'none';
         }
     }
+
+    // 初始化地图按钮点击事件
+    const mapButtons = document.querySelectorAll('.map-btn');
+    mapButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const field = this.getAttribute('data-field');
+            openMap(field);
+        });
+    });
 }); 
