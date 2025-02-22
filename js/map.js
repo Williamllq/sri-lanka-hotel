@@ -1,89 +1,69 @@
 let map;
 let marker;
-let vectorLayer;
 let currentField;
+
+// Mapbox access token
+mapboxgl.accessToken = '您的实际token';
 
 // 初始化地图
 function initMap() {
-    // 创建矢量图层来放置标记
-    vectorLayer = new ol.layer.Vector({
-        source: new ol.source.Vector()
+    map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [80.7718, 7.8731], // 斯里兰卡中心点
+        zoom: 8
     });
 
-    // 创建地图
-    map = new ol.Map({
-        target: 'map',
-        layers: [
-            new ol.layer.Tile({
-                source: new ol.source.OSM()
-            }),
-            vectorLayer
-        ],
-        view: new ol.View({
-            center: ol.proj.fromLonLat([80.7718, 7.8731]), // 斯里兰卡中心点
-            zoom: 8
-        })
+    // 添加搜索控件
+    const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl,
+        placeholder: 'Search location...',
+        marker: false
     });
 
-    // 添加点击事件监听器
-    map.on('click', function(evt) {
-        const coords = ol.proj.transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326');
-        setMarker(coords);
-        getAddressFromCoords(coords);
+    map.addControl(geocoder);
+
+    // 点击地图设置标记
+    map.on('click', function(e) {
+        setMarker([e.lngLat.lng, e.lngLat.lat]);
+        getAddressFromCoords([e.lngLat.lng, e.lngLat.lat]);
     });
 
-    // 添加搜索功能
-    const searchInput = document.getElementById('searchLocation');
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchLocation(this.value);
-        }
+    // 搜索结果选中时
+    geocoder.on('result', function(e) {
+        setMarker([e.result.center[0], e.result.center[1]]);
+        const address = e.result.place_name;
+        document.getElementById(currentField === 'pickup' ? 'pickupLocation' : 'destination').value = address;
     });
-}
-
-// 搜索位置
-function searchLocation(query) {
-    const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-    
-    fetch(nominatimUrl)
-        .then(response => response.json())
-        .then(data => {
-            if (data.length > 0) {
-                const coords = [parseFloat(data[0].lon), parseFloat(data[0].lat)];
-                setMarker(coords);
-                map.getView().setCenter(ol.proj.fromLonLat(coords));
-                map.getView().setZoom(16);
-            }
-        });
 }
 
 // 设置标记
 function setMarker(coords) {
-    vectorLayer.getSource().clear();
-    const feature = new ol.Feature({
-        geometry: new ol.geom.Point(ol.proj.fromLonLat(coords))
-    });
-    
-    feature.setStyle(new ol.style.Style({
-        image: new ol.style.Icon({
-            anchor: [0.5, 1],
-            src: 'https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/examples/data/icon.png'
-        })
-    }));
+    if (marker) {
+        marker.remove();
+    }
+    marker = new mapboxgl.Marker({
+        draggable: true
+    })
+    .setLngLat(coords)
+    .addTo(map);
 
-    vectorLayer.getSource().addFeature(feature);
-    marker = feature;
+    // 拖动结束后更新地址
+    marker.on('dragend', function() {
+        const lngLat = marker.getLngLat();
+        getAddressFromCoords([lngLat.lng, lngLat.lat]);
+    });
 }
 
 // 从坐标获取地址
 function getAddressFromCoords(coords) {
-    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords[1]}&lon=${coords[0]}`;
-    
-    fetch(nominatimUrl)
+    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${coords[0]},${coords[1]}.json?access_token=${mapboxgl.accessToken}`)
         .then(response => response.json())
         .then(data => {
-            if (data.display_name) {
-                document.getElementById(currentField === 'pickup' ? 'pickupLocation' : 'destination').value = data.display_name;
+            if (data.features && data.features.length > 0) {
+                const address = data.features[0].place_name;
+                document.getElementById(currentField === 'pickup' ? 'pickupLocation' : 'destination').value = address;
             }
         });
 }
@@ -95,8 +75,7 @@ function openMap(field) {
     if (!map) {
         initMap();
     }
-    // 触发地图重新计算大小
-    map.updateSize();
+    map.resize();
 }
 
 // 确认位置

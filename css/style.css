@@ -478,12 +478,8 @@ footer {
 .transport-booking-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: start;
-    margin-top: 2rem;
-    max-width: 1400px;  /* 添加最大宽度 */
-    margin-left: auto;  /* 居中 */
-    margin-right: auto; /* 居中 */
+    gap: 2rem;
+    margin-top: 3rem;
 }
 
 .transport-info {
@@ -497,46 +493,40 @@ footer {
     background: var(--bg-light);
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 15px 30px rgba(0, 166, 166, 0.1);
-    transition: all 0.3s ease;
-    text-align: center;
-    padding-bottom: 1.5rem;
-    width: 100%;  /* 修改为100%宽度 */
-    margin: 0;    /* 移除边距 */
+    box-shadow: 0 5px 15px rgba(0, 166, 166, 0.1);
+    height: fit-content;
 }
 
 .transport-card img {
     width: 100%;
-    height: 200px;
+    height: 300px;
     object-fit: cover;
 }
 
 .transport-card h3 {
-    margin: 1.5rem 0 0.5rem;
-    color: var(--text-color);
+    padding: 1.5rem 1.5rem 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 300;
 }
 
 .transport-card p {
-    color: var(--text-color);
-    opacity: 0.8;
     padding: 0 1.5rem;
+    opacity: 0.8;
 }
 
 .vehicle-features {
     list-style: none;
+    padding: 1.5rem;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
-    padding: 1.5rem;
-    margin-top: 1rem;
 }
 
 .vehicle-features li {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    font-size: 0.95rem;
-    color: var(--text-color);
+    gap: 0.5rem;
+    font-size: 0.9rem;
 }
 
 .vehicle-features i {
@@ -549,16 +539,18 @@ footer {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
-    margin-top: 2rem;
+    margin-top: auto;
 }
 
 .feature-card {
-    text-align: center;
-    padding: 2rem;
     background: var(--bg-light);
+    padding: 1.5rem;
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0, 166, 166, 0.1);
-    transition: transform 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .feature-card:hover {
@@ -566,22 +558,21 @@ footer {
 }
 
 .feature-card i {
-    font-size: 2.5rem;
+    font-size: 2rem;
     color: var(--primary-color);
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .feature-card h3 {
     font-size: 1.2rem;
-    margin-bottom: 1rem;
-    color: var(--text-color);
+    font-weight: 300;
+    margin-bottom: 0.5rem;
 }
 
 .feature-card p {
-    font-size: 0.9rem;
-    color: var(--text-color);
     opacity: 0.8;
-    line-height: 1.6;
+    font-size: 0.9rem;
+    line-height: 1.4;
 }
 
 @media (max-width: 768px) {
@@ -715,12 +706,11 @@ footer {
 
 /* Booking Form Styles */
 .booking-form {
+    height: fit-content;
     background: var(--bg-light);
     padding: 2rem;
-    border-radius: 20px;
-    box-shadow: 0 15px 30px rgba(0, 166, 166, 0.1);
-    height: 100%;
-    margin: 0;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 166, 166, 0.1);
 }
 
 .booking-form h3 {
@@ -858,10 +848,8 @@ footer {
 @media (max-width: 1200px) {
     .transport-booking-grid {
         grid-template-columns: 1fr;
-        gap: 2rem;
-        padding: 0 1rem;
     }
-
+    
     .service-features {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -869,6 +857,10 @@ footer {
 
 @media (max-width: 768px) {
     .service-features {
+        grid-template-columns: 1fr;
+    }
+    
+    .vehicle-features {
         grid-template-columns: 1fr;
     }
     
