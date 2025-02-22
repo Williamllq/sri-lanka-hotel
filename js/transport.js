@@ -34,6 +34,59 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // 初始化 Stripe
+    const stripe = Stripe('YOUR_STRIPE_PUBLISHABLE_KEY');
+    const elements = stripe.elements();
+    const card = elements.create('card');
+    card.mount('#card-element');
+
+    // 初始化地址自动补全
+    initializeLocationAutocomplete();
+
+    function initializeLocationAutocomplete() {
+        const pickupInput = document.getElementById('pickupLocation');
+        const destinationInput = document.getElementById('destination');
+        const pickupMap = document.getElementById('pickupMap');
+        const destinationMap = document.getElementById('destinationMap');
+
+        // 创建自动补全
+        const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, {
+            componentRestrictions: { country: 'lk' } // 限制在斯里兰卡
+        });
+        const destinationAutocomplete = new google.maps.places.Autocomplete(destinationInput, {
+            componentRestrictions: { country: 'lk' }
+        });
+
+        // 处理地点选择
+        pickupAutocomplete.addListener('place_changed', () => {
+            const place = pickupAutocomplete.getPlace();
+            if (place.geometry) {
+                showLocationOnMap(place, pickupMap);
+                updatePriceEstimate();
+            }
+        });
+
+        destinationAutocomplete.addListener('place_changed', () => {
+            const place = destinationAutocomplete.getPlace();
+            if (place.geometry) {
+                showLocationOnMap(place, destinationMap);
+                updatePriceEstimate();
+            }
+        });
+    }
+
+    function showLocationOnMap(place, mapElement) {
+        mapElement.style.display = 'block';
+        const map = new google.maps.Map(mapElement, {
+            center: place.geometry.location,
+            zoom: 15
+        });
+        new google.maps.Marker({
+            map: map,
+            position: place.geometry.location
+        });
+    }
+
     // 监听服务类型变化
     serviceType.addEventListener('change', function() {
         // 隐藏所有特殊字段
@@ -52,21 +105,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 更新价格估算
+    // 更新价格估算和定金金额
     function updatePriceEstimate() {
         const estimatedPrice = document.getElementById('estimatedPrice');
+        const depositAmount = document.getElementById('depositAmount');
         const type = serviceType.value;
-        
+        let price = 0;
+
         if (type === 'charter') {
             const vehicleType = document.getElementById('vehicleType').value;
             const duration = document.getElementById('duration').value;
-            const price = prices.charter[vehicleType][duration.replace('-', '')];
-            
-            estimatedPrice.textContent = `$${price} USD`;
+            price = prices.charter[vehicleType][duration.replace('-', '')];
         } else if (type === 'airport') {
-            estimatedPrice.textContent = `From $${prices.airport.base} USD`;
-        } else {
-            estimatedPrice.textContent = 'Select service type to see price';
+            // 计算距离并基于距离计算价格
+            const pickup = document.getElementById('pickupLocation').value;
+            const destination = document.getElementById('destination').value;
+            if (pickup && destination) {
+                calculateDistance(pickup, destination).then(distance => {
+                    price = prices.airport.base + (distance * prices.airport.perKm);
+                    estimatedPrice.textContent = `$${price} USD`;
+                    depositAmount.textContent = `$${(price * 0.3).toFixed(2)} USD`;
+                });
+            }
+        }
+
+        if (type === 'charter') {
+            estimatedPrice.textContent = `$${price} USD`;
+            depositAmount.textContent = `$${(price * 0.3).toFixed(2)} USD`;
+        }
+    }
+
+    // 计算两点之间的距离
+    async function calculateDistance(origin, destination) {
+        const service = new google.maps.DistanceMatrixService();
+        try {
+            const response = await service.getDistanceMatrix({
+                origins: [origin],
+                destinations: [destination],
+                travelMode: 'DRIVING'
+            });
+            const distance = response.rows[0].elements[0].distance.value / 1000; // 转换为公里
+            return distance;
+        } catch (error) {
+            console.error('Error calculating distance:', error);
+            return 0;
         }
     }
 
@@ -80,49 +162,53 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 表单提交处理
     if (transportForm) {
-        transportForm.addEventListener('submit', function(e) {
+        transportForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // 收集表单数据
-            const formData = {
-                serviceType: serviceType.value,
-                date: document.getElementById('serviceDate').value,
-                time: document.getElementById('serviceTime').value,
-                passengers: document.getElementById('passengers').value,
-                pickupLocation: document.getElementById('pickupLocation').value,
-                destination: document.getElementById('destination').value,
-                requirements: document.getElementById('requirements').value
-            };
+            // 显示加载状态
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Processing...';
 
-            // 根据服务类型添加特殊字段
-            if (formData.serviceType === 'airport') {
-                formData.flightNumber = document.getElementById('flightNumber').value;
-            } else if (formData.serviceType === 'charter') {
-                formData.vehicleType = document.getElementById('vehicleType').value;
-                formData.duration = document.getElementById('duration').value;
-            }
-            
-            // 验证乘客数量与车型匹配
-            if (formData.serviceType === 'charter') {
-                const maxPassengers = {
-                    sedan: 3,
-                    suv: 5,
-                    van: 8,
-                    luxury: 3
-                };
-                
-                if (parseInt(formData.passengers) > maxPassengers[formData.vehicleType]) {
-                    alert(`The selected vehicle can only accommodate ${maxPassengers[formData.vehicleType]} passengers. Please choose a larger vehicle.`);
-                    return;
+            try {
+                // 创建支付意向
+                const response = await fetch('/create-payment-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: parseFloat(document.getElementById('depositAmount').textContent.replace('$', '').replace(' USD', '')) * 100, // 转换为分
+                        currency: 'usd'
+                    })
+                });
+
+                const data = await response.json();
+
+                // 确认支付
+                const result = await stripe.confirmCardPayment(data.clientSecret, {
+                    payment_method: {
+                        card: card,
+                        billing_details: {
+                            name: document.getElementById('customerName').value
+                        }
+                    }
+                });
+
+                if (result.error) {
+                    throw new Error(result.error.message);
                 }
+
+                // 支付成功，提交预订
+                alert('Booking confirmed! We will contact you shortly with the details.');
+                transportForm.reset();
+                updatePriceEstimate();
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Book Transport';
             }
-            
-            // 显示确认消息
-            alert('Thank you for your booking! We will contact you shortly to confirm your reservation.');
-            
-            // 清空表单
-            transportForm.reset();
-            document.getElementById('estimatedPrice').textContent = 'Select service type to see price';
         });
     }
     
