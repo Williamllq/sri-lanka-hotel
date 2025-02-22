@@ -72,7 +72,28 @@ const translations = {
         wildlifeDesc: "体验独特的野生动物邂逅",
         culturalHeritage: "文化遗产",
         culturalDesc: "探索古老的寺庙和历史遗迹",
-        discoverMore: "发现更多"
+        discoverMore: "发现更多",
+        heroTitle: "最佳旅行，最佳选择",
+        heroSubtitle: "您在斯里兰卡的优质旅行体验",
+        bookTransport: "预订交通",
+        exploreLanka: "探索斯里兰卡",
+        transportTitle: "交通服务",
+        safeComfortable: "安全舒适的车辆",
+        vehicleDesc: "清洁且维护良好的车辆，确保您在斯里兰卡的舒适旅程",
+        passengers: "Up to 4 passengers",
+        luggage: "Large luggage space",
+        ac: "Air conditioning",
+        safety: "Safety features",
+        qualityVehicle: "Quality Vehicle",
+        qualityDesc: "Well-maintained vehicle ensuring your comfort and safety throughout the journey",
+        expertDriver: "Local Expert Driver",
+        driverDesc: "Professional English-speaking driver with extensive local knowledge",
+        protection: "Complete Protection",
+        protectionDesc: "24/7 accompaniment and security throughout your journey",
+        insider: "Insider Knowledge",
+        insiderDesc: "Access to hidden gems and authentic local experiences",
+        bookJourney: "Book Your Journey",
+        depositInfo: "A 30% deposit is required to confirm your booking"
     },
     en: {
         home: "Home",
@@ -147,7 +168,28 @@ const translations = {
         wildlifeDesc: "Experience unique wildlife encounters",
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
-        discoverMore: "Discover More"
+        discoverMore: "Discover More",
+        heroTitle: "Best Travel, Best Choice",
+        heroSubtitle: "Your premium travel experience in Sri Lanka",
+        bookTransport: "Book Transport",
+        exploreLanka: "Explore Sri Lanka",
+        transportTitle: "Transport Services",
+        safeComfortable: "Safe & Comfortable Vehicle",
+        vehicleDesc: "Clean and well-maintained vehicle ensuring a comfortable journey in Sri Lanka",
+        passengers: "Up to 4 passengers",
+        luggage: "Large luggage space",
+        ac: "Air conditioning",
+        safety: "Safety features",
+        qualityVehicle: "Quality Vehicle",
+        qualityDesc: "Well-maintained vehicle ensuring your comfort and safety throughout the journey",
+        expertDriver: "Local Expert Driver",
+        driverDesc: "Professional English-speaking driver with extensive local knowledge",
+        protection: "Complete Protection",
+        protectionDesc: "24/7 accompaniment and security throughout your journey",
+        insider: "Insider Knowledge",
+        insiderDesc: "Access to hidden gems and authentic local experiences",
+        bookJourney: "Book Your Journey",
+        depositInfo: "A 30% deposit is required to confirm your booking"
     },
     de: {
         home: "Startseite",
@@ -222,7 +264,28 @@ const translations = {
         wildlifeDesc: "Experience unique wildlife encounters",
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
-        discoverMore: "Discover More"
+        discoverMore: "Discover More",
+        heroTitle: "Best Travel, Best Choice",
+        heroSubtitle: "Your premium travel experience in Sri Lanka",
+        bookTransport: "Book Transport",
+        exploreLanka: "Explore Sri Lanka",
+        transportTitle: "Transport Services",
+        safeComfortable: "Safe & Comfortable Vehicle",
+        vehicleDesc: "Clean and well-maintained vehicle ensuring a comfortable journey in Sri Lanka",
+        passengers: "Up to 4 passengers",
+        luggage: "Large luggage space",
+        ac: "Air conditioning",
+        safety: "Safety features",
+        qualityVehicle: "Quality Vehicle",
+        qualityDesc: "Well-maintained vehicle ensuring your comfort and safety throughout the journey",
+        expertDriver: "Local Expert Driver",
+        driverDesc: "Professional English-speaking driver with extensive local knowledge",
+        protection: "Complete Protection",
+        protectionDesc: "24/7 accompaniment and security throughout your journey",
+        insider: "Insider Knowledge",
+        insiderDesc: "Access to hidden gems and authentic local experiences",
+        bookJourney: "Book Your Journey",
+        depositInfo: "A 30% deposit is required to confirm your booking"
     },
     si: {
         home: "මුල් පිටුව",
@@ -297,7 +360,28 @@ const translations = {
         wildlifeDesc: "Experience unique wildlife encounters",
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
-        discoverMore: "Discover More"
+        discoverMore: "Discover More",
+        heroTitle: "Best Travel, Best Choice",
+        heroSubtitle: "Your premium travel experience in Sri Lanka",
+        bookTransport: "Book Transport",
+        exploreLanka: "Explore Sri Lanka",
+        transportTitle: "Transport Services",
+        safeComfortable: "Safe & Comfortable Vehicle",
+        vehicleDesc: "Clean and well-maintained vehicle ensuring a comfortable journey in Sri Lanka",
+        passengers: "Up to 4 passengers",
+        luggage: "Large luggage space",
+        ac: "Air conditioning",
+        safety: "Safety features",
+        qualityVehicle: "Quality Vehicle",
+        qualityDesc: "Well-maintained vehicle ensuring your comfort and safety throughout the journey",
+        expertDriver: "Local Expert Driver",
+        driverDesc: "Professional English-speaking driver with extensive local knowledge",
+        protection: "Complete Protection",
+        protectionDesc: "24/7 accompaniment and security throughout your journey",
+        insider: "Insider Knowledge",
+        insiderDesc: "Access to hidden gems and authentic local experiences",
+        bookJourney: "Book Your Journey",
+        depositInfo: "A 30% deposit is required to confirm your booking"
     },
     ta: {
         home: "முகப்பு",
@@ -372,7 +456,28 @@ const translations = {
         wildlifeDesc: "Experience unique wildlife encounters",
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
-        discoverMore: "Discover More"
+        discoverMore: "Discover More",
+        heroTitle: "Best Travel, Best Choice",
+        heroSubtitle: "Your premium travel experience in Sri Lanka",
+        bookTransport: "Book Transport",
+        exploreLanka: "Explore Sri Lanka",
+        transportTitle: "Transport Services",
+        safeComfortable: "Safe & Comfortable Vehicle",
+        vehicleDesc: "Clean and well-maintained vehicle ensuring a comfortable journey in Sri Lanka",
+        passengers: "Up to 4 passengers",
+        luggage: "Large luggage space",
+        ac: "Air conditioning",
+        safety: "Safety features",
+        qualityVehicle: "Quality Vehicle",
+        qualityDesc: "Well-maintained vehicle ensuring your comfort and safety throughout the journey",
+        expertDriver: "Local Expert Driver",
+        driverDesc: "Professional English-speaking driver with extensive local knowledge",
+        protection: "Complete Protection",
+        protectionDesc: "24/7 accompaniment and security throughout your journey",
+        insider: "Insider Knowledge",
+        insiderDesc: "Access to hidden gems and authentic local experiences",
+        bookJourney: "Book Your Journey",
+        depositInfo: "A 30% deposit is required to confirm your booking"
     },
     ru: {
         home: "Главная",
@@ -447,7 +552,28 @@ const translations = {
         wildlifeDesc: "Experience unique wildlife encounters",
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
-        discoverMore: "Discover More"
+        discoverMore: "Discover More",
+        heroTitle: "Best Travel, Best Choice",
+        heroSubtitle: "Your premium travel experience in Sri Lanka",
+        bookTransport: "Book Transport",
+        exploreLanka: "Explore Sri Lanka",
+        transportTitle: "Transport Services",
+        safeComfortable: "Safe & Comfortable Vehicle",
+        vehicleDesc: "Clean and well-maintained vehicle ensuring a comfortable journey in Sri Lanka",
+        passengers: "Up to 4 passengers",
+        luggage: "Large luggage space",
+        ac: "Air conditioning",
+        safety: "Safety features",
+        qualityVehicle: "Quality Vehicle",
+        qualityDesc: "Well-maintained vehicle ensuring your comfort and safety throughout the journey",
+        expertDriver: "Local Expert Driver",
+        driverDesc: "Professional English-speaking driver with extensive local knowledge",
+        protection: "Complete Protection",
+        protectionDesc: "24/7 accompaniment and security throughout your journey",
+        insider: "Insider Knowledge",
+        insiderDesc: "Access to hidden gems and authentic local experiences",
+        bookJourney: "Book Your Journey",
+        depositInfo: "A 30% deposit is required to confirm your booking"
     },
     fr: {
         home: "Accueil",
@@ -522,7 +648,28 @@ const translations = {
         wildlifeDesc: "Experience unique wildlife encounters",
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
-        discoverMore: "Discover More"
+        discoverMore: "Discover More",
+        heroTitle: "Best Travel, Best Choice",
+        heroSubtitle: "Your premium travel experience in Sri Lanka",
+        bookTransport: "Book Transport",
+        exploreLanka: "Explore Sri Lanka",
+        transportTitle: "Transport Services",
+        safeComfortable: "Safe & Comfortable Vehicle",
+        vehicleDesc: "Clean and well-maintained vehicle ensuring a comfortable journey in Sri Lanka",
+        passengers: "Up to 4 passengers",
+        luggage: "Large luggage space",
+        ac: "Air conditioning",
+        safety: "Safety features",
+        qualityVehicle: "Quality Vehicle",
+        qualityDesc: "Well-maintained vehicle ensuring your comfort and safety throughout the journey",
+        expertDriver: "Local Expert Driver",
+        driverDesc: "Professional English-speaking driver with extensive local knowledge",
+        protection: "Complete Protection",
+        protectionDesc: "24/7 accompaniment and security throughout your journey",
+        insider: "Insider Knowledge",
+        insiderDesc: "Access to hidden gems and authentic local experiences",
+        bookJourney: "Book Your Journey",
+        depositInfo: "A 30% deposit is required to confirm your booking"
     },
     es: {
         home: "Inicio",
@@ -597,6 +744,45 @@ const translations = {
         wildlifeDesc: "Experience unique wildlife encounters",
         culturalHeritage: "Cultural Heritage",
         culturalDesc: "Discover ancient temples and historical sites",
-        discoverMore: "Discover More"
+        discoverMore: "Discover More",
+        heroTitle: "Best Travel, Best Choice",
+        heroSubtitle: "Your premium travel experience in Sri Lanka",
+        bookTransport: "Book Transport",
+        exploreLanka: "Explore Sri Lanka",
+        transportTitle: "Transport Services",
+        safeComfortable: "Safe & Comfortable Vehicle",
+        vehicleDesc: "Clean and well-maintained vehicle ensuring a comfortable journey in Sri Lanka",
+        passengers: "Up to 4 passengers",
+        luggage: "Large luggage space",
+        ac: "Air conditioning",
+        safety: "Safety features",
+        qualityVehicle: "Quality Vehicle",
+        qualityDesc: "Well-maintained vehicle ensuring your comfort and safety throughout the journey",
+        expertDriver: "Local Expert Driver",
+        driverDesc: "Professional English-speaking driver with extensive local knowledge",
+        protection: "Complete Protection",
+        protectionDesc: "24/7 accompaniment and security throughout your journey",
+        insider: "Insider Knowledge",
+        insiderDesc: "Access to hidden gems and authentic local experiences",
+        bookJourney: "Book Your Journey",
+        depositInfo: "A 30% deposit is required to confirm your booking"
     }
-}; 
+};
+
+function switchLanguage(lang) {
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+            element.textContent = translations[lang][key];
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const languageSelect = document.getElementById('languageSelect');
+    if (languageSelect) {
+        languageSelect.addEventListener('change', function() {
+            switchLanguage(this.value);
+        });
+    }
+}); 
