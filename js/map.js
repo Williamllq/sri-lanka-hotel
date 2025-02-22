@@ -1,48 +1,60 @@
-let map;
-let marker;
-let currentField;
-let pickupMarker;
-let destinationMarker;
+let map = null;
+let marker = null;
+let currentField = null;
+let pickupMarker = null;
+let destinationMarker = null;
 
 // 初始化地图
 function initMap() {
     console.log('initMap called');
-    map = L.map('map').setView([7.8731, 80.7718], 8); // 斯里兰卡中心点
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    // 添加主要城市标记
-    const cities = {
-        'Colombo': [6.9271, 79.8612],
-        'Kandy': [7.2906, 80.6337],
-        'Galle': [6.0535, 80.2210],
-        'Jaffna': [9.6615, 80.0255],
-        'Trincomalee': [8.5874, 81.2152]
-    };
-
-    for (let city in cities) {
-        L.marker(cities[city])
-            .addTo(map)
-            .bindPopup(city)
-            .on('click', function() {
-                setMarker(cities[city]);
-            });
+    if (map !== null) {
+        map.remove();
+        map = null;
     }
+    
+    try {
+        map = L.map('map').setView([7.8731, 80.7718], 8); // 斯里兰卡中心点
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
 
-    // 点击地图设置标记
-    map.on('click', function(e) {
-        setMarker([e.latlng.lat, e.latlng.lng]);
-    });
+        // 添加主要城市标记
+        const cities = {
+            'Colombo': [6.9271, 79.8612],
+            'Kandy': [7.2906, 80.6337],
+            'Galle': [6.0535, 80.2210],
+            'Jaffna': [9.6615, 80.0255],
+            'Trincomalee': [8.5874, 81.2152]
+        };
 
-    // 搜索功能
-    const searchInput = document.getElementById('searchLocation');
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchLocation(this.value);
+        for (let city in cities) {
+            L.marker(cities[city])
+                .addTo(map)
+                .bindPopup(city)
+                .on('click', function() {
+                    setMarker(cities[city]);
+                });
         }
-    });
+
+        // 点击地图设置标记
+        map.on('click', function(e) {
+            setMarker([e.latlng.lat, e.latlng.lng]);
+        });
+
+        // 搜索功能
+        const searchInput = document.getElementById('searchLocation');
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchLocation(this.value);
+            }
+        });
+        
+        console.log('Map initialized successfully');
+    } catch (error) {
+        console.error('Error initializing map:', error);
+    }
 }
 
 // 搜索位置
@@ -80,13 +92,18 @@ function setMarker(latlng) {
 function openMap(field) {
     console.log('Opening map for:', field);
     currentField = field;
-    document.getElementById('mapModal').style.display = 'block';
-    if (!map) {
-        console.log('Initializing map');
-        initMap();
-    }
+    const mapModal = document.getElementById('mapModal');
+    mapModal.style.display = 'block';
+    
+    // 等待模态框显示后再初始化地图
     setTimeout(() => {
-        map.invalidateSize();
+        if (!map) {
+            console.log('Initializing map');
+            initMap();
+        }
+        if (map) {
+            map.invalidateSize();
+        }
     }, 100);
 }
 
