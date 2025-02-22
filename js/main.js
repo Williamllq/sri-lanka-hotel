@@ -1,5 +1,101 @@
 // 主要JavaScript功能
 document.addEventListener('DOMContentLoaded', function() {
+    // 获取语言选择器
+    const languageSelect = document.getElementById('languageSelect');
+    
+    // 获取所有需要翻译的元素
+    const translatableElements = {
+        // Hero Section
+        heroTitle: document.querySelector('.hero-content h2'),
+        heroSubtitle: document.querySelector('.hero-content p'),
+        bookTransport: document.querySelector('.hero-buttons .btn'),
+        exploreSriLanka: document.querySelector('.hero-buttons .btn-secondary'),
+        
+        // Why Choose Us
+        whyChooseUs: document.querySelector('#about .section-title'),
+        aboutText: document.querySelector('.about-text p'),
+        support247: document.querySelector('.about-features .feature-item:nth-child(1) span'),
+        pricing: document.querySelector('.about-features .feature-item:nth-child(2) span'),
+        guides: document.querySelector('.about-features .feature-item:nth-child(3) span'),
+        
+        // Stats
+        professionalDrivers: document.querySelector('.stat-item:nth-child(1) h3'),
+        driversDesc: document.querySelector('.stat-item:nth-child(1) p'),
+        customTours: document.querySelector('.stat-item:nth-child(2) h3'),
+        toursDesc: document.querySelector('.stat-item:nth-child(2) p'),
+        service247: document.querySelector('.stat-item:nth-child(3) h3'),
+        serviceDesc: document.querySelector('.stat-item:nth-child(3) p'),
+        
+        // Transport Section
+        transportServices: document.querySelector('#transport .section-title'),
+        // ... 添加更多元素
+    };
+    
+    // 更新页面文本的函数
+    function updatePageText(language) {
+        for (let key in translatableElements) {
+            if (translatableElements[key] && translations[language][key]) {
+                translatableElements[key].textContent = translations[language][key];
+            }
+        }
+        
+        // 更新导航链接
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            const href = link.getAttribute('href').replace('#', '');
+            if (translations[language][href]) {
+                const icon = link.querySelector('i').outerHTML; // 保存图标
+                link.innerHTML = icon + ' ' + translations[language][href];
+            }
+        });
+        
+        // 更新表单元素
+        updateFormElements(language);
+    }
+    
+    // 更新表单元素的函数
+    function updateFormElements(language) {
+        // 更新选择框选项
+        const serviceType = document.getElementById('serviceType');
+        if (serviceType) {
+            serviceType.options[0].text = translations[language].selectService;
+            serviceType.options[1].text = translations[language].pickupService;
+            serviceType.options[2].text = translations[language].privateCharter;
+            serviceType.options[3].text = translations[language].cityTour;
+        }
+        
+        // 更新标签和占位符
+        const formLabels = {
+            'serviceType': 'serviceType',
+            'vehicleType': 'vehicleType',
+            'serviceDate': 'date',
+            'serviceTime': 'time',
+            'pickupLocation': 'pickupLocation',
+            'destination': 'destination',
+            'requirements': 'specialRequirements'
+        };
+        
+        for (let id in formLabels) {
+            const element = document.getElementById(id);
+            if (element) {
+                const label = element.previousElementSibling;
+                if (label && label.tagName === 'LABEL') {
+                    label.textContent = translations[language][formLabels[id]];
+                }
+                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                    element.placeholder = translations[language]['enter' + formLabels[id].charAt(0).toUpperCase() + formLabels[id].slice(1)];
+                }
+            }
+        }
+    }
+    
+    // 监听语言选择变化
+    languageSelect.addEventListener('change', function() {
+        updatePageText(this.value);
+    });
+    
+    // 初始化页面文本
+    updatePageText(languageSelect.value);
+
     // 获取所有需要翻译的元素
     const translatableElements = {
         'nav-home': document.querySelector('a[href="#home"]'),
@@ -32,81 +128,6 @@ document.addEventListener('DOMContentLoaded', function() {
             nav.classList.remove('scrolled');
         }
     });
-
-    // 语言切换功能
-    const languageSelect = document.querySelector('#languageSelect');
-    
-    // 从本地存储中获取上次选择的语言，如果没有则默认为中文
-    const savedLanguage = localStorage.getItem('selectedLanguage') || 'zh';
-    languageSelect.value = savedLanguage;
-    
-    // 初始化页面语言
-    updateLanguage(savedLanguage);
-
-    languageSelect.addEventListener('change', function(e) {
-        const selectedLanguage = e.target.value;
-        updateLanguage(selectedLanguage);
-        // 保存语言选择到本地存储
-        localStorage.setItem('selectedLanguage', selectedLanguage);
-    });
-
-    function updateLanguage(language) {
-        // 遍历所有带有 data-translate 属性的元素
-        document.querySelectorAll('[data-translate]').forEach(element => {
-            const key = element.getAttribute('data-translate');
-            if (translations[language][key]) {
-                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                    element.placeholder = translations[language][key];
-                } else {
-                    element.textContent = translations[language][key];
-                }
-            }
-        });
-
-        // 更新表单选项
-        updateFormOptions(language);
-
-        // 更新导航菜单
-        translatableElements['nav-home'].innerHTML = navIcons['nav-home'] + translations[language].home;
-        translatableElements['nav-rooms'].innerHTML = navIcons['nav-rooms'] + translations[language].rooms;
-        translatableElements['nav-facilities'].innerHTML = navIcons['nav-facilities'] + translations[language].facilities;
-        translatableElements['nav-explore'].innerHTML = navIcons['nav-explore'] + translations[language].explore;
-        translatableElements['nav-contact'].innerHTML = navIcons['nav-contact'] + translations[language].contact;
-
-        // 更新主要内容
-        translatableElements['welcome-text'].textContent = translations[language].welcome;
-        translatableElements['experience-text'].textContent = translations[language].experience;
-        translatableElements['book-button'].textContent = translations[language].bookNow;
-
-        // 更新页脚
-        translatableElements['footer-title'].textContent = translations[language].footerTitle;
-        translatableElements['footer-desc'].textContent = translations[language].footerDesc;
-
-        // 更新文档语言
-        document.documentElement.lang = language;
-    }
-
-    function updateFormOptions(language) {
-        // 更新服务类型选择
-        const serviceType = document.getElementById('serviceType');
-        if (serviceType) {
-            const options = serviceType.options;
-            options[0].text = translations[language].selectService;
-            options[1].text = translations[language].pickupService;
-            options[2].text = translations[language].privateCharter;
-            options[3].text = translations[language].cityTours;
-        }
-
-        // 更新车型选择
-        const vehicleType = document.getElementById('vehicleType');
-        if (vehicleType) {
-            const options = vehicleType.options;
-            options[0].text = translations[language].sedan;
-            options[1].text = translations[language].suv;
-            options[2].text = translations[language].van;
-            options[3].text = translations[language].luxury;
-        }
-    }
 
     // 图片轮播功能
     const track = document.querySelector('.carousel-track');
