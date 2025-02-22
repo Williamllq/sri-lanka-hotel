@@ -628,36 +628,42 @@ footer {
 .about-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    margin-top: 2rem;
+    gap: 3rem;
+    margin: 2rem auto;
+    max-width: 1000px;
 }
 
 .about-text {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
+}
+
+.about-text p {
+    font-size: 1rem;
+    line-height: 1.6;
 }
 
 .about-features {
     display: grid;
-    gap: 1rem;
+    gap: 0.8rem;
 }
 
 .feature-item {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.8rem;
 }
 
 .feature-item i {
     color: var(--primary-color);
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 .stat-item {
     background: var(--bg-light);
-    padding: 2rem;
-    border-radius: 15px;
+    padding: 1.5rem;
+    border-radius: 12px;
     text-align: center;
     box-shadow: 0 5px 15px rgba(0, 166, 166, 0.1);
     transition: transform 0.3s ease;
@@ -668,19 +674,30 @@ footer {
 }
 
 .stat-item i {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
 }
 
 .stat-item h3 {
-    margin-bottom: 1rem;
-    color: var(--text-color);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
 }
 
 .stat-item p {
-    color: var(--text-color);
-    opacity: 0.8;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* 在较小屏幕上进一步优化布局 */
+@media (max-width: 768px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .stat-item {
+        padding: 1.2rem;
+    }
 }
 
 /* Booking Form Styles */
