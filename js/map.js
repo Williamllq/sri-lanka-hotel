@@ -15,9 +15,10 @@ function initMap() {
     try {
         map = L.map('map').setView([7.8731, 80.7718], 8); // 斯里兰卡中心点
         
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
+        L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team hosted by OpenStreetMap France',
+            maxZoom: 19,
+            subdomains: 'abc'
         }).addTo(map);
 
         // 添加主要城市标记
