@@ -1089,4 +1089,53 @@ footer {
     .stats-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* 地图相关样式 */
+.location-input {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.map-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.map-modal {
+    width: 95%;
+    max-width: 800px;
+    height: 80vh;
+}
+
+#map {
+    width: 100%;
+    height: calc(100% - 120px);
+    border-radius: 10px;
+    margin: 1rem 0;
+}
+
+.map-search {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.map-search input {
+    flex: 1;
+    padding: 0.8rem;
+    border: 1px solid rgba(0, 166, 166, 0.2);
+    border-radius: 10px;
+    font-size: 1rem;
+}
+
+.map-search .btn {
+    padding: 0.8rem 1.5rem;
 } 
