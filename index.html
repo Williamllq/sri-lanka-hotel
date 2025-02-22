@@ -114,6 +114,10 @@
                     <!-- 右侧：预订表单 -->
                     <div class="booking-form">
                         <h3>Book Your Journey</h3>
+                        <div class="deposit-info">
+                            <i class="fas fa-info-circle"></i>
+                            <p>A 30% deposit is required to confirm your booking</p>
+                        </div>
                         <form id="transportForm">
                             <div class="form-grid">
                                 <div class="form-group">
@@ -165,9 +169,29 @@
                             <div class="price-estimate">
                                 <span>Estimated Price: </span>
                                 <span id="estimatedPrice">Select service type to see price</span>
+                                <div class="deposit-amount">
+                                    <span>Required Deposit (30%): </span>
+                                    <span id="depositAmount">-</span>
+                                </div>
                             </div>
                             
-                            <button type="submit" class="btn">Book Now</button>
+                            <div class="payment-options">
+                                <h4>Select Payment Method</h4>
+                                <div class="payment-methods">
+                                    <label class="payment-method">
+                                        <input type="radio" name="paymentMethod" value="card" checked>
+                                        <i class="fas fa-credit-card"></i>
+                                        <span>Credit Card</span>
+                                    </label>
+                                    <label class="payment-method">
+                                        <input type="radio" name="paymentMethod" value="paypal">
+                                        <i class="fab fa-paypal"></i>
+                                        <span>PayPal</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn">Pay Deposit & Book</button>
                         </form>
                     </div>
                 </div>
@@ -360,6 +384,45 @@
                 </div>
             </div>
         </section>
+
+        <!-- 在 Contact Section 后面添加 -->
+        <div id="feedbackModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3>Share Your Experience</h3>
+                <form id="feedbackForm">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="feedbackName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" id="feedbackCountry" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Rating</label>
+                        <div class="rating">
+                            <input type="radio" name="rating" value="5" id="star5"><label for="star5">★</label>
+                            <input type="radio" name="rating" value="4" id="star4"><label for="star4">★</label>
+                            <input type="radio" name="rating" value="3" id="star3"><label for="star3">★</label>
+                            <input type="radio" name="rating" value="2" id="star2"><label for="star2">★</label>
+                            <input type="radio" name="rating" value="1" id="star1"><label for="star1">★</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Feedback</label>
+                        <textarea id="feedbackText" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn">Submit Feedback</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 添加反馈按钮 -->
+        <button id="showFeedback" class="feedback-btn">
+            <i class="fas fa-comment-alt"></i>
+            <span>Give Feedback</span>
+        </button>
     </main>
 
     <!-- AI Assistant -->
@@ -422,5 +485,40 @@
     <script src="js/config.js"></script>
     <script src="js/ai-assistant.js"></script>
     <script src="js/transport.js"></script>
+
+    <!-- 在 body 末尾添加 -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="admin-header">
+            <h3>Admin Dashboard</h3>
+            <button class="close-admin">&times;</button>
+        </div>
+        <div class="admin-content">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <h4>Total Visits</h4>
+                    <div class="stat-number" id="totalVisits">0</div>
+                    <div class="stat-chart" id="visitsChart"></div>
+                </div>
+                <div class="stat-box">
+                    <h4>Bookings</h4>
+                    <div class="stat-number" id="totalBookings">0</div>
+                    <div class="stat-chart" id="bookingsChart"></div>
+                </div>
+                <div class="stat-box">
+                    <h4>Average Rating</h4>
+                    <div class="stat-number" id="avgRating">0.0</div>
+                    <div class="stat-chart" id="ratingsChart"></div>
+                </div>
+                <div class="stat-box">
+                    <h4>Popular Routes</h4>
+                    <div class="stat-list" id="popularRoutes"></div>
+                </div>
+            </div>
+            <div class="recent-feedback">
+                <h4>Recent Feedback</h4>
+                <div id="feedbackList"></div>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

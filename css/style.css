@@ -784,6 +784,76 @@ footer {
     margin-top: 1rem;
 }
 
+/* 定金信息样式 */
+.deposit-info {
+    background: rgba(0, 166, 166, 0.1);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.deposit-info i {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+.deposit-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.deposit-amount {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 166, 166, 0.2);
+}
+
+/* 支付方式样式 */
+.payment-options {
+    margin: 2rem 0;
+}
+
+.payment-options h4 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.payment-methods {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.payment-method {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1rem;
+    border: 1px solid rgba(0, 166, 166, 0.2);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.payment-method:hover {
+    border-color: var(--primary-color);
+    background: rgba(0, 166, 166, 0.05);
+}
+
+.payment-method input[type="radio"] {
+    margin: 0;
+}
+
+.payment-method i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
 /* 响应式调整 */
 @media (max-width: 1200px) {
     .transport-booking-grid {
@@ -804,6 +874,10 @@ footer {
     
     .booking-form {
         padding: 1.5rem;
+    }
+
+    .payment-methods {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -866,4 +940,153 @@ footer {
     color: var(--text-color);
     opacity: 0.8;
     font-size: 0.9rem;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+}
+
+.modal-content {
+    position: relative;
+    background: var(--bg-light);
+    margin: 5% auto;
+    padding: 2rem;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 20px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.close-modal {
+    position: absolute;
+    right: 1.5rem;
+    top: 1rem;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+/* Rating Stars */
+.rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.rating input {
+    display: none;
+}
+
+.rating label {
+    font-size: 2rem;
+    color: #ddd;
+    cursor: pointer;
+}
+
+.rating input:checked ~ label {
+    color: var(--accent-color);
+}
+
+/* Feedback Button */
+.feedback-btn {
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    background: var(--primary-color);
+    color: var(--light-text);
+    border: none;
+    border-radius: 50px;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 166, 166, 0.2);
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+/* Admin Panel Styles */
+.admin-panel {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 800px;
+    height: 100%;
+    background: var(--bg-light);
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+    z-index: 1200;
+    overflow-y: auto;
+}
+
+.admin-header {
+    background: var(--primary-color);
+    color: var(--light-text);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-content {
+    padding: 2rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-box {
+    background: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 166, 166, 0.1);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 300;
+    margin: 1rem 0;
+    color: var(--primary-color);
+}
+
+.stat-chart {
+    height: 100px;
+    margin-top: 1rem;
+}
+
+.recent-feedback {
+    background: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 166, 166, 0.1);
+}
+
+#feedbackList {
+    margin-top: 1rem;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .admin-panel {
+        width: 100%;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
 } 
