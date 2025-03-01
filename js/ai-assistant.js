@@ -1,16 +1,14 @@
-// AI助手功能将在这里实现
+// AI Assistant Implementation
 class AIAssistant {
     constructor() {
-        console.log('AI Assistant initializing...'); // 调试日志
+        console.log('AI Assistant initializing...');
         this.initializeUI();
         this.isCollapsed = true;
-        // 存储两个 API key
-        this.deepseekKey = config.apiKey;
-        this.qianwenKey = 'sk-57d00c3d7e0544128b9c39a04cb7cbb3';
+        this.initializeResponses();
     }
 
     initializeUI() {
-        // 获取DOM元素
+        // Get DOM elements
         this.aiContainer = document.getElementById('ai-assistant');
         this.chatMessages = document.getElementById('chatMessages');
         this.userInput = document.getElementById('userInput');
@@ -18,56 +16,110 @@ class AIAssistant {
         this.toggleButton = document.getElementById('toggleAI');
         this.showButton = document.getElementById('showAI');
 
-        // 检查元素是否正确获取
-        console.log('Show button:', this.showButton); // 调试日志
+        // Bind events
+        if (this.showButton) {
+            this.showButton.addEventListener('click', () => {
+                console.log('Show button clicked');
+                this.showChat();
+            });
+        }
 
-        // 绑定事件
-        this.showButton.addEventListener('click', () => {
-            console.log('Show button clicked'); // 调试日志
-            this.showChat();
-        });
+        if (this.toggleButton) {
+            this.toggleButton.addEventListener('click', () => {
+                console.log('Toggle button clicked');
+                this.toggleChat();
+            });
+        }
 
-        this.toggleButton.addEventListener('click', () => {
-            console.log('Toggle button clicked'); // 调试日志
-            this.toggleChat();
-        });
-
-        this.sendButton.addEventListener('click', () => this.sendMessage());
+        if (this.sendButton) {
+            this.sendButton.addEventListener('click', () => this.sendMessage());
+        }
         
-        // 添加输入框事件
-        this.userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.sendMessage();
-            }
-        });
+        // Add input field events
+        if (this.userInput) {
+            this.userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendMessage();
+                }
+            });
 
-        // 自动调整输入框高度
-        this.userInput.addEventListener('input', () => {
-            this.userInput.style.height = 'auto';
-            this.userInput.style.height = (this.userInput.scrollHeight) + 'px';
-        });
+            // Auto-adjust input height
+            this.userInput.addEventListener('input', () => {
+                this.userInput.style.height = 'auto';
+                this.userInput.style.height = (this.userInput.scrollHeight) + 'px';
+            });
+        }
+    }
+
+    initializeResponses() {
+        // Predefined responses for common questions
+        this.responses = {
+            greetings: [
+                "Hello! How can I help you with your Sri Lanka travel plans?",
+                "Hi there! Welcome to Sri Lanka Stay & Explore. What can I assist you with?",
+                "Greetings! I'm your Sri Lanka travel assistant. How may I help you today?"
+            ],
+            hotels: [
+                "We offer a variety of luxurious accommodations including Ocean View Suites, Tropical Garden Suites, and Private Pool Villas. Each comes with amenities like free WiFi, air conditioning, and beautiful views.",
+                "Our accommodations range from $180 to $450 per night depending on the room type. All rooms include breakfast and access to our facilities."
+            ],
+            transport: [
+                "We offer airport transfers, city tours, and custom journeys across Sri Lanka. Our vehicles are comfortable and our drivers are experienced locals.",
+                "Our transport services start from $30 for airport transfers. Custom journeys are priced based on distance and duration."
+            ],
+            attractions: [
+                "Popular attractions in Sri Lanka include ancient temples in Anuradhapura, beautiful beaches in Mirissa, tea plantations in Nuwara Eliya, and wildlife safaris in Yala National Park.",
+                "Sri Lanka is known for its beautiful landscapes, rich culture, delicious cuisine, and friendly people. You'll love exploring the island!"
+            ],
+            weather: [
+                "Sri Lanka has a tropical climate. The best time to visit depends on which region you plan to explore. Generally, December to March is ideal for the south coast, while May to September is better for the north and east.",
+                "Sri Lanka's weather is warm year-round, with temperatures typically ranging from 22°C to 30°C depending on elevation. The monsoon season affects different parts of the island at different times of the year."
+            ],
+            food: [
+                "Sri Lankan cuisine is known for its complex flavors and generous use of spices, coconut, and rice. Must-try dishes include hoppers, kottu roti, and various curry dishes.",
+                "We can accommodate dietary restrictions including vegetarian, vegan, and gluten-free options. Just let us know your preferences in advance."
+            ],
+            booking: [
+                "To book our services, you can use the booking form on our website or contact us directly via phone or email. We require a 30% deposit to confirm your reservation.",
+                "For bookings, please provide your travel dates, number of travelers, and specific requirements. We'll get back to you with availability and pricing."
+            ],
+            default: [
+                "I'm sorry, I don't have specific information about that. Please contact us directly for more detailed assistance.",
+                "That's an interesting question. For more personalized information, please email us at info@srilankastay.com or call +94 XX XXX XXXX."
+            ]
+        };
     }
 
     showChat() {
-        console.log('Showing chat...'); // 调试日志
-        this.aiContainer.classList.add('active');
-        this.showButton.style.display = 'none';
-        this.isCollapsed = false;
-        this.aiContainer.classList.remove('collapsed');
+        if (this.aiContainer) {
+            this.aiContainer.classList.add('active');
+            if (this.showButton) {
+                this.showButton.style.display = 'none';
+            }
+            this.isCollapsed = false;
+            this.aiContainer.classList.remove('collapsed');
+        }
     }
 
     toggleChat() {
-        console.log('Toggling chat...'); // 调试日志
         this.isCollapsed = !this.isCollapsed;
         if (this.isCollapsed) {
-            this.aiContainer.classList.remove('active');
-            this.showButton.style.display = 'flex';
+            if (this.aiContainer) {
+                this.aiContainer.classList.remove('active');
+            }
+            if (this.showButton) {
+                this.showButton.style.display = 'flex';
+            }
         }
-        this.aiContainer.classList.toggle('collapsed');
+        if (this.aiContainer) {
+            this.aiContainer.classList.toggle('collapsed');
+        }
     }
 
-    async sendMessage() {
+    sendMessage() {
+        if (!this.userInput) return;
+        
         const message = this.userInput.value.trim();
         if (!message) return;
 
@@ -75,108 +127,105 @@ class AIAssistant {
         this.userInput.value = '';
         this.userInput.style.height = 'auto';
 
-        const loadingId = this.addMessage('Thinking...', 'ai');
-
-        try {
-            // 首先尝试使用 Deepseek API
-            let response = await this.callDeepseekAPI(message);
-            
-            // 如果 Deepseek 失败，尝试使用千问 API
-            if (response.includes('technical difficulties')) {
-                console.log('Deepseek API failed, trying Qianwen API...');
-                response = await this.callQianwenAPI(message);
-            }
-
-            document.getElementById(loadingId).remove();
+        // Add slight delay to simulate thinking
+        setTimeout(() => {
+            const response = this.getResponse(message);
             this.addMessage(response, 'ai');
-        } catch (error) {
-            console.error('Both APIs failed:', error);
-            document.getElementById(loadingId).remove();
-            this.addMessage('Sorry, I encountered an error. Please try again later.', 'ai');
+        }, 1000);
+    }
+
+    getResponse(message) {
+        message = message.toLowerCase();
+        
+        // Check if message matches any category
+        if (this.containsAny(message, ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening'])) {
+            return this.getRandomResponse('greetings');
+        } else if (this.containsAny(message, ['hotel', 'room', 'accommodation', 'stay', 'suite', 'villa', 'lodging'])) {
+            return this.getRandomResponse('hotels');
+        } else if (this.containsAny(message, ['transport', 'travel', 'car', 'driver', 'airport', 'transfer', 'vehicle', 'journey'])) {
+            return this.getRandomResponse('transport');
+        } else if (this.containsAny(message, ['attraction', 'visit', 'see', 'sight', 'place', 'location', 'explore', 'tour'])) {
+            return this.getRandomResponse('attractions');
+        } else if (this.containsAny(message, ['weather', 'climate', 'temperature', 'rain', 'season', 'monsoon'])) {
+            return this.getRandomResponse('weather');
+        } else if (this.containsAny(message, ['food', 'eat', 'restaurant', 'meal', 'cuisine', 'dish', 'dietary', 'vegetarian', 'vegan'])) {
+            return this.getRandomResponse('food');
+        } else if (this.containsAny(message, ['book', 'reservation', 'reserve', 'confirm', 'booking', 'deposit', 'payment'])) {
+            return this.getRandomResponse('booking');
+        } else {
+            return this.getRandomResponse('default');
         }
     }
 
-    async callDeepseekAPI(message) {
-        try {
-            const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.deepseekKey}`
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{
-                        role: "system",
-                        content: "You are a knowledgeable Sri Lanka travel assistant. Help visitors with hotel information, local attractions, travel tips, and booking assistance. Be friendly and concise."
-                    }, {
-                        role: "user",
-                        content: message
-                    }]
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Deepseek API failed: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data.choices[0].message.content;
-        } catch (error) {
-            console.error('Deepseek API error:', error);
-            return "I'm currently experiencing some technical difficulties. Trying alternative service...";
-        }
+    containsAny(str, keywords) {
+        return keywords.some(keyword => str.includes(keyword));
     }
 
-    async callQianwenAPI(message) {
-        try {
-            const response = await fetch('https://api.qianwen.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.qianwenKey}`
-                },
-                body: JSON.stringify({
-                    model: "qwen-max",
-                    messages: [{
-                        role: "system",
-                        content: "You are a knowledgeable Sri Lanka travel assistant. Help visitors with hotel information, local attractions, travel tips, and booking assistance. Be friendly and concise."
-                    }, {
-                        role: "user",
-                        content: message
-                    }]
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Qianwen API failed: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data.choices[0].message.content;
-        } catch (error) {
-            console.error('Qianwen API error:', error);
-            throw error;
-        }
+    getRandomResponse(category) {
+        const responses = this.responses[category] || this.responses.default;
+        const randomIndex = Math.floor(Math.random() * responses.length);
+        return responses[randomIndex];
     }
 
     addMessage(text, sender) {
+        if (!this.chatMessages) return;
+        
         const messageDiv = document.createElement('div');
-        const messageId = 'msg-' + Date.now();
-        messageDiv.id = messageId;
         messageDiv.className = `message ${sender}-message`;
-        messageDiv.textContent = text;
+        
+        // Support for markdown-like formatting
+        text = this.formatMessage(text);
+        
+        messageDiv.innerHTML = text;
         
         this.chatMessages.appendChild(messageDiv);
         this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+    }
+
+    formatMessage(text) {
+        // Convert URLs to links
+        text = text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
         
-        return messageId;
+        // Convert basic markdown
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+        // Convert lists
+        if (text.includes('\n- ')) {
+            let parts = text.split('\n');
+            let inList = false;
+            let formattedText = '';
+            
+            parts.forEach(part => {
+                if (part.startsWith('- ')) {
+                    if (!inList) {
+                        formattedText += '<ul>';
+                        inList = true;
+                    }
+                    formattedText += '<li>' + part.substring(2) + '</li>';
+                } else {
+                    if (inList) {
+                        formattedText += '</ul>';
+                        inList = false;
+                    }
+                    formattedText += part + '<br>';
+                }
+            });
+            
+            if (inList) {
+                formattedText += '</ul>';
+            }
+            
+            text = formattedText;
+        }
+        
+        return text;
     }
 }
 
-// 初始化AI助手
+// Initialize AI Assistant
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Document loaded, initializing AI Assistant...'); // 调试日志
+    console.log('Document loaded, initializing AI Assistant...');
     window.aiAssistant = new AIAssistant();
 });
 

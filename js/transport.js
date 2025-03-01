@@ -3,6 +3,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const serviceType = document.getElementById('serviceType');
     const airportFields = document.querySelectorAll('.airport-field');
     const charterFields = document.querySelectorAll('.charter-field');
+    const journeyDate = document.getElementById('journeyDate');
+    const journeyTime = document.getElementById('journeyTime');
+    const passengerCount = document.getElementById('passengerCount');
+    const pickupLocation = document.getElementById('pickupLocation');
+    const destination = document.getElementById('destination');
+    const specialRequirements = document.getElementById('specialRequirements');
+    const getQuoteBtn = document.querySelector('.btn.secondary');
+    const bookNowBtn = document.querySelector('.btn.primary');
     
     // 价格配置
     const prices = {
@@ -129,4 +137,153 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // Set up date input to only allow future dates
+    if (journeyDate) {
+        const today = new Date().toISOString().split('T')[0];
+        journeyDate.min = today;
+    }
+    
+    // Add map integration for pickup and destination
+    if (pickupLocation) {
+        pickupLocation.addEventListener('click', function() {
+            openMap('pickup');
+        });
+    }
+    
+    if (destination) {
+        destination.addEventListener('click', function() {
+            openMap('destination');
+        });
+    }
+    
+    // Get quote functionality
+    if (getQuoteBtn) {
+        getQuoteBtn.addEventListener('click', function() {
+            calculatePrice();
+        });
+    }
+    
+    // Book now functionality
+    if (bookNowBtn) {
+        bookNowBtn.addEventListener('click', function() {
+            if (validateForm()) {
+                submitBooking();
+            }
+        });
+    }
+    
+    // Calculate price based on service type
+    function calculatePrice() {
+        if (!serviceType || !serviceType.value) {
+            showNotification('Please select a service type', 'error');
+            return;
+        }
+        
+        let estimatedPrice = 0;
+        const service = serviceType.value;
+        
+        switch(service) {
+            case 'airport':
+                estimatedPrice = prices.airportTransfer.basePrice;
+                break;
+            case 'city':
+                estimatedPrice = prices.cityTour.basePrice;
+                break;
+            case 'custom':
+                estimatedPrice = prices.customJourney.basePrice;
+                break;
+        }
+        
+        // Show quote notification
+        showNotification(`Estimated price: $${estimatedPrice}. For exact pricing, please complete your booking.`, 'info');
+    }
+    
+    // Validate the form
+    function validateForm() {
+        if (!serviceType || !serviceType.value) {
+            showNotification('Please select a service type', 'error');
+            return false;
+        }
+        
+        if (!journeyDate || !journeyDate.value) {
+            showNotification('Please select a date', 'error');
+            return false;
+        }
+        
+        if (!journeyTime || !journeyTime.value) {
+            showNotification('Please select a time', 'error');
+            return false;
+        }
+        
+        if (!pickupLocation || !pickupLocation.value) {
+            showNotification('Please enter a pickup location', 'error');
+            return false;
+        }
+        
+        if (!destination || !destination.value) {
+            showNotification('Please enter a destination', 'error');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Submit booking
+    function submitBooking() {
+        // Collect booking data
+        const bookingData = {
+            serviceType: serviceType.value,
+            date: journeyDate.value,
+            time: journeyTime.value,
+            passengers: passengerCount.value,
+            pickupLocation: pickupLocation.value,
+            destination: destination.value,
+            specialRequirements: specialRequirements ? specialRequirements.value : ''
+        };
+        
+        console.log('Booking data:', bookingData);
+        
+        // In a real application, you would send this data to a server
+        // For now, we'll just show a success message
+        showNotification('Thank you for your booking! We will contact you shortly to confirm your reservation.', 'success');
+        
+        // Reset form
+        resetForm();
+    }
+    
+    // Reset form
+    function resetForm() {
+        if (serviceType) serviceType.value = '';
+        if (journeyDate) journeyDate.value = '';
+        if (journeyTime) journeyTime.value = '';
+        if (passengerCount) passengerCount.value = '1';
+        if (pickupLocation) pickupLocation.value = '';
+        if (destination) destination.value = '';
+        if (specialRequirements) specialRequirements.value = '';
+    }
+    
+    // Show notification
+    function showNotification(message, type) {
+        // Create notification element if it doesn't exist
+        let notification = document.querySelector('.notification');
+        
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.className = 'notification';
+            document.body.appendChild(notification);
+        }
+        
+        // Set message and type
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        
+        // Show notification
+        notification.style.display = 'block';
+        
+        // Hide notification after 5 seconds
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 5000);
+    }
 }); 
