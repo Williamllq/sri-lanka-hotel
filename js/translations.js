@@ -786,6 +786,8 @@ const translations = {
 };
 
 function switchLanguage(lang) {
+    console.log('switchLanguage called with language:', lang);
+    
     localStorage.setItem('selectedLanguage', lang);
     
     // 检查是否支持所选语言
@@ -794,16 +796,24 @@ function switchLanguage(lang) {
         return;
     }
     
+    console.log('Processing translations for language:', lang);
+    console.log('Number of elements with data-i18n:', document.querySelectorAll('[data-i18n]').length);
+    
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
+        console.log('Processing element with key "' + key + '"', element);
+        
         if (translations[lang] && translations[lang][key]) {
             if (element.tagName === 'OPTION') {
                 element.text = translations[lang][key];
+                console.log('Updated OPTION text for "' + key + '" to "' + translations[lang][key] + '"');
             } else if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
                 if (element.hasAttribute('placeholder')) {
                     element.placeholder = translations[lang][key];
+                    console.log('Updated ' + element.tagName + ' placeholder for "' + key + '" to "' + translations[lang][key] + '"');
                 } else {
                     element.value = translations[lang][key];
+                    console.log('Updated ' + element.tagName + ' value for "' + key + '" to "' + translations[lang][key] + '"');
                 }
             } else {
                 // 保持内部HTML中的任何图标
@@ -811,39 +821,71 @@ function switchLanguage(lang) {
                 if (hasIcon) {
                     const iconHTML = hasIcon.outerHTML;
                     element.innerHTML = iconHTML + ' ' + translations[lang][key];
+                    console.log('Updated element with icon for "' + key + '" to "' + translations[lang][key] + '"');
                 } else {
                     element.textContent = translations[lang][key];
+                    console.log('Updated text content for "' + key + '" to "' + translations[lang][key] + '"');
                 }
             }
         } else if (key && !translations[lang][key]) {
-            console.warn(`Missing translation for key "${key}" in language "${lang}"`);
+            console.warn('Missing translation for key "' + key + '" in language "' + lang + '"');
         }
     });
 
     // 更新文档标题
     if (translations[lang]['page-title']) {
         document.title = translations[lang]['page-title'];
+        console.log('Updated document title to "' + translations[lang]['page-title'] + '"');
     }
     
-    // 添加调试日志
-    console.log(`Language switched to: ${lang}`);
+    console.log('Language switch completed to: ' + lang);
+    
+    // 强制触发重新渲染
+    document.body.style.display = 'none';
+    setTimeout(function() {
+        document.body.style.display = '';
+        console.log('Forced redraw completed');
+    }, 10);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded event fired');
+    
     const languageSelect = document.getElementById('languageSelect');
+    console.log('Language select element found:', languageSelect);
+    
     if (languageSelect) {
         // 从本地存储中获取之前选择的语言
         const savedLanguage = localStorage.getItem('selectedLanguage');
+        console.log('Saved language from localStorage:', savedLanguage);
+        
         if (savedLanguage) {
+            console.log('Setting languageSelect value to saved language:', savedLanguage);
             languageSelect.value = savedLanguage;
             switchLanguage(savedLanguage);
         } else {
             // 如果没有保存的语言，使用默认语言
+            console.log('No saved language found, using default:', languageSelect.value);
             switchLanguage(languageSelect.value);
         }
         
+        console.log('Adding change event listener to language select');
         languageSelect.addEventListener('change', function() {
+            console.log('Language select changed to:', this.value);
             switchLanguage(this.value);
         });
+    } else {
+        console.error('Language select element not found!');
+    }
+});
+
+// 添加额外的全局事件监听器，确保语言切换在页面完全加载后生效
+window.addEventListener('load', function() {
+    console.log('Window load event fired');
+    const languageSelect = document.getElementById('languageSelect');
+    if (languageSelect) {
+        console.log('Language select value in window.load:', languageSelect.value);
+        // 再次检查并应用当前选择的语言
+        switchLanguage(languageSelect.value);
     }
 }); 
