@@ -3,7 +3,7 @@
  * 支持：英文(默认)、中文、德语、法语、西班牙语、僧伽罗语(斯里兰卡)
  */
 
-// 语言标识与国旗映射
+// 语言标识与国旗emoji映射
 const languageFlags = {
     en: '🇬🇧', // 英国
     zh: '🇨🇳', // 中国
@@ -86,17 +86,13 @@ function createFlagLanguageSelector() {
     // 清空现有选项
     select.innerHTML = '';
     
-    // 添加带国旗的选项
+    // 添加带国旗emoji的选项
     Object.keys(languageFlags).forEach(lang => {
         const option = document.createElement('option');
         option.value = lang;
         option.textContent = `${languageFlags[lang]} ${languageNames[lang]}`;
         select.appendChild(option);
     });
-    
-    // 样式优化
-    select.style.fontFamily = "'Segoe UI Emoji', 'Noto Color Emoji', sans-serif";
-    select.style.paddingLeft = '5px';
 }
 
 /**
@@ -192,10 +188,12 @@ function showLanguageChangeNotification(lang) {
     // 创建通知元素
     const notification = document.createElement('div');
     notification.className = 'language-notification';
-    notification.innerHTML = `
-        <span>${languageFlags[lang]}</span>
-        <span>语言已切换到 ${languageNames[lang]}</span>
-    `;
+    
+    // 使用emoji国旗
+    const text = document.createElement('span');
+    text.textContent = `${languageFlags[lang]} 语言已切换到 ${languageNames[lang]}`;
+    
+    notification.appendChild(text);
     
     // 设置样式
     Object.assign(notification.style, {

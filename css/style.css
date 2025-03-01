@@ -1158,38 +1158,54 @@ img {
 
 /* 语言选择器样式 */
 .language-switch {
-    display: flex;
-    align-items: center;
+    position: relative;
     margin-left: 20px;
+    z-index: 100;
+    font-size: 16px;
 }
 
 #languageSelect {
-    padding: 8px 10px;
-    border-radius: 5px;
+    padding: 8px 12px;
     border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
     background-color: rgba(0, 0, 0, 0.2);
     color: white;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
-    outline: none;
-    transition: all 0.3s ease;
-    font-family: 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; /* 确保emoji显示正常 */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 30px;
+    transition: all 0.3s;
 }
 
 #languageSelect:hover {
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-#languageSelect option {
-    background-color: #333;
-    color: white;
-    padding: 10px;
+.main-nav.scrolled #languageSelect {
+    color: #333;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.1);
+    background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
 }
 
-/* 语言通知样式 */
 .language-notification {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    animation: fadeInUp 0.3s ease-out;
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.3s forwards;
+    font-size: 16px;
 }
 
 @keyframes fadeInUp {
@@ -1203,14 +1219,13 @@ img {
     }
 }
 
-/* 为移动设备优化语言选择器 */
 @media (max-width: 768px) {
     .language-switch {
-        margin: 10px 0;
+        margin-left: 10px;
     }
     
     #languageSelect {
-        font-size: 13px;
-        padding: 6px 8px;
+        font-size: 14px;
+        padding: 5px 25px 5px 8px;
     }
 } 
