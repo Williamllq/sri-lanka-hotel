@@ -140,6 +140,29 @@
             'discover-lanka': 'Entdecken Sie Sri Lanka',
             'need-help': 'Brauchen Sie Hilfe?',
             
+            // 客户评价和国家来源
+            'what-clients-say': 'Was unsere Kunden sagen',
+            'testimonial-1': 'Ausgezeichneter Service! Der Fahrer war sehr professionell und sachkundig. Machte unsere Reise in Sri Lanka unvergesslich.',
+            'testimonial-2': 'Sehr komfortables Fahrzeug und zuverlässiger Service. Der Fahrer war pünktlich und freundlich. Sehr empfehlenswert!',
+            'testimonial-3': 'Großartige Erfahrung! Der Fahrer kannte alle besten Orte und half uns, das echte Sri Lanka zu entdecken.',
+            'from-uk': 'aus Großbritannien',
+            'from-china': 'aus China',
+            'from-germany': 'aus Deutschland',
+            
+            // 房间和住宿
+            'luxurious-accommodations': 'Luxuriöse Unterkünfte',
+            'ocean-suite': 'Meerblick-Suite',
+            'ocean-desc': 'Wachen Sie auf zu atemberaubenden Ausblicken auf den Indischen Ozean',
+            'garden-suite': 'Tropische Garten-Suite',
+            'garden-desc': 'Tauchen Sie ein in üppige tropische Gärten',
+            'pool-villa': 'Private Pool-Villa',
+            'pool-desc': 'Ultimativer Luxus mit Ihrem eigenen Infinity-Pool',
+            'king-bed': 'Kingsize-Bett',
+            'queen-bed': 'Queensize-Bett',
+            'free-wifi': 'Kostenloses WLAN',
+            'from-price': 'Ab',
+            'per-night': '/Nacht',
+            
             // 预订表单
             'book-your-journey': 'Buchen Sie Ihre Reise',
             'deposit-required': '30% Anzahlung erforderlich zum Zeitpunkt der Buchung',
@@ -165,12 +188,16 @@
             'book-now': 'Jetzt buchen',
             
             // 车辆特点
+            'safe-comfortable': 'Sicheres & komfortables Fahrzeug',
+            'vehicle-desc': 'Sauberes und gut gewartetes Fahrzeug für eine komfortable Reise durch Sri Lanka',
             'comfort': 'Komfort',
             'well-maintained': 'Gut gewartete Fahrzeuge für Ihre komfortable Reise durch Sri Lanka',
-            'passengers': 'Passagiere',
+            'passengers': 'Bis zu 4 Passagiere',
+            'luggage': 'Großer Gepäckraum',
             'luggage-space': 'Gepäckraum',
+            'ac': 'Klimaanlage',
             'air-conditioning': 'Klimaanlage',
-            'safety': 'Sicherheit',
+            'safety': 'Sicherheitsmerkmale',
             
             // 探索部分
             'explore-sri-lanka': 'Entdecken Sie Sri Lanka',
@@ -180,6 +207,13 @@
             'heritage': 'Kulturerbe',
             'culture': 'Kultur',
             'view-more': 'Mehr anzeigen',
+            'tea-plantations': 'Teeplantagen',
+            'visit-tea': 'Besuchen Sie weltberühmte Ceylon-Teeplantagen',
+            'wildlife-safari': 'Wildlife-Safari',
+            'experience-wildlife': 'Erleben Sie einzigartige Begegnungen mit wilden Tieren',
+            'cultural-heritage': 'Kulturelles Erbe',
+            'discover-temples': 'Entdecken Sie alte Tempel und historische Stätten',
+            'discover-more': 'Mehr entdecken',
             
             // 酒店部分
             'hotel-accommodations': 'Hotelunterkünfte',
@@ -200,6 +234,10 @@
             'send': 'Senden',
             'your-feedback': 'Ihr Feedback',
             'submit-feedback': 'Feedback einreichen',
+            'give-feedback': 'Feedback geben',
+            'share-experience': 'Teilen Sie Ihre Erfahrung',
+            'country': 'Land',
+            'rating': 'Bewertung',
             
             // AI助手
             'travel-assistant': 'Reiseassistent',
@@ -225,6 +263,29 @@
             'discover-lanka': 'Découvrez le Sri Lanka',
             'need-help': 'Besoin d\'aide?',
             
+            // 客户评价和国家来源
+            'what-clients-say': 'Ce que disent nos clients',
+            'testimonial-1': 'Excellent service! Le chauffeur était très professionnel et compétent. Notre voyage au Sri Lanka a été inoubliable.',
+            'testimonial-2': 'Véhicule très confortable et service fiable. Le chauffeur était ponctuel et amical. Hautement recommandé!',
+            'testimonial-3': 'Superbe expérience! Le chauffeur connaissait tous les meilleurs endroits et nous a aidés à découvrir le vrai Sri Lanka.',
+            'from-uk': 'du Royaume-Uni',
+            'from-china': 'de Chine',
+            'from-germany': 'd\'Allemagne',
+            
+            // 房间和住宿
+            'luxurious-accommodations': 'Hébergements Luxueux',
+            'ocean-suite': 'Suite Vue Océan',
+            'ocean-desc': 'Réveillez-vous avec des vues spectaculaires sur l\'océan Indien',
+            'garden-suite': 'Suite Jardin Tropical',
+            'garden-desc': 'Immergez-vous dans des jardins tropicaux luxuriants',
+            'pool-villa': 'Villa avec Piscine Privée',
+            'pool-desc': 'Luxe ultime avec votre propre piscine à débordement',
+            'king-bed': 'Lit King Size',
+            'queen-bed': 'Lit Queen Size',
+            'free-wifi': 'WiFi Gratuit',
+            'from-price': 'À partir de',
+            'per-night': '/nuit',
+            
             // 探索卡片特定翻译
             'tea-plantations': 'Plantations de thé',
             'wildlife-safari': 'Safari de faune sauvage',
@@ -234,9 +295,19 @@
             'discover-temples': 'Découvrez les temples anciens et les sites historiques',
             'discover-more': 'Découvrir plus',
             
+            // 车辆特点
+            'safe-comfortable': 'Véhicule Sûr & Confortable',
+            'vehicle-desc': 'Véhicule propre et bien entretenu assurant un voyage confortable au Sri Lanka',
+            'passengers': 'Jusqu\'à 4 passagers',
+            'luggage': 'Grand espace pour bagages',
+            'ac': 'Climatisation',
+            'safety': 'Caractéristiques de sécurité',
+            
             // Booking journey
             'book-your-journey': 'Réservez votre voyage',
             'deposit-required': '30% d\'acompte requis au moment de la réservation',
+            'service-type': 'Type de service',
+            'select-service': 'Sélectionnez le service',
             'from': 'De',
             'to': 'À',
             'date': 'Date',
@@ -249,6 +320,12 @@
             'bus': 'Bus',
             'get-quote': 'Obtenir un devis',
             'book-now': 'Réserver maintenant',
+            'pickup-location': 'Lieu de prise en charge',
+            'enter-pickup': 'Entrez le lieu de prise en charge',
+            'destination': 'Destination',
+            'enter-destination': 'Entrez la destination',
+            'special-requirements': 'Exigences spéciales',
+            'any-requirements': 'Des exigences spéciales?',
             
             // Explore section
             'explore-sri-lanka': 'Explorez le Sri Lanka',
@@ -275,6 +352,12 @@
             'view-details': 'Voir les détails',
             'amenities': 'Équipements',
             'price-night': 'Prix par nuit',
+            
+            // 反馈相关
+            'give-feedback': 'Donner un avis',
+            'share-experience': 'Partagez votre expérience',
+            'country': 'Pays',
+            'rating': 'Évaluation',
             
             // Contact
             'contact-us': 'Contactez-nous',
@@ -310,9 +393,51 @@
             'discover-lanka': 'Descubra Sri Lanka',
             'need-help': '¿Necesita ayuda?',
             
+            // 客户评价和国家来源
+            'what-clients-say': 'Lo que dicen nuestros clientes',
+            'testimonial-1': '¡Excelente servicio! El conductor fue muy profesional y conocedor. Hizo que nuestro viaje por Sri Lanka fuera inolvidable.',
+            'testimonial-2': 'Vehículo muy cómodo y servicio confiable. El conductor fue puntual y amable. ¡Muy recomendable!',
+            'testimonial-3': '¡Gran experiencia! El conductor conocía todos los mejores lugares y nos ayudó a descubrir el verdadero Sri Lanka.',
+            'from-uk': 'de Reino Unido',
+            'from-china': 'de China',
+            'from-germany': 'de Alemania',
+            
+            // 房间和住宿
+            'luxurious-accommodations': 'Alojamientos de Lujo',
+            'ocean-suite': 'Suite Vista al Océano',
+            'ocean-desc': 'Despierte con impresionantes vistas al Océano Índico',
+            'garden-suite': 'Suite Jardín Tropical',
+            'garden-desc': 'Sumérjase en exuberantes jardines tropicales',
+            'pool-villa': 'Villa con Piscina Privada',
+            'pool-desc': 'Lujo definitivo con su propia piscina infinita',
+            'king-bed': 'Cama King',
+            'queen-bed': 'Cama Queen',
+            'free-wifi': 'WiFi Gratuito',
+            'from-price': 'Desde',
+            'per-night': '/noche',
+            
+            // 探索卡片特定翻译
+            'tea-plantations': 'Plantaciones de Té',
+            'wildlife-safari': 'Safari de Vida Silvestre',
+            'cultural-heritage': 'Patrimonio Cultural',
+            'visit-tea': 'Visite las mundialmente famosas plantaciones de té de Ceilán',
+            'experience-wildlife': 'Experimente encuentros únicos con la vida silvestre',
+            'discover-temples': 'Descubra templos antiguos y sitios históricos',
+            'discover-more': 'Descubrir más',
+            
+            // 车辆特点
+            'safe-comfortable': 'Vehículo Seguro y Cómodo',
+            'vehicle-desc': 'Vehículo limpio y bien mantenido para garantizar un viaje cómodo en Sri Lanka',
+            'passengers': 'Hasta 4 pasajeros',
+            'luggage': 'Amplio espacio para equipaje',
+            'ac': 'Aire acondicionado',
+            'safety': 'Características de seguridad',
+            
             // Booking journey
             'book-your-journey': 'Reserve su viaje',
             'deposit-required': 'Se requiere un depósito del 30% en el momento de la reserva',
+            'service-type': 'Tipo de servicio',
+            'select-service': 'Seleccione el servicio',
             'from': 'Desde',
             'to': 'Hasta',
             'date': 'Fecha',
@@ -325,6 +450,12 @@
             'bus': 'Autobús',
             'get-quote': 'Obtener presupuesto',
             'book-now': 'Reservar ahora',
+            'pickup-location': 'Lugar de recogida',
+            'enter-pickup': 'Introduzca el lugar de recogida',
+            'destination': 'Destino',
+            'enter-destination': 'Introduzca el destino',
+            'special-requirements': 'Requisitos especiales',
+            'any-requirements': '¿Algún requisito especial?',
             
             // Explore section
             'explore-sri-lanka': 'Explore Sri Lanka',
@@ -836,6 +967,113 @@
         if (discoverMoreTitle && TRANSLATIONS[lang]['discover-more']) {
             discoverMoreTitle.textContent = TRANSLATIONS[lang]['discover-more'];
             discoverMoreTitle.setAttribute('data-i18n', 'discover-more');
+        }
+        
+        // 翻译客户评价部分
+        const testimonialCards = document.querySelectorAll('.testimonial-card');
+        testimonialCards.forEach((card, index) => {
+            const contentP = card.querySelector('.testimonial-content p');
+            const authorName = card.querySelector('.author-info h4');
+            const authorFrom = card.querySelector('.author-info p');
+            
+            // 翻译评价内容
+            if (contentP) {
+                const key = `testimonial-${index + 1}`;
+                if (TRANSLATIONS[lang][key]) {
+                    contentP.textContent = TRANSLATIONS[lang][key];
+                    contentP.setAttribute('data-i18n', key);
+                }
+            }
+            
+            // 翻译来源国家
+            if (authorFrom) {
+                const text = authorFrom.textContent.trim();
+                if (text.includes('United Kingdom') && TRANSLATIONS[lang]['from-uk']) {
+                    authorFrom.textContent = TRANSLATIONS[lang]['from-uk'];
+                    authorFrom.setAttribute('data-i18n', 'from-uk');
+                } else if (text.includes('China') || text === '来自中国' && TRANSLATIONS[lang]['from-china']) {
+                    authorFrom.textContent = TRANSLATIONS[lang]['from-china'];
+                    authorFrom.setAttribute('data-i18n', 'from-china');
+                } else if (text.includes('Germany') || text === '来自德国' && TRANSLATIONS[lang]['from-germany']) {
+                    authorFrom.textContent = TRANSLATIONS[lang]['from-germany'];
+                    authorFrom.setAttribute('data-i18n', 'from-germany');
+                }
+            }
+        });
+        
+        // 翻译房间卡片
+        const roomCards = document.querySelectorAll('.room-card');
+        roomCards.forEach(card => {
+            const title = card.querySelector('h3');
+            const desc = card.querySelector('p');
+            const details = card.querySelectorAll('.room-details span');
+            const button = card.querySelector('a.btn-secondary');
+            
+            // 翻译房间标题
+            if (title) {
+                const text = title.textContent.trim();
+                if (text === 'Ocean View Suite' && TRANSLATIONS[lang]['ocean-suite']) {
+                    title.textContent = TRANSLATIONS[lang]['ocean-suite'];
+                    title.setAttribute('data-i18n', 'ocean-suite');
+                } else if (text === 'Tropical Garden Suite' && TRANSLATIONS[lang]['garden-suite']) {
+                    title.textContent = TRANSLATIONS[lang]['garden-suite'];
+                    title.setAttribute('data-i18n', 'garden-suite');
+                } else if (text === 'Private Pool Villa' && TRANSLATIONS[lang]['pool-villa']) {
+                    title.textContent = TRANSLATIONS[lang]['pool-villa'];
+                    title.setAttribute('data-i18n', 'pool-villa');
+                }
+            }
+            
+            // 翻译房间描述
+            if (desc) {
+                const text = desc.textContent.trim();
+                if (text.includes('Indian Ocean') && TRANSLATIONS[lang]['ocean-desc']) {
+                    desc.textContent = TRANSLATIONS[lang]['ocean-desc'];
+                    desc.setAttribute('data-i18n', 'ocean-desc');
+                } else if (text.includes('tropical gardens') && TRANSLATIONS[lang]['garden-desc']) {
+                    desc.textContent = TRANSLATIONS[lang]['garden-desc'];
+                    desc.setAttribute('data-i18n', 'garden-desc');
+                } else if (text.includes('infinity pool') && TRANSLATIONS[lang]['pool-desc']) {
+                    desc.textContent = TRANSLATIONS[lang]['pool-desc'];
+                    desc.setAttribute('data-i18n', 'pool-desc');
+                }
+            }
+            
+            // 翻译价格按钮
+            if (button) {
+                const text = button.textContent.trim();
+                if (text.includes('From ') && TRANSLATIONS[lang]['from-price'] && TRANSLATIONS[lang]['per-night']) {
+                    const price = text.match(/\$\d+/)[0];
+                    button.textContent = `${TRANSLATIONS[lang]['from-price']} ${price}${TRANSLATIONS[lang]['per-night']}`;
+                    button.setAttribute('data-i18n-params', price);
+                    button.setAttribute('data-i18n', 'room-price');
+                }
+            }
+            
+            // 翻译细节项
+            details.forEach(span => {
+                const text = span.textContent.trim();
+                if (text.includes('King') && TRANSLATIONS[lang]['king-bed']) {
+                    span.textContent = TRANSLATIONS[lang]['king-bed'];
+                    span.setAttribute('data-i18n', 'king-bed');
+                } else if (text.includes('Queen') && TRANSLATIONS[lang]['queen-bed']) {
+                    span.textContent = TRANSLATIONS[lang]['queen-bed'];
+                    span.setAttribute('data-i18n', 'queen-bed');
+                } else if (text.includes('WiFi') && TRANSLATIONS[lang]['free-wifi']) {
+                    span.textContent = TRANSLATIONS[lang]['free-wifi'];
+                    span.setAttribute('data-i18n', 'free-wifi');
+                }
+            });
+        });
+        
+        // 翻译豪华住宿标题
+        const luxuryTitle = document.querySelector('#rooms .section-title');
+        if (luxuryTitle && luxuryTitle.textContent.trim() === '豪华住宿' && TRANSLATIONS[lang]['luxurious-accommodations']) {
+            luxuryTitle.textContent = TRANSLATIONS[lang]['luxurious-accommodations'];
+            luxuryTitle.setAttribute('data-i18n', 'luxurious-accommodations');
+        } else if (luxuryTitle && luxuryTitle.textContent.trim() === 'Luxurious Accommodations' && TRANSLATIONS[lang]['luxurious-accommodations']) {
+            luxuryTitle.textContent = TRANSLATIONS[lang]['luxurious-accommodations'];
+            luxuryTitle.setAttribute('data-i18n', 'luxurious-accommodations');
         }
         
         // AI助手文本
