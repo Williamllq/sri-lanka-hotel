@@ -76,17 +76,17 @@ function cacheTranslationElements() {
  */
 function createFlagLanguageSelector() {
     console.log('创建带国旗的语言选择器...');
-    
-    const select = document.getElementById('languageSelect');
-    if (!select) {
-        console.error('未找到 languageSelect 元素');
+
+    let select = document.getElementById('languageSelect');
+    if (select) {
+        console.log('语言选择器已存在，跳过创建');
         return;
     }
-    
-    // 清空现有选项
-    select.innerHTML = '';
-    
-    // 添加带国旗emoji的选项
+
+    select = document.createElement('select');
+    select.id = 'languageSelect';
+    document.body.appendChild(select);
+
     Object.keys(languageFlags).forEach(lang => {
         const option = document.createElement('option');
         option.value = lang;
