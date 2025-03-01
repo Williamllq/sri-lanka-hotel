@@ -586,6 +586,9 @@
     function initPatch() {
         console.log("🔄 初始化增强版语言补丁...");
         
+        // 添加过渡样式
+        addTransitionStyles();
+        
         // 移除旧的翻译工具和分析器
         removeTranslationTools();
         
@@ -610,11 +613,33 @@
             if (activeLang !== 'en') {
                 deepScanAndTranslate(activeLang, false);
             }
-        }, 5000);
+        }, 3000);
         
         console.log("✅ 增强版语言补丁初始化完成!");
     }
     
+    // 添加语言切换过渡样式
+    function addTransitionStyles() {
+        const styleEl = document.createElement('style');
+        styleEl.id = 'language-transition-styles';
+        styleEl.textContent = `
+            .language-transition {
+                transition: opacity 0.3s ease;
+                opacity: 0.5;
+            }
+            
+            [data-translated="true"] {
+                transition: color 0.2s ease, background-color 0.2s ease;
+            }
+            
+            #language-notification {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                font-weight: 500;
+            }
+        `;
+        document.head.appendChild(styleEl);
+    }
+
     // 移除旧的翻译工具和分析器
     function removeTranslationTools() {
         // 移除翻译分析器面板
@@ -714,6 +739,11 @@
     function deepScanAndTranslate(lang, forceRefresh = true) {
         console.log(`🔍 开始深度扫描和翻译 (${LANGUAGES[lang].name})...`);
         
+        // 清除可能的缓存
+        document.querySelectorAll('[data-translated]').forEach(el => {
+            el.removeAttribute('data-translated');
+        });
+        
         // 第1阶段：处理已有data-i18n属性的元素
         translateMarkedElements(lang);
         
@@ -733,6 +763,9 @@
         if (forceRefresh) {
             forcePageRefresh();
         }
+        
+        // 第6阶段：固定元素的特殊处理
+        translateFixedElements(lang);
         
         console.log(`✅ 深度扫描翻译完成 (${LANGUAGES[lang].name})`);
     }
@@ -1157,6 +1190,22 @@
         document.body.style.opacity = '0.99';
         setTimeout(() => {
             document.body.style.opacity = '1';
+            
+            // 尝试移除旧缓存
+            document.querySelectorAll('*').forEach(el => {
+                if (el._translateCache) {
+                    delete el._translateCache;
+                }
+            });
+            
+            // 确保整个DOM树更新后再强制重新扫描一次
+            setTimeout(() => {
+                const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+                if (currentLang !== 'en') {
+                    // 仅处理特殊固定元素，避免完全重扫描造成闪烁
+                    translateFixedElements(currentLang);
+                }
+            }, 100);
         }, 50);
     }
     
@@ -1182,6 +1231,8 @@
                         translateMarkedElements(currentLang);
                         markUnmarkedElements();
                         translateMarkedElements(currentLang);
+                        // 特别处理固定元素
+                        translateFixedElements(currentLang);
                     }, 100);
                 }
             }
@@ -1217,16 +1268,29 @@
             navSelect.value = lang;
         }
         
+        // 先尝试通过添加类使页面出现过渡效果
+        document.body.classList.add('language-transition');
+        
         // 如果是英语，重置为默认文本
         if (lang === 'en') {
             resetToEnglish();
         } else {
             // 应用翻译，深度扫描
             deepScanAndTranslate(lang, true);
+            
+            // 二次扫描确保所有元素都被翻译
+            setTimeout(() => {
+                translateFixedElements(lang);
+            }, 300);
         }
         
         // 显示通知
         showNotification(`已切换到 ${LANGUAGES[lang].flag} ${LANGUAGES[lang].name}`);
+        
+        // 移除过渡效果类
+        setTimeout(() => {
+            document.body.classList.remove('language-transition');
+        }, 500);
         
         // 触发自定义事件
         document.dispatchEvent(new CustomEvent('languageChanged', { 
@@ -1296,6 +1360,186 @@
         setTimeout(() => {
             notification.style.opacity = '0';
         }, 3000);
+    }
+    
+    // 翻译固定元素，特别关注某些特殊区域
+    function translateFixedElements(lang) {
+        console.log("处理特殊固定元素...");
+        
+        // 预订表单标题 - 针对僧伽罗语和其他语言混合的情况
+        const bookingTitle = document.querySelector('.booking-container h2');
+        if (bookingTitle) {
+            if (TRANSLATIONS[lang]['book-your-journey']) {
+                bookingTitle.textContent = TRANSLATIONS[lang]['book-your-journey'];
+                bookingTitle.setAttribute('data-i18n', 'book-your-journey');
+                bookingTitle.setAttribute('data-translated', 'true');
+            }
+        }
+        
+        // 预订表单副标题
+        const depositInfo = document.querySelector('.booking-container .deposit-info');
+        if (depositInfo && TRANSLATIONS[lang]['deposit-required']) {
+            depositInfo.textContent = TRANSLATIONS[lang]['deposit-required'];
+            depositInfo.setAttribute('data-i18n', 'deposit-required');
+            depositInfo.setAttribute('data-translated', 'true');
+        }
+        
+        // 预订表单标签
+        const formLabels = {
+            'service-type': '.booking-form label[for="serviceType"]',
+            'date': '.booking-form label[for="date"]',
+            'time': '.booking-form label[for="time"]',
+            'passengers': '.booking-form label[for="passengers"]',
+            'pickup-location': '.booking-form label[for="pickupLocation"]',
+            'destination': '.booking-form label[for="destination"]',
+            'special-requirements': '.booking-form label[for="specialRequirements"]'
+        };
+        
+        // 处理表单标签
+        for (const [key, selector] of Object.entries(formLabels)) {
+            const labelEl = document.querySelector(selector);
+            if (labelEl && TRANSLATIONS[lang][key]) {
+                labelEl.textContent = TRANSLATIONS[lang][key];
+                labelEl.setAttribute('data-i18n', key);
+                labelEl.setAttribute('data-translated', 'true');
+            }
+        }
+        
+        // 表单占位符
+        const placeholders = {
+            'select-service': '#serviceType',
+            'enter-pickup': '#pickupLocation',
+            'enter-destination': '#destination',
+            'any-requirements': '#specialRequirements'
+        };
+        
+        // 处理表单占位符
+        for (const [key, selector] of Object.entries(placeholders)) {
+            const inputEl = document.querySelector(selector);
+            if (inputEl && TRANSLATIONS[lang][key]) {
+                if (inputEl.tagName === 'SELECT') {
+                    const defaultOption = inputEl.querySelector('option[value=""]');
+                    if (defaultOption) {
+                        defaultOption.textContent = TRANSLATIONS[lang][key];
+                    }
+                } else {
+                    inputEl.placeholder = TRANSLATIONS[lang][key];
+                }
+                inputEl.setAttribute('data-placeholder-i18n', key);
+                inputEl.setAttribute('data-translated', 'true');
+            }
+        }
+        
+        // 按钮区域 - 对于预订和引述按钮特别关注
+        const allButtons = document.querySelectorAll('button, input[type="submit"], input[type="button"]');
+        allButtons.forEach(btn => {
+            const text = btn.textContent || btn.value;
+            
+            if (text) {
+                // 尝试匹配常见按钮文本
+                if ((text.includes('Get Quote') || text.includes('Quote') || text.includes('Obtain') || text === 'මිල ගණන් ලබා ගන්න') && TRANSLATIONS[lang]['get-quote']) {
+                    if (btn.tagName === 'INPUT') {
+                        btn.value = TRANSLATIONS[lang]['get-quote'];
+                    } else {
+                        btn.textContent = TRANSLATIONS[lang]['get-quote'];
+                    }
+                    btn.setAttribute('data-i18n', 'get-quote');
+                    btn.setAttribute('data-translated', 'true');
+                } 
+                else if ((text.includes('Book Now') || text.includes('Reserve') || text.includes('Book') || text === 'දැන් වෙන් කරන්න') && TRANSLATIONS[lang]['book-now']) {
+                    if (btn.tagName === 'INPUT') {
+                        btn.value = TRANSLATIONS[lang]['book-now'];
+                    } else {
+                        btn.textContent = TRANSLATIONS[lang]['book-now'];
+                    }
+                    btn.setAttribute('data-i18n', 'book-now');
+                    btn.setAttribute('data-translated', 'true');
+                }
+            }
+        });
+        
+        // 强制处理车辆信息部分
+        const vehicleTitle = document.querySelector('.vehicle-info h2');
+        if (vehicleTitle) {
+            if (TRANSLATIONS[lang]['safe-comfortable']) {
+                vehicleTitle.textContent = TRANSLATIONS[lang]['safe-comfortable'];
+                vehicleTitle.setAttribute('data-i18n', 'safe-comfortable');
+                vehicleTitle.setAttribute('data-translated', 'true');
+            }
+        } else {
+            // 尝试查找其他可能的包含车辆信息的标题
+            document.querySelectorAll('h2').forEach(h2 => {
+                if (h2.textContent.includes('Vehicle') || h2.textContent.includes('Véhicule') || h2.textContent.includes('Fahrzeug')) {
+                    h2.textContent = TRANSLATIONS[lang]['safe-comfortable'] || h2.textContent;
+                    h2.setAttribute('data-i18n', 'safe-comfortable');
+                    h2.setAttribute('data-translated', 'true');
+                }
+            });
+        }
+        
+        // 强制处理车辆描述
+        const vehicleDesc = document.querySelector('.vehicle-info p');
+        if (vehicleDesc) {
+            if (TRANSLATIONS[lang]['vehicle-desc']) {
+                vehicleDesc.textContent = TRANSLATIONS[lang]['vehicle-desc'];
+                vehicleDesc.setAttribute('data-i18n', 'vehicle-desc');
+                vehicleDesc.setAttribute('data-translated', 'true');
+            }
+        } else {
+            // 尝试查找与车辆相关的段落
+            document.querySelectorAll('p').forEach(p => {
+                if (p.textContent.includes('clean') || p.textContent.includes('comfortable journey') || 
+                    p.textContent.includes('propre') || p.textContent.includes('voyage confortable')) {
+                    p.textContent = TRANSLATIONS[lang]['vehicle-desc'] || p.textContent;
+                    p.setAttribute('data-i18n', 'vehicle-desc');
+                    p.setAttribute('data-translated', 'true');
+                }
+            });
+        }
+        
+        // 车辆特性部分 - 更广泛的处理
+        document.querySelectorAll('.feature-item span, .features span').forEach(span => {
+            const text = span.textContent.trim().toLowerCase();
+            
+            // 先尝试精确匹配关键词
+            if (text.includes('passenger')) {
+                span.textContent = TRANSLATIONS[lang]['passengers'] || span.textContent;
+                span.setAttribute('data-i18n', 'passengers');
+                span.setAttribute('data-translated', 'true');
+            } 
+            else if (text.includes('luggage') || text.includes('baggage')) {
+                span.textContent = TRANSLATIONS[lang]['luggage'] || span.textContent;
+                span.setAttribute('data-i18n', 'luggage');
+                span.setAttribute('data-translated', 'true');
+            }
+            else if (text.includes('air') || text.includes('ac') || text.includes('a/c') || text.includes('conditioning')) {
+                span.textContent = TRANSLATIONS[lang]['ac'] || span.textContent;
+                span.setAttribute('data-i18n', 'ac');
+                span.setAttribute('data-translated', 'true');
+            }
+            else if (text.includes('safe')) {
+                span.textContent = TRANSLATIONS[lang]['safety'] || span.textContent;
+                span.setAttribute('data-i18n', 'safety');
+                span.setAttribute('data-translated', 'true');
+            }
+        });
+        
+        // 处理僧伽罗语按钮
+        const sinhalaButtons = document.querySelectorAll('button');
+        sinhalaButtons.forEach(btn => {
+            const text = btn.textContent.trim();
+            
+            // 检测僧伽罗语按钮
+            if (text === 'මිල ගණන් ලබා ගන්න' && TRANSLATIONS[lang]['get-quote']) {
+                btn.textContent = TRANSLATIONS[lang]['get-quote'];
+                btn.setAttribute('data-i18n', 'get-quote');
+                btn.setAttribute('data-translated', 'true');
+            } else if (text === 'දැන් වෙන් කරන්න' && TRANSLATIONS[lang]['book-now']) {
+                btn.textContent = TRANSLATIONS[lang]['book-now'];
+                btn.setAttribute('data-i18n', 'book-now');
+                btn.setAttribute('data-translated', 'true');
+            }
+        });
     }
     
     // 导出全局函数
