@@ -788,21 +788,45 @@ const translations = {
 function switchLanguage(lang) {
     localStorage.setItem('selectedLanguage', lang);
     
+    // 检查是否支持所选语言
+    if (!translations[lang]) {
+        console.error('Translation not found for language:', lang);
+        return;
+    }
+    
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
         if (translations[lang] && translations[lang][key]) {
             if (element.tagName === 'OPTION') {
                 element.text = translations[lang][key];
             } else if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                element.placeholder = translations[lang][key];
+                if (element.hasAttribute('placeholder')) {
+                    element.placeholder = translations[lang][key];
+                } else {
+                    element.value = translations[lang][key];
+                }
             } else {
-                element.textContent = translations[lang][key];
+                // 保持内部HTML中的任何图标
+                const hasIcon = element.querySelector('i');
+                if (hasIcon) {
+                    const iconHTML = hasIcon.outerHTML;
+                    element.innerHTML = iconHTML + ' ' + translations[lang][key];
+                } else {
+                    element.textContent = translations[lang][key];
+                }
             }
+        } else if (key && !translations[lang][key]) {
+            console.warn(`Missing translation for key "${key}" in language "${lang}"`);
         }
     });
 
     // 更新文档标题
-    document.title = translations[lang]['page-title'] || 'Best Travel - Best Choice | Sri Lanka Stay & Explore';
+    if (translations[lang]['page-title']) {
+        document.title = translations[lang]['page-title'];
+    }
+    
+    // 添加调试日志
+    console.log(`Language switched to: ${lang}`);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -813,6 +837,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (savedLanguage) {
             languageSelect.value = savedLanguage;
             switchLanguage(savedLanguage);
+        } else {
+            // 如果没有保存的语言，使用默认语言
+            switchLanguage(languageSelect.value);
         }
         
         languageSelect.addEventListener('change', function() {
