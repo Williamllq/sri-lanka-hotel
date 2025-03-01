@@ -225,6 +225,15 @@
             'discover-lanka': 'Découvrez le Sri Lanka',
             'need-help': 'Besoin d\'aide?',
             
+            // 探索卡片特定翻译
+            'tea-plantations': 'Plantations de thé',
+            'wildlife-safari': 'Safari de faune sauvage',
+            'cultural-heritage': 'Patrimoine culturel',
+            'visit-tea': 'Visitez les célèbres plantations de thé de Ceylan',
+            'experience-wildlife': 'Découvrez des rencontres uniques avec la faune sauvage',
+            'discover-temples': 'Découvrez les temples anciens et les sites historiques',
+            'discover-more': 'Découvrir plus',
+            
             // Booking journey
             'book-your-journey': 'Réservez votre voyage',
             'deposit-required': '30% d\'acompte requis au moment de la réservation',
@@ -739,46 +748,95 @@
             const titleEl = card.querySelector('h3');
             const descEl = card.querySelector('p');
             
-            if (titleEl && !titleEl.hasAttribute('data-i18n')) {
+            if (titleEl) {
                 const text = titleEl.textContent.trim();
-                // 检查是否有匹配的键
-                for (const key in TRANSLATIONS[lang]) {
-                    if (key.includes('tea') && text.toLowerCase().includes('tea')) {
-                        titleEl.textContent = TRANSLATIONS[lang]['tea-plantations'] || text;
-                        titleEl.setAttribute('data-i18n', 'tea-plantations');
-                        break;
-                    } else if (key.includes('wildlife') && text.toLowerCase().includes('wildlife')) {
-                        titleEl.textContent = TRANSLATIONS[lang]['wildlife-safari'] || text;
-                        titleEl.setAttribute('data-i18n', 'wildlife-safari');
-                        break;
-                    } else if (key.includes('cultural') && text.toLowerCase().includes('cultural')) {
-                        titleEl.textContent = TRANSLATIONS[lang]['cultural-heritage'] || text;
-                        titleEl.setAttribute('data-i18n', 'cultural-heritage');
-                        break;
+                
+                // 检查中文标题并翻译
+                if (text === '茶园' && TRANSLATIONS[lang]['tea-plantations']) {
+                    titleEl.textContent = TRANSLATIONS[lang]['tea-plantations'];
+                    titleEl.setAttribute('data-i18n', 'tea-plantations');
+                }
+                else if (text === '野生动物之旅' && TRANSLATIONS[lang]['wildlife-safari']) {
+                    titleEl.textContent = TRANSLATIONS[lang]['wildlife-safari'];
+                    titleEl.setAttribute('data-i18n', 'wildlife-safari');
+                }
+                else if (text === '文化遗产' && TRANSLATIONS[lang]['cultural-heritage']) {
+                    titleEl.textContent = TRANSLATIONS[lang]['cultural-heritage'];
+                    titleEl.setAttribute('data-i18n', 'cultural-heritage');
+                }
+                // 继续检查英文标识和关键词
+                else if (!titleEl.hasAttribute('data-i18n')) {
+                    // 检查是否有匹配的键
+                    for (const key in TRANSLATIONS[lang]) {
+                        if (key.includes('tea') && text.toLowerCase().includes('tea')) {
+                            titleEl.textContent = TRANSLATIONS[lang]['tea-plantations'] || text;
+                            titleEl.setAttribute('data-i18n', 'tea-plantations');
+                            break;
+                        } else if (key.includes('wildlife') && text.toLowerCase().includes('wildlife')) {
+                            titleEl.textContent = TRANSLATIONS[lang]['wildlife-safari'] || text;
+                            titleEl.setAttribute('data-i18n', 'wildlife-safari');
+                            break;
+                        } else if (key.includes('cultural') && text.toLowerCase().includes('cultural')) {
+                            titleEl.textContent = TRANSLATIONS[lang]['cultural-heritage'] || text;
+                            titleEl.setAttribute('data-i18n', 'cultural-heritage');
+                            break;
+                        }
                     }
                 }
             }
             
-            if (descEl && !descEl.hasAttribute('data-i18n')) {
+            if (descEl) {
                 const text = descEl.textContent.trim();
-                // 检查是否有匹配的键
-                for (const key in TRANSLATIONS[lang]) {
-                    if (key.includes('visit-tea') && text.toLowerCase().includes('tea')) {
-                        descEl.textContent = TRANSLATIONS[lang]['visit-tea'] || text;
-                        descEl.setAttribute('data-i18n', 'visit-tea');
-                        break;
-                    } else if (key.includes('experience-wildlife') && text.toLowerCase().includes('wildlife')) {
-                        descEl.textContent = TRANSLATIONS[lang]['experience-wildlife'] || text;
-                        descEl.setAttribute('data-i18n', 'experience-wildlife');
-                        break;
-                    } else if (key.includes('discover-temples') && text.toLowerCase().includes('temple')) {
-                        descEl.textContent = TRANSLATIONS[lang]['discover-temples'] || text;
-                        descEl.setAttribute('data-i18n', 'discover-temples');
-                        break;
+                
+                // 先检查英文描述
+                if (text.includes('Ceylon tea') && TRANSLATIONS[lang]['visit-tea']) {
+                    descEl.textContent = TRANSLATIONS[lang]['visit-tea'];
+                    descEl.setAttribute('data-i18n', 'visit-tea');
+                }
+                else if (text.includes('wildlife encounters') && TRANSLATIONS[lang]['experience-wildlife']) {
+                    descEl.textContent = TRANSLATIONS[lang]['experience-wildlife'];
+                    descEl.setAttribute('data-i18n', 'experience-wildlife');
+                }
+                else if (text.includes('temples') && TRANSLATIONS[lang]['discover-temples']) {
+                    descEl.textContent = TRANSLATIONS[lang]['discover-temples'];
+                    descEl.setAttribute('data-i18n', 'discover-temples');
+                }
+                // 以下是原代码的备用检测
+                else if (!descEl.hasAttribute('data-i18n')) {
+                    // 检查是否有匹配的键
+                    for (const key in TRANSLATIONS[lang]) {
+                        if (key.includes('visit-tea') && text.toLowerCase().includes('tea')) {
+                            descEl.textContent = TRANSLATIONS[lang]['visit-tea'] || text;
+                            descEl.setAttribute('data-i18n', 'visit-tea');
+                            break;
+                        } else if (key.includes('experience-wildlife') && text.toLowerCase().includes('wildlife')) {
+                            descEl.textContent = TRANSLATIONS[lang]['experience-wildlife'] || text;
+                            descEl.setAttribute('data-i18n', 'experience-wildlife');
+                            break;
+                        } else if (key.includes('discover-temples') && text.toLowerCase().includes('temple')) {
+                            descEl.textContent = TRANSLATIONS[lang]['discover-temples'] || text;
+                            descEl.setAttribute('data-i18n', 'discover-temples');
+                            break;
+                        }
                     }
                 }
             }
         });
+        
+        // 翻译"发现更多"部分
+        const allH2s = document.querySelectorAll('h2');
+        let discoverMoreTitle = null;
+        
+        allH2s.forEach(h2 => {
+            if (h2.textContent.trim() === '发现更多') {
+                discoverMoreTitle = h2;
+            }
+        });
+        
+        if (discoverMoreTitle && TRANSLATIONS[lang]['discover-more']) {
+            discoverMoreTitle.textContent = TRANSLATIONS[lang]['discover-more'];
+            discoverMoreTitle.setAttribute('data-i18n', 'discover-more');
+        }
         
         // AI助手文本
         const aiMessages = document.querySelectorAll('.ai-message');
