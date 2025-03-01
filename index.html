@@ -143,97 +143,69 @@
                     </div>
 
                     <!-- 右侧：预订表单 -->
-                    <div class="booking-form">
-                        <h3 data-i18n="book-journey">Book Your Journey</h3>
-                        <div class="deposit-info">
-                            <i class="fas fa-info-circle"></i>
-                            <p data-i18n="deposit-info">A 30% deposit is required to confirm your booking</p>
-                        </div>
-                        <form id="transportForm">
-                            <div class="form-grid">
+                    <div class="booking-container">
+                        <h2 data-i18n="book-your-journey">Book Your Journey</h2>
+                        <p data-i18n="deposit-required">30% deposit required at time of booking</p>
+                        
+                        <div class="booking-form">
+                            <div class="form-row">
                                 <div class="form-group">
                                     <label data-i18n="service-type">Service Type</label>
-                                    <select id="serviceType" required>
-                                        <option value="" data-i18n="select-service">Select a service</option>
-                                        <option value="airport" data-i18n="airport-transfer">Airport Transfer</option>
-                                        <option value="charter" data-i18n="private-charter">Private Charter</option>
-                                        <option value="tour" data-i18n="guided-tour">Guided Tour</option>
+                                    <select id="serviceType" data-i18n-placeholder="select-service">
+                                        <option value="" data-i18n="select-service">Select service</option>
+                                        <option value="airport">Airport Transfer</option>
+                                        <option value="city">City Tour</option>
+                                        <option value="custom">Custom Journey</option>
                                     </select>
                                 </div>
-                                
                                 <div class="form-group">
                                     <label data-i18n="date">Date</label>
-                                    <input type="date" id="serviceDate" required>
+                                    <input type="date" id="journeyDate">
                                 </div>
-                                
+                            </div>
+                            
+                            <div class="form-row">
                                 <div class="form-group">
                                     <label data-i18n="time">Time</label>
-                                    <input type="time" id="serviceTime" required>
+                                    <input type="time" id="journeyTime">
                                 </div>
-                                
                                 <div class="form-group">
-                                    <label data-i18n="passengers">Number of Passengers</label>
-                                    <select id="passengers" required>
-                                        <option value="1" data-i18n="one-person">1 Person</option>
-                                        <option value="2" data-i18n="two-people">2 People</option>
-                                        <option value="3" data-i18n="three-people">3 People</option>
-                                        <option value="4" data-i18n="four-people">4 People</option>
+                                    <label data-i18n="passengers">Passengers</label>
+                                    <select id="passengerCount">
+                                        <option value="1">1 Person</option>
+                                        <option value="2">2 People</option>
+                                        <option value="3">3 People</option>
+                                        <option value="4+">4+ People</option>
                                     </select>
                                 </div>
-                                
+                            </div>
+                            
+                            <div class="form-row">
                                 <div class="form-group full-width">
                                     <label data-i18n="pickup-location">Pickup Location</label>
-                                    <div class="location-input">
-                                        <input type="text" id="pickupLocation" data-i18n="enter-pickup" placeholder="Enter pickup location" required readonly>
-                                        <button type="button" class="map-btn" data-field="pickup">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                        </button>
-                                    </div>
+                                    <input type="text" id="pickupLocation" data-i18n-placeholder="enter-pickup" placeholder="Enter pickup location">
                                 </div>
-                                
+                            </div>
+                            
+                            <div class="form-row">
                                 <div class="form-group full-width">
                                     <label data-i18n="destination">Destination</label>
-                                    <div class="location-input">
-                                        <input type="text" id="destination" data-i18n="enter-destination" placeholder="Enter destination" required readonly>
-                                        <button type="button" class="map-btn" data-field="destination">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                        </button>
-                                    </div>
+                                    <input type="text" id="destination" data-i18n-placeholder="enter-destination" placeholder="Enter destination">
                                 </div>
-                                
+                            </div>
+                            
+                            <div class="form-row">
                                 <div class="form-group full-width">
-                                    <label data-i18n="requirements">Special Requirements</label>
-                                    <textarea id="requirements" data-i18n="enter-requirements" placeholder="Any special requirements?"></textarea>
+                                    <label data-i18n="special-requirements">Special Requirements</label>
+                                    <textarea id="specialRequirements" data-i18n-placeholder="any-requirements" placeholder="Any special requirements?"></textarea>
                                 </div>
                             </div>
                             
-                            <div class="price-estimate">
-                                <span>Estimated Price: </span>
-                                <span id="estimatedPrice">Select service type to see price</span>
-                                <div class="deposit-amount">
-                                    <span>Required Deposit (30%): </span>
-                                    <span id="depositAmount">-</span>
-                                </div>
+                            <div class="form-buttons">
+                                <button type="button" class="btn secondary" data-i18n="get-quote">Get Quote</button>
+                                <button type="button" class="btn primary" data-i18n="book-now">Book Now</button>
                             </div>
-                            
-                            <div class="payment-options">
-                                <h4>Select Payment Method</h4>
-                                <div class="payment-methods">
-                                    <label class="payment-method">
-                                        <input type="radio" name="paymentMethod" value="card" checked>
-                                        <i class="fas fa-credit-card"></i>
-                                        <span>Credit Card</span>
-                                    </label>
-                                    <label class="payment-method">
-                                        <input type="radio" name="paymentMethod" value="paypal">
-                                        <i class="fab fa-paypal"></i>
-                                        <span>PayPal</span>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <button type="submit" class="btn">Pay Deposit & Book</button>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>

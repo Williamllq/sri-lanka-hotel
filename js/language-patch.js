@@ -122,21 +122,34 @@
             'need-help': '需要帮助？'
         },
         'de': {
+            // 导航
             'home': 'Startseite',
             'transport': 'Transport',
             'explore': 'Entdecken',
             'contact': 'Kontakt',
+            
+            // 主页
             'hero-title': 'Beste Reise - Beste Wahl',
             'hero-subtitle': 'Ihr Premium-Reiseerlebnis in Sri Lanka',
             'book-transport': 'Transport buchen',
             'explore-lanka': 'Sri Lanka entdecken',
+            
+            // 服务部分
             'transport-services': 'Transportdienstleistungen',
             'discover-lanka': 'Entdecken Sie Sri Lanka',
             'need-help': 'Brauchen Sie Hilfe?',
             
-            // Booking journey
+            // 预订表单
             'book-your-journey': 'Buchen Sie Ihre Reise',
             'deposit-required': '30% Anzahlung erforderlich zum Zeitpunkt der Buchung',
+            'service-type': 'Serviceart',
+            'select-service': 'Service auswählen',
+            'pickup-location': 'Abholort',
+            'enter-pickup': 'Abholort eingeben',
+            'destination': 'Zielort',
+            'enter-destination': 'Zielort eingeben',
+            'special-requirements': 'Besondere Anforderungen',
+            'any-requirements': 'Irgendwelche besonderen Anforderungen?',
             'from': 'Von',
             'to': 'Nach',
             'date': 'Datum',
@@ -150,33 +163,34 @@
             'get-quote': 'Angebot erhalten',
             'book-now': 'Jetzt buchen',
             
-            // Explore section
+            // 车辆特点
+            'comfort': 'Komfort',
+            'well-maintained': 'Gut gewartete Fahrzeuge für Ihre komfortable Reise durch Sri Lanka',
+            'passengers': 'Passagiere',
+            'luggage-space': 'Gepäckraum',
+            'air-conditioning': 'Klimaanlage',
+            'safety': 'Sicherheit',
+            
+            // 探索部分
             'explore-sri-lanka': 'Entdecken Sie Sri Lanka',
-            'beaches-title': 'Traumhafte Strände',
-            'beaches-desc': 'Erleben Sie die kristallklaren Gewässer und goldenen Sandstrände entlang der Küste Sri Lankas.',
-            'wildlife-title': 'Exotische Tierwelt',
-            'wildlife-desc': 'Entdecken Sie die vielfältige Tierwelt in den Nationalparks mit Elefanten, Leoparden und bunten Vögeln.',
-            'culture-title': 'Reiche Kultur',
-            'culture-desc': 'Tauchen Sie ein in die 2500 Jahre alte Kultur mit Tempeln, Ruinen und lebendigen Traditionen.',
-            'cuisine-title': 'Köstliche Küche',
-            'cuisine-desc': 'Probieren Sie die würzigen Currys, frischen Meeresfrüchte und exotischen Früchte, die Sri Lanka zu bieten hat.',
+            'discover-beauty': 'Entdecken Sie die Schönheit und das Erbe von Sri Lanka',
+            'beaches': 'Strände',
+            'wildlife': 'Tierwelt',
+            'heritage': 'Kulturerbe',
+            'culture': 'Kultur',
+            'view-more': 'Mehr anzeigen',
             
-            // Testimonials
-            'what-customers-say': 'Was unsere Kunden sagen',
-            'customer-review-1': 'Unser Fahrer war pünktlich, freundlich und kannte sich bestens mit den Sehenswürdigkeiten aus. Das Auto war sehr komfortabel für unsere lange Reise.',
-            'customer-name-1': 'Michael Schmidt',
-            
-            // Accommodation
-            'accommodation': 'Unterkunft',
-            'book-hotels': 'Hotels buchen',
+            // 酒店部分
+            'hotel-accommodations': 'Hotelunterkünfte',
+            'find-best-hotels': 'Finden Sie die besten Hotels für Ihren Aufenthalt',
             'luxury-room': 'Luxuszimmer',
             'deluxe-room': 'Deluxe-Zimmer',
             'standard-room': 'Standardzimmer',
-            'view-details': 'Details ansehen',
-            'amenities': 'Ausstattung',
+            'view-details': 'Details anzeigen',
+            'amenities': 'Annehmlichkeiten',
             'price-night': 'Preis pro Nacht',
             
-            // Contact
+            // 联系部分
             'contact-us': 'Kontaktieren Sie uns',
             'contact-desc': 'Haben Sie Fragen oder benötigen Sie Hilfe bei der Planung Ihrer Reise? Kontaktieren Sie uns!',
             'name': 'Name',
@@ -184,15 +198,15 @@
             'message': 'Nachricht',
             'send': 'Senden',
             'your-feedback': 'Ihr Feedback',
-            'submit-feedback': 'Feedback senden',
+            'submit-feedback': 'Feedback einreichen',
             
-            // AI Assistant
+            // AI助手
             'travel-assistant': 'Reiseassistent',
-            'ai-welcome': 'Hallo! Ich bin Ihr Sri Lanka Reiseassistent. Ich kann Ihnen helfen mit:',
+            'ai-welcome': 'Willkommen! Ich bin Ihr Sri Lanka Reiseassistent. Ich kann Ihnen helfen mit:',
             'hotel-info': 'Hotelinformationen',
             'local-attractions': 'Lokale Attraktionen',
             'travel-tips': 'Reisetipps',
-            'booking-assistance': 'Buchungshilfe',
+            'booking-assistance': 'Buchungsunterstützung',
             'how-assist': 'Wie kann ich Ihnen heute helfen?',
             'ask-anything': 'Fragen Sie mich alles über Sri Lanka...',
             'need-help': 'Brauchen Sie Hilfe?'
@@ -539,7 +553,135 @@
         console.log("✅ 创建了导航栏语言选择器");
     }
     
-    // 6. 为未标记的元素添加data-i18n属性
+    // 6. 自动检测和翻译未标记的元素
+    function detectAndTranslateUnmarkedElements(lang) {
+        console.log("🔍 正在智能检测未标记的元素...");
+        
+        // 需要特别关注的选择器和对应的翻译键
+        const specialElements = [
+            { selector: 'h1:contains("Transportdienstleistungen")', key: 'transport-services' },
+            { selector: 'h2:contains("预订您的旅程")', key: 'book-your-journey' },
+            { selector: 'p:contains("需要支付30%")', key: 'deposit-required' },
+            { selector: 'label:contains("服务类型")', key: 'vehicle-type' },
+            { selector: 'label:contains("Datum")', key: 'date' },
+            { selector: 'label:contains("Zeit")', key: 'time' },
+            { selector: 'label:contains("Passagiere")', key: 'passengers' },
+            { selector: 'label:contains("接送地点")', key: 'pickup-location' },
+            { selector: 'label:contains("目的地")', key: 'destination' },
+            { selector: 'label:contains("特殊要求")', key: 'special-requirements' }
+        ];
+        
+        // 实现jQuery-like contains选择器
+        specialElements.forEach(item => {
+            const selector = item.selector;
+            const key = item.key;
+            
+            // 提取选择器类型和文本
+            const match = selector.match(/([a-zA-Z0-9]+):contains\("(.+?)"\)/);
+            if (match) {
+                const elementType = match[1];
+                const textToFind = match[2];
+                
+                // 查找所有该类型的元素
+                const elements = document.querySelectorAll(elementType);
+                elements.forEach(el => {
+                    if (el.textContent.includes(textToFind)) {
+                        console.log(`找到未标记元素: ${el.textContent.trim()}`);
+                        
+                        // 如果元素没有data-i18n属性，添加它
+                        if (!el.hasAttribute('data-i18n')) {
+                            el.setAttribute('data-i18n', key);
+                            // 保存原始文本
+                            el.setAttribute('data-default-text', el.textContent);
+                            
+                            // 立即应用翻译
+                            const translation = getTranslation(key, lang);
+                            if (translation) {
+                                el.textContent = translation;
+                                console.log(`应用翻译: ${key} => ${translation}`);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+        
+        // 通用规则 - 查找常见的需要翻译但没有标记的元素
+        const commonElements = [
+            { selector: 'h1, h2, h3, h4, h5, p, label, button', minLength: 2 },
+            { selector: 'input[type="submit"], input[type="button"]', attribute: 'value', minLength: 2 },
+            { selector: 'input[placeholder]', attribute: 'placeholder', minLength: 4 }
+        ];
+        
+        commonElements.forEach(item => {
+            const elements = document.querySelectorAll(item.selector);
+            elements.forEach(el => {
+                // 如果已经有data-i18n属性，跳过
+                if (el.hasAttribute('data-i18n')) return;
+                
+                let content = item.attribute ? el.getAttribute(item.attribute) : el.textContent;
+                content = content.trim();
+                
+                // 只处理有实际内容并且长度符合要求的元素
+                if (content && content.length >= item.minLength) {
+                    // 生成一个唯一的键
+                    let key = content.toLowerCase()
+                        .replace(/[^a-z0-9]/gi, '-')
+                        .replace(/-+/g, '-')
+                        .replace(/^-|-$/g, '')
+                        .substring(0, 30);
+                    
+                    // 检查是否已有相同内容的翻译
+                    let existingKey = findExistingTranslationKey(content);
+                    if (existingKey) {
+                        key = existingKey;
+                    }
+                    
+                    console.log(`自动标记元素: "${content}" => ${key}`);
+                    
+                    // 添加data-i18n属性
+                    el.setAttribute('data-i18n', key);
+                    el.setAttribute('data-default-text', content);
+                    
+                    // 如果存在翻译，立即应用
+                    const translation = getTranslation(key, lang);
+                    if (translation) {
+                        if (item.attribute) {
+                            el.setAttribute(item.attribute, translation);
+                        } else {
+                            el.textContent = translation;
+                        }
+                    }
+                }
+            });
+        });
+        
+        console.log("✅ 智能检测和翻译完成");
+    }
+    
+    // 查找已有的翻译键
+    function findExistingTranslationKey(content) {
+        // 遍历所有语言的所有翻译
+        for (const lang in TRANSLATIONS) {
+            const translations = TRANSLATIONS[lang];
+            for (const key in translations) {
+                if (translations[key] === content || key === content) {
+                    return key;
+                }
+            }
+        }
+        return null;
+    }
+    
+    // 获取特定键和语言的翻译
+    function getTranslation(key, lang) {
+        if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+            return TRANSLATIONS[lang][key];
+        }
+        return null;
+    }
+    
+    // 7. 为未标记的元素添加data-i18n属性
     function addMissingI18nAttributes() {
         console.log("🔍 检查未标记的元素并添加data-i18n属性...");
         
@@ -599,7 +741,7 @@
         }
     }
     
-    // 7. 切换语言
+    // 8. 切换语言
     function switchLanguage(lang) {
         console.log(`🔄 切换语言到: ${lang}`);
         
@@ -629,36 +771,12 @@
         }));
     }
     
-    // 8. 应用翻译
-    function applyTranslation(lang, forceRefresh = false) {
-        console.log(`📝 应用 ${lang} 语言翻译...${forceRefresh ? '(强制刷新)' : ''}`);
+    // 9. 应用翻译
+    function applyTranslation(lang, forceRefresh = true) {
+        console.log(`🔄 正在应用 ${LANGUAGES[lang].name} 翻译...`);
         
-        // 默认为英语 - 不需要翻译
-        if (lang === 'en') {
-            resetToEnglish();
-            return;
-        }
-        
-        // 获取翻译数据
-        let translations = {};
-        
-        // 首先尝试使用内置翻译
-        if (TRANSLATIONS[lang]) {
-            translations = {...TRANSLATIONS[lang]};
-            console.log("使用内置翻译数据");
-        }
-        
-        // 然后合并全局翻译数据(如果存在)
-        if (window.translations && window.translations[lang]) {
-            translations = {...translations, ...window.translations[lang]};
-            console.log("合并全局翻译数据");
-        }
-        
-        // 查找所有带有 data-i18n 属性的元素
+        // 先处理已标记的元素
         const elements = document.querySelectorAll('[data-i18n]');
-        console.log(`找到 ${elements.length} 个需要翻译的元素`);
-        
-        // 应用翻译
         let translatedCount = 0;
         elements.forEach(el => {
             const key = el.getAttribute('data-i18n');
@@ -675,18 +793,18 @@
             }
             
             // 应用翻译
-            if (translations[key]) {
+            if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
                 // 对于输入元素，设置占位符
                 if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
-                    el.placeholder = translations[key];
+                    el.placeholder = TRANSLATIONS[lang][key];
                 }
                 // 对于选择框选项
                 else if (el.tagName === 'OPTION') {
-                    el.text = translations[key];
+                    el.text = TRANSLATIONS[lang][key];
                 }
                 // 普通元素设置文本内容
                 else {
-                    el.textContent = translations[key];
+                    el.textContent = TRANSLATIONS[lang][key];
                 }
                 translatedCount++;
             } else {
@@ -695,6 +813,9 @@
         });
         
         console.log(`✅ 翻译了 ${translatedCount} 个元素`);
+        
+        // 在处理完标记元素后，检测并翻译未标记元素
+        detectAndTranslateUnmarkedElements(lang);
         
         // 强制重绘以确保所有内容更新
         if (forceRefresh) {
@@ -713,7 +834,7 @@
         }
     }
     
-    // 9. 重置为英文
+    // 10. 重置为英文
     function resetToEnglish() {
         console.log("🔄 重置为英文原文...");
         
@@ -744,7 +865,7 @@
         setTimeout(() => { document.body.style.opacity = '1'; }, 50);
     }
     
-    // 10. 显示通知
+    // 11. 显示通知
     function showNotification(message) {
         // 创建或获取通知元素
         let notification = document.getElementById('language-notification');
@@ -778,10 +899,10 @@
         }, 3000);
     }
     
-    // 11. 导出全局函数
+    // 12. 导出全局函数
     window.switchLanguage = switchLanguage;
     
-    // 12. 启动补丁
+    // 13. 启动补丁
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPatch);
     } else {
@@ -792,7 +913,7 @@
         setTimeout(initPatch, 500);
     }
     
-    // 13. 定期检查DOM变化并应用当前语言
+    // 14. 定期检查DOM变化并应用当前语言
     setInterval(() => {
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
         if (currentLang !== 'en') {
