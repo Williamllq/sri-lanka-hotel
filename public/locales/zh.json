@@ -1,0 +1,20 @@
+{
+  "navigation": {
+    "home": "首页",
+    "transport": "交通",
+    "explore": "探索",
+    "contact": "联系方式"
+  },
+  "header": {
+    "title": "最佳旅行 - 最佳选择",
+    "subtitle": "您在斯里兰卡的高端旅行体验"
+  },
+  "buttons": {
+    "book_transport": "预订交通",
+    "explore_sri_lanka": "探索斯里兰卡"
+  },
+  "footer": {
+    "give_feedback": "提供反馈",
+    "need_help": "需要帮助？"
+  }
+} 

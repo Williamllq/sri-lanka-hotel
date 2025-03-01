@@ -1,0 +1,20 @@
+{
+  "navigation": {
+    "home": "Home",
+    "transport": "Transport",
+    "explore": "Explore",
+    "contact": "Contact"
+  },
+  "header": {
+    "title": "Best Travel - Best Choice",
+    "subtitle": "Your premium travel experience in Sri Lanka"
+  },
+  "buttons": {
+    "book_transport": "Book Transport",
+    "explore_sri_lanka": "Explore Sri Lanka"
+  },
+  "footer": {
+    "give_feedback": "Give Feedback",
+    "need_help": "Need Help?"
+  }
+} 

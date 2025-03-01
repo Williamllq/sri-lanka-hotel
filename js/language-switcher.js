@@ -259,4 +259,44 @@ document.addEventListener('DOMContentLoaded', initLanguageSwitcher);
 // 如果页面已经加载，立即初始化
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     initLanguageSwitcher();
-} 
+}
+
+// Language Switcher Logic
+
+// Function to load language file dynamically
+function loadLanguage(lang) {
+  return fetch(`/locales/${lang}.json`)
+    .then(response => response.json())
+    .catch(error => console.error('Error loading the language file:', error));
+}
+
+// Function to apply translations to the page
+function applyTranslations(translations) {
+  document.querySelectorAll('[data-i18n]').forEach(element => {
+    const key = element.getAttribute('data-i18n');
+    if (translations[key]) {
+      element.textContent = translations[key];
+    }
+  });
+}
+
+// Event listener for language selector
+const languageSelector = document.getElementById('language-selector');
+languageSelector.addEventListener('change', function() {
+  const selectedLanguage = this.value;
+  loadLanguage(selectedLanguage)
+    .then(translations => {
+      applyTranslations(translations);
+      document.documentElement.lang = selectedLanguage; // Update the lang attribute of the HTML document
+    });
+});
+
+// Initial load
+window.addEventListener('DOMContentLoaded', () => {
+  const initialLanguage = localStorage.getItem('selectedLanguage') || 'en';
+  loadLanguage(initialLanguage).then(translations => {
+    applyTranslations(translations);
+    document.documentElement.lang = initialLanguage;
+    languageSelector.value = initialLanguage; // Set the selector to the current language
+  });
+}); 
