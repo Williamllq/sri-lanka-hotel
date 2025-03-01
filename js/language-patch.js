@@ -132,6 +132,69 @@
             'explore-lanka': 'Sri Lanka entdecken',
             'transport-services': 'Transportdienstleistungen',
             'discover-lanka': 'Entdecken Sie Sri Lanka',
+            'need-help': 'Brauchen Sie Hilfe?',
+            
+            // Booking journey
+            'book-your-journey': 'Buchen Sie Ihre Reise',
+            'deposit-required': '30% Anzahlung erforderlich zum Zeitpunkt der Buchung',
+            'from': 'Von',
+            'to': 'Nach',
+            'date': 'Datum',
+            'time': 'Zeit',
+            'passengers': 'Passagiere',
+            'vehicle-type': 'Fahrzeugtyp',
+            'car': 'Auto',
+            'van': 'Van',
+            'suv': 'SUV',
+            'bus': 'Bus',
+            'get-quote': 'Angebot erhalten',
+            'book-now': 'Jetzt buchen',
+            
+            // Explore section
+            'explore-sri-lanka': 'Entdecken Sie Sri Lanka',
+            'beaches-title': 'Traumhafte Strände',
+            'beaches-desc': 'Erleben Sie die kristallklaren Gewässer und goldenen Sandstrände entlang der Küste Sri Lankas.',
+            'wildlife-title': 'Exotische Tierwelt',
+            'wildlife-desc': 'Entdecken Sie die vielfältige Tierwelt in den Nationalparks mit Elefanten, Leoparden und bunten Vögeln.',
+            'culture-title': 'Reiche Kultur',
+            'culture-desc': 'Tauchen Sie ein in die 2500 Jahre alte Kultur mit Tempeln, Ruinen und lebendigen Traditionen.',
+            'cuisine-title': 'Köstliche Küche',
+            'cuisine-desc': 'Probieren Sie die würzigen Currys, frischen Meeresfrüchte und exotischen Früchte, die Sri Lanka zu bieten hat.',
+            
+            // Testimonials
+            'what-customers-say': 'Was unsere Kunden sagen',
+            'customer-review-1': 'Unser Fahrer war pünktlich, freundlich und kannte sich bestens mit den Sehenswürdigkeiten aus. Das Auto war sehr komfortabel für unsere lange Reise.',
+            'customer-name-1': 'Michael Schmidt',
+            
+            // Accommodation
+            'accommodation': 'Unterkunft',
+            'book-hotels': 'Hotels buchen',
+            'luxury-room': 'Luxuszimmer',
+            'deluxe-room': 'Deluxe-Zimmer',
+            'standard-room': 'Standardzimmer',
+            'view-details': 'Details ansehen',
+            'amenities': 'Ausstattung',
+            'price-night': 'Preis pro Nacht',
+            
+            // Contact
+            'contact-us': 'Kontaktieren Sie uns',
+            'contact-desc': 'Haben Sie Fragen oder benötigen Sie Hilfe bei der Planung Ihrer Reise? Kontaktieren Sie uns!',
+            'name': 'Name',
+            'email': 'E-Mail',
+            'message': 'Nachricht',
+            'send': 'Senden',
+            'your-feedback': 'Ihr Feedback',
+            'submit-feedback': 'Feedback senden',
+            
+            // AI Assistant
+            'travel-assistant': 'Reiseassistent',
+            'ai-welcome': 'Hallo! Ich bin Ihr Sri Lanka Reiseassistent. Ich kann Ihnen helfen mit:',
+            'hotel-info': 'Hotelinformationen',
+            'local-attractions': 'Lokale Attraktionen',
+            'travel-tips': 'Reisetipps',
+            'booking-assistance': 'Buchungshilfe',
+            'how-assist': 'Wie kann ich Ihnen heute helfen?',
+            'ask-anything': 'Fragen Sie mich alles über Sri Lanka...',
             'need-help': 'Brauchen Sie Hilfe?'
         },
         'fr': {
@@ -145,6 +208,69 @@
             'explore-lanka': 'Explorer le Sri Lanka',
             'transport-services': 'Services de transport',
             'discover-lanka': 'Découvrez le Sri Lanka',
+            'need-help': 'Besoin d\'aide?',
+            
+            // Booking journey
+            'book-your-journey': 'Réservez votre voyage',
+            'deposit-required': '30% d\'acompte requis au moment de la réservation',
+            'from': 'De',
+            'to': 'À',
+            'date': 'Date',
+            'time': 'Heure',
+            'passengers': 'Passagers',
+            'vehicle-type': 'Type de véhicule',
+            'car': 'Voiture',
+            'van': 'Van',
+            'suv': 'SUV',
+            'bus': 'Bus',
+            'get-quote': 'Obtenir un devis',
+            'book-now': 'Réserver maintenant',
+            
+            // Explore section
+            'explore-sri-lanka': 'Explorez le Sri Lanka',
+            'beaches-title': 'Plages de rêve',
+            'beaches-desc': 'Profitez des eaux cristallines et des plages de sable doré le long de la côte du Sri Lanka.',
+            'wildlife-title': 'Faune exotique',
+            'wildlife-desc': 'Découvrez la faune diversifiée dans les parcs nationaux avec des éléphants, des léopards et des oiseaux colorés.',
+            'culture-title': 'Riche culture',
+            'culture-desc': 'Immergez-vous dans une culture vieille de 2500 ans avec des temples, des ruines et des traditions vivantes.',
+            'cuisine-title': 'Cuisine délicieuse',
+            'cuisine-desc': 'Goûtez aux currys épicés, aux fruits de mer frais et aux fruits exotiques que le Sri Lanka a à offrir.',
+            
+            // Testimonials
+            'what-customers-say': 'Ce que disent nos clients',
+            'customer-review-1': 'Notre chauffeur était ponctuel, amical et très bien informé sur les attractions. La voiture était très confortable pour notre long voyage.',
+            'customer-name-1': 'Sophie Dupont',
+            
+            // Accommodation
+            'accommodation': 'Hébergement',
+            'book-hotels': 'Réserver des hôtels',
+            'luxury-room': 'Chambre de luxe',
+            'deluxe-room': 'Chambre deluxe',
+            'standard-room': 'Chambre standard',
+            'view-details': 'Voir les détails',
+            'amenities': 'Équipements',
+            'price-night': 'Prix par nuit',
+            
+            // Contact
+            'contact-us': 'Contactez-nous',
+            'contact-desc': 'Vous avez des questions ou besoin d\'aide pour planifier votre voyage? Contactez-nous!',
+            'name': 'Nom',
+            'email': 'Email',
+            'message': 'Message',
+            'send': 'Envoyer',
+            'your-feedback': 'Votre avis',
+            'submit-feedback': 'Soumettre',
+            
+            // AI Assistant
+            'travel-assistant': 'Assistant de voyage',
+            'ai-welcome': 'Bonjour! Je suis votre assistant de voyage au Sri Lanka. Je peux vous aider avec:',
+            'hotel-info': 'Informations sur les hôtels',
+            'local-attractions': 'Attractions locales',
+            'travel-tips': 'Conseils de voyage',
+            'booking-assistance': 'Aide à la réservation',
+            'how-assist': 'Comment puis-je vous aider aujourd\'hui?',
+            'ask-anything': 'Posez-moi n\'importe quelle question sur le Sri Lanka...',
             'need-help': 'Besoin d\'aide?'
         },
         'es': {
@@ -158,6 +284,69 @@
             'explore-lanka': 'Explorar Sri Lanka',
             'transport-services': 'Servicios de transporte',
             'discover-lanka': 'Descubra Sri Lanka',
+            'need-help': '¿Necesita ayuda?',
+            
+            // Booking journey
+            'book-your-journey': 'Reserve su viaje',
+            'deposit-required': 'Se requiere un depósito del 30% en el momento de la reserva',
+            'from': 'Desde',
+            'to': 'Hasta',
+            'date': 'Fecha',
+            'time': 'Hora',
+            'passengers': 'Pasajeros',
+            'vehicle-type': 'Tipo de vehículo',
+            'car': 'Coche',
+            'van': 'Furgoneta',
+            'suv': 'SUV',
+            'bus': 'Autobús',
+            'get-quote': 'Obtener presupuesto',
+            'book-now': 'Reservar ahora',
+            
+            // Explore section
+            'explore-sri-lanka': 'Explore Sri Lanka',
+            'beaches-title': 'Playas de ensueño',
+            'beaches-desc': 'Disfrute de las aguas cristalinas y playas de arena dorada a lo largo de la costa de Sri Lanka.',
+            'wildlife-title': 'Fauna exótica',
+            'wildlife-desc': 'Descubra la diversa vida silvestre en los parques nacionales con elefantes, leopardos y coloridas aves.',
+            'culture-title': 'Rica cultura',
+            'culture-desc': 'Sumérjase en una cultura de 2500 años con templos, ruinas y tradiciones vivas.',
+            'cuisine-title': 'Deliciosa cocina',
+            'cuisine-desc': 'Pruebe los currys picantes, mariscos frescos y frutas exóticas que Sri Lanka tiene para ofrecer.',
+            
+            // Testimonials
+            'what-customers-say': 'Lo que dicen nuestros clientes',
+            'customer-review-1': 'Nuestro conductor fue puntual, amigable y muy conocedor de las atracciones. El coche era muy cómodo para nuestro largo viaje.',
+            'customer-name-1': 'Carlos Rodríguez',
+            
+            // Accommodation
+            'accommodation': 'Alojamiento',
+            'book-hotels': 'Reservar hoteles',
+            'luxury-room': 'Habitación de lujo',
+            'deluxe-room': 'Habitación deluxe',
+            'standard-room': 'Habitación estándar',
+            'view-details': 'Ver detalles',
+            'amenities': 'Comodidades',
+            'price-night': 'Precio por noche',
+            
+            // Contact
+            'contact-us': 'Contáctenos',
+            'contact-desc': '¿Tiene preguntas o necesita ayuda para planificar su viaje? ¡Contáctenos!',
+            'name': 'Nombre',
+            'email': 'Correo electrónico',
+            'message': 'Mensaje',
+            'send': 'Enviar',
+            'your-feedback': 'Su opinión',
+            'submit-feedback': 'Enviar opinión',
+            
+            // AI Assistant
+            'travel-assistant': 'Asistente de viaje',
+            'ai-welcome': '¡Hola! Soy su asistente de viaje de Sri Lanka. Puedo ayudarle con:',
+            'hotel-info': 'Información de hoteles',
+            'local-attractions': 'Atracciones locales',
+            'travel-tips': 'Consejos de viaje',
+            'booking-assistance': 'Ayuda con reservas',
+            'how-assist': '¿Cómo puedo ayudarle hoy?',
+            'ask-anything': 'Pregúnteme cualquier cosa sobre Sri Lanka...',
             'need-help': '¿Necesita ayuda?'
         },
         'si': {
@@ -171,6 +360,69 @@
             'explore-lanka': 'ශ්‍රී ලංකාව ගවේෂණය කරන්න',
             'transport-services': 'ප්‍රවාහන සේවා',
             'discover-lanka': 'ශ්‍රී ලංකාව සොයා ගන්න',
+            'need-help': 'උදව් අවශ්‍යද?',
+            
+            // Booking journey
+            'book-your-journey': 'ඔබේ ගමන වෙන් කරන්න',
+            'deposit-required': 'වෙන් කිරීමේදී 30% තැන්පතුවක් අවශ්‍ය වේ',
+            'from': 'සිට',
+            'to': 'දක්වා',
+            'date': 'දිනය',
+            'time': 'වේලාව',
+            'passengers': 'මගීන්',
+            'vehicle-type': 'වාහන වර්ගය',
+            'car': 'මෝටර් රථය',
+            'van': 'වෑන් රථය',
+            'suv': 'එස්යූවී',
+            'bus': 'බස් රථය',
+            'get-quote': 'මිල ගණන් ලබා ගන්න',
+            'book-now': 'දැන් වෙන් කරන්න',
+            
+            // Explore section
+            'explore-sri-lanka': 'ශ්‍රී ලංකාව ගවේෂණය කරන්න',
+            'beaches-title': 'සිහින වෙරළවල්',
+            'beaches-desc': 'ශ්‍රී ලංකාවේ වෙරළ තීරය පුරා පැතිර ඇති පැහැපත් ජලය සහ රන්වන් වැලි සහිත වෙරළවල් අත්විඳින්න.',
+            'wildlife-title': 'විශිෂ්ට වනජීවීන්',
+            'wildlife-desc': 'අලින්, කොටින් සහ වර්ණවත් කුරුල්ලන් සමඟ ජාතික උද්‍යානවල විවිධාකාර වනජීවීන් සොයා ගන්න.',
+            'culture-title': 'පොහොසත් සංස්කෘතිය',
+            'culture-desc': 'වසර 2500ක පැරණි සංස්කෘතියක්, පන්සල්, නටබුන් සහ සජීවී සම්ප්‍රදායන් තුළට පිවිසෙන්න.',
+            'cuisine-title': 'රසවත් ආහාර',
+            'cuisine-desc': 'ශ්‍රී ලංකාව සතු කුළුබඩු සහිත කරි, අලුත් මුහුදු ආහාර සහ අපූරු පළතුරු රස බලන්න.',
+            
+            // Testimonials
+            'what-customers-say': 'අපේ ගනුදෙනුකරුවන් කියන දේ',
+            'customer-review-1': 'අපේ රියදුරා වේලාවට පැමිණියා, මිත්‍රශීලී වුණා, සහ ස්ථාන ගැන හොඳින් දැනුවත් වුණා. කාරය අපේ දිගු ගමනට ඉතා පහසු වුණා.',
+            'customer-name-1': 'කමල් පෙරේරා',
+            
+            // Accommodation
+            'accommodation': 'නවාතැන්',
+            'book-hotels': 'හෝටල් වෙන් කරන්න',
+            'luxury-room': 'සුපිරි කාමරය',
+            'deluxe-room': 'ඩිලක්ස් කාමරය',
+            'standard-room': 'සාමාන්‍ය කාමරය',
+            'view-details': 'විස්තර බලන්න',
+            'amenities': 'පහසුකම්',
+            'price-night': 'රාත්‍රියක මිල',
+            
+            // Contact
+            'contact-us': 'අප අමතන්න',
+            'contact-desc': 'ඔබේ ගමන සැලසුම් කිරීම සඳහා ප්‍රශ්න හෝ උදව් අවශ්‍යද? අප අමතන්න!',
+            'name': 'නම',
+            'email': 'ඊමේල්',
+            'message': 'පණිවිඩය',
+            'send': 'යවන්න',
+            'your-feedback': 'ඔබේ ප්‍රතිචාරය',
+            'submit-feedback': 'ප්‍රතිචාරය ඉදිරිපත් කරන්න',
+            
+            // AI Assistant
+            'travel-assistant': 'සංචාරක සහායකයා',
+            'ai-welcome': 'ආයුබෝවන්! මම ඔබේ ශ්‍රී ලංකා සංචාරක සහායකයා. මට ඔබට උදව් කළ හැක:',
+            'hotel-info': 'හෝටල් තොරතුරු',
+            'local-attractions': 'ප්‍රදේශයේ ආකර්ෂණීය ස්ථාන',
+            'travel-tips': 'සංචාරක ඉඟි',
+            'booking-assistance': 'වෙන්කිරීම් සහාය',
+            'how-assist': 'අද දින මට ඔබට කෙසේ උදව් කළ හැකිද?',
+            'ask-anything': 'ශ්‍රී ලංකාව ගැන ඕනෑම දෙයක් අසන්න...',
             'need-help': 'උදව් අවශ්‍යද?'
         }
     };
