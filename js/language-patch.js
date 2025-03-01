@@ -1,11 +1,12 @@
 /**
  * 语言切换补丁 - 解决当前语言切换问题
  * 这个脚本会覆盖其他语言脚本的功能，确保语言切换正常工作
+ * 版本: 2.0 - 全面增强版
  */
 
 (function() {
     // 立即执行函数，防止全局变量污染
-    console.log("🛠️ 语言补丁正在加载...");
+    console.log("🚀 增强版语言补丁正在加载...");
 
     // 1. 基本配置
     const LANGUAGES = {
@@ -443,7 +444,10 @@
 
     // 3. 初始化 - 等待页面完全加载后运行
     function initPatch() {
-        console.log("🔄 初始化语言补丁...");
+        console.log("🔄 初始化增强版语言补丁...");
+        
+        // 移除旧的翻译工具和分析器
+        removeTranslationTools();
         
         // 清理页面上的所有额外语言选择器
         cleanupLanguageSelectors();
@@ -455,16 +459,35 @@
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
         
         // 强制重新应用翻译，确保整个页面都被翻译
-        setTimeout(() => {
-            applyTranslation(currentLang, true);
-        }, 300);
+        deepScanAndTranslate(currentLang);
         
-        // 增加data-i18n属性到未标记的元素
-        setTimeout(() => {
-            addMissingI18nAttributes();
-        }, 500);
+        // 设置MutationObserver监听DOM变化并自动翻译新元素
+        setupMutationObserver();
         
-        console.log("✅ 语言补丁初始化完成!");
+        // 定期全页面扫描（每5秒扫描一次，以捕获动态加载的元素）
+        setInterval(() => {
+            const activeLang = localStorage.getItem('selectedLanguage') || 'en';
+            if (activeLang !== 'en') {
+                deepScanAndTranslate(activeLang, false);
+            }
+        }, 5000);
+        
+        console.log("✅ 增强版语言补丁初始化完成!");
+    }
+    
+    // 移除旧的翻译工具和分析器
+    function removeTranslationTools() {
+        // 移除翻译分析器面板
+        const translationPanel = document.querySelector('.translation-coverage-analysis');
+        if (translationPanel) {
+            translationPanel.remove();
+            console.log("移除了翻译分析器面板");
+        }
+        
+        // 清除可能的翻译分析脚本效果
+        document.querySelectorAll('.translation-highlight').forEach(el => {
+            el.classList.remove('translation-highlight');
+        });
     }
 
     // 4. 清除多余语言选择器
@@ -476,7 +499,8 @@
             document.getElementById('floating-language-panel'),
             document.getElementById('floating-language-switcher'),
             document.getElementById('language-buttons'),
-            document.getElementById('topLanguageSelect')
+            document.getElementById('topLanguageSelect'),
+            document.getElementById('translationCoveragePanel')
         ];
         
         selectorsToRemove.forEach(selector => {
@@ -491,13 +515,6 @@
         if (navLangSwitch) {
             // 清空内容，但保留容器
             navLangSwitch.innerHTML = '';
-            
-            // 如果有select下拉框，将其移除
-            const selectElements = navLangSwitch.querySelectorAll('select');
-            selectElements.forEach(select => {
-                select.remove();
-            });
-            
             console.log("清空了导航栏语言选择器");
         }
     }
@@ -553,231 +570,38 @@
         console.log("✅ 创建了导航栏语言选择器");
     }
     
-    // 6. 自动检测和翻译未标记的元素
-    function detectAndTranslateUnmarkedElements(lang) {
-        console.log("🔍 正在智能检测未标记的元素...");
+    // 6. 深度扫描并翻译页面
+    function deepScanAndTranslate(lang, forceRefresh = true) {
+        console.log(`🔍 开始深度扫描和翻译 (${LANGUAGES[lang].name})...`);
         
-        // 需要特别关注的选择器和对应的翻译键
-        const specialElements = [
-            { selector: 'h1:contains("Transportdienstleistungen")', key: 'transport-services' },
-            { selector: 'h2:contains("预订您的旅程")', key: 'book-your-journey' },
-            { selector: 'p:contains("需要支付30%")', key: 'deposit-required' },
-            { selector: 'label:contains("服务类型")', key: 'vehicle-type' },
-            { selector: 'label:contains("Datum")', key: 'date' },
-            { selector: 'label:contains("Zeit")', key: 'time' },
-            { selector: 'label:contains("Passagiere")', key: 'passengers' },
-            { selector: 'label:contains("接送地点")', key: 'pickup-location' },
-            { selector: 'label:contains("目的地")', key: 'destination' },
-            { selector: 'label:contains("特殊要求")', key: 'special-requirements' }
-        ];
+        // 第1阶段：处理已有data-i18n属性的元素
+        translateMarkedElements(lang);
         
-        // 实现jQuery-like contains选择器
-        specialElements.forEach(item => {
-            const selector = item.selector;
-            const key = item.key;
-            
-            // 提取选择器类型和文本
-            const match = selector.match(/([a-zA-Z0-9]+):contains\("(.+?)"\)/);
-            if (match) {
-                const elementType = match[1];
-                const textToFind = match[2];
-                
-                // 查找所有该类型的元素
-                const elements = document.querySelectorAll(elementType);
-                elements.forEach(el => {
-                    if (el.textContent.includes(textToFind)) {
-                        console.log(`找到未标记元素: ${el.textContent.trim()}`);
-                        
-                        // 如果元素没有data-i18n属性，添加它
-                        if (!el.hasAttribute('data-i18n')) {
-                            el.setAttribute('data-i18n', key);
-                            // 保存原始文本
-                            el.setAttribute('data-default-text', el.textContent);
-                            
-                            // 立即应用翻译
-                            const translation = getTranslation(key, lang);
-                            if (translation) {
-                                el.textContent = translation;
-                                console.log(`应用翻译: ${key} => ${translation}`);
-                            }
-                        }
-                    }
-                });
-            }
-        });
+        // 第2阶段：识别并标记需要翻译但没有data-i18n的元素
+        markUnmarkedElements();
         
-        // 通用规则 - 查找常见的需要翻译但没有标记的元素
-        const commonElements = [
-            { selector: 'h1, h2, h3, h4, h5, p, label, button', minLength: 2 },
-            { selector: 'input[type="submit"], input[type="button"]', attribute: 'value', minLength: 2 },
-            { selector: 'input[placeholder]', attribute: 'placeholder', minLength: 4 }
-        ];
+        // 第3阶段：再次翻译所有标记的元素（包括新标记的）
+        translateMarkedElements(lang);
         
-        commonElements.forEach(item => {
-            const elements = document.querySelectorAll(item.selector);
-            elements.forEach(el => {
-                // 如果已经有data-i18n属性，跳过
-                if (el.hasAttribute('data-i18n')) return;
-                
-                let content = item.attribute ? el.getAttribute(item.attribute) : el.textContent;
-                content = content.trim();
-                
-                // 只处理有实际内容并且长度符合要求的元素
-                if (content && content.length >= item.minLength) {
-                    // 生成一个唯一的键
-                    let key = content.toLowerCase()
-                        .replace(/[^a-z0-9]/gi, '-')
-                        .replace(/-+/g, '-')
-                        .replace(/^-|-$/g, '')
-                        .substring(0, 30);
-                    
-                    // 检查是否已有相同内容的翻译
-                    let existingKey = findExistingTranslationKey(content);
-                    if (existingKey) {
-                        key = existingKey;
-                    }
-                    
-                    console.log(`自动标记元素: "${content}" => ${key}`);
-                    
-                    // 添加data-i18n属性
-                    el.setAttribute('data-i18n', key);
-                    el.setAttribute('data-default-text', content);
-                    
-                    // 如果存在翻译，立即应用
-                    const translation = getTranslation(key, lang);
-                    if (translation) {
-                        if (item.attribute) {
-                            el.setAttribute(item.attribute, translation);
-                        } else {
-                            el.textContent = translation;
-                        }
-                    }
-                }
-            });
-        });
+        // 第4阶段：特殊处理某些固定结构的复杂内容
+        translateSpecialStructures(lang);
         
-        console.log("✅ 智能检测和翻译完成");
-    }
-    
-    // 查找已有的翻译键
-    function findExistingTranslationKey(content) {
-        // 遍历所有语言的所有翻译
-        for (const lang in TRANSLATIONS) {
-            const translations = TRANSLATIONS[lang];
-            for (const key in translations) {
-                if (translations[key] === content || key === content) {
-                    return key;
-                }
-            }
-        }
-        return null;
-    }
-    
-    // 获取特定键和语言的翻译
-    function getTranslation(key, lang) {
-        if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
-            return TRANSLATIONS[lang][key];
-        }
-        return null;
-    }
-    
-    // 7. 为未标记的元素添加data-i18n属性
-    function addMissingI18nAttributes() {
-        console.log("🔍 检查未标记的元素并添加data-i18n属性...");
+        // 第5阶段：处理动态内容，如轮播、选项卡等
+        translateDynamicContent(lang);
         
-        // 查找页面中的主要标题和段落
-        const sections = [
-            { selector: 'h2.section-title:not([data-i18n])', keyPrefix: 'section-title-' },
-            { selector: 'h3:not([data-i18n])', keyPrefix: 'heading-' }, 
-            { selector: '.explore-content h3:not([data-i18n])', keyPrefix: 'explore-' },
-            { selector: '.explore-content p:not([data-i18n])', keyPrefix: 'explore-desc-' },
-            { selector: '.testimonial-content p:not([data-i18n])', keyPrefix: 'testimonial-' },
-            { selector: '.author-info p:not([data-i18n])', keyPrefix: 'author-' },
-            { selector: '.room-card h3:not([data-i18n])', keyPrefix: 'room-' },
-            { selector: '.room-card p:not([data-i18n])', keyPrefix: 'room-desc-' },
-            { selector: '.room-details span:not([data-i18n])', keyPrefix: 'room-feature-' },
-            { selector: '.btn-secondary:not([data-i18n])', keyPrefix: 'btn-' }
-        ];
-        
-        let addedCount = 0;
-        
-        // 处理每个选择器
-        sections.forEach(section => {
-            const elements = document.querySelectorAll(section.selector);
-            
-            elements.forEach((el, index) => {
-                // 创建唯一键名
-                const key = `${section.keyPrefix}${index}`;
-                
-                // 保存原始文本
-                const originalText = el.textContent.trim();
-                
-                // 设置data-i18n属性
-                el.setAttribute('data-i18n', key);
-                
-                // 保存默认英文文本
-                el.setAttribute('data-default-text', originalText);
-                
-                // 尝试翻译此元素
-                const currentLang = localStorage.getItem('selectedLanguage') || 'en';
-                if (currentLang !== 'en' && TRANSLATIONS[currentLang]) {
-                    // 为当前语言添加这个键值对到翻译对象
-                    if (!TRANSLATIONS[currentLang][key]) {
-                        // 如果我们没有翻译，暂时保留英文
-                        // 这里可以根据需要调用在线翻译API
-                    }
-                }
-                
-                addedCount++;
-            });
-        });
-        
-        console.log(`✅ 添加了 ${addedCount} 个data-i18n属性`);
-        
-        // 再次应用当前语言翻译
-        const currentLang = localStorage.getItem('selectedLanguage') || 'en';
-        if (currentLang !== 'en') {
-            applyTranslation(currentLang, false);
-        }
-    }
-    
-    // 8. 切换语言
-    function switchLanguage(lang) {
-        console.log(`🔄 切换语言到: ${lang}`);
-        
-        if (!LANGUAGES[lang]) {
-            console.error(`不支持的语言: ${lang}`);
-            return;
+        // 强制重绘以确保所有内容更新
+        if (forceRefresh) {
+            forcePageRefresh();
         }
         
-        // 保存语言设置
-        localStorage.setItem('selectedLanguage', lang);
-        
-        // 更新导航栏下拉菜单
-        const navSelect = document.getElementById('navLanguageSelect');
-        if (navSelect) {
-            navSelect.value = lang;
-        }
-        
-        // 应用翻译，强制刷新
-        applyTranslation(lang, true);
-        
-        // 显示通知
-        showNotification(`已切换到 ${LANGUAGES[lang].flag} ${LANGUAGES[lang].name}`);
-        
-        // 触发自定义事件
-        document.dispatchEvent(new CustomEvent('languageChanged', { 
-            detail: { language: lang } 
-        }));
+        console.log(`✅ 深度扫描翻译完成 (${LANGUAGES[lang].name})`);
     }
     
-    // 9. 应用翻译
-    function applyTranslation(lang, forceRefresh = true) {
-        console.log(`🔄 正在应用 ${LANGUAGES[lang].name} 翻译...`);
-        
-        // 先处理已标记的元素
+    // 翻译有data-i18n属性的元素
+    function translateMarkedElements(lang) {
         const elements = document.querySelectorAll('[data-i18n]');
         let translatedCount = 0;
+        
         elements.forEach(el => {
             const key = el.getAttribute('data-i18n');
             
@@ -807,34 +631,314 @@
                     el.textContent = TRANSLATIONS[lang][key];
                 }
                 translatedCount++;
-            } else {
-                if (forceRefresh) console.log(`⚠️ 未找到翻译: ${key}`);
             }
         });
         
-        console.log(`✅ 翻译了 ${translatedCount} 个元素`);
-        
-        // 在处理完标记元素后，检测并翻译未标记元素
-        detectAndTranslateUnmarkedElements(lang);
-        
-        // 强制重绘以确保所有内容更新
-        if (forceRefresh) {
-            document.body.style.opacity = '0.99';
-            setTimeout(() => { 
-                document.body.style.opacity = '1';
-                // 二次尝试翻译，处理动态加载的元素
-                setTimeout(() => {
-                    const secondElements = document.querySelectorAll('[data-i18n]');
-                    if (secondElements.length > elements.length) {
-                        console.log(`发现 ${secondElements.length - elements.length} 个新元素，重新应用翻译`);
-                        applyTranslation(lang, false);
-                    }
-                }, 200);
-            }, 50);
-        }
+        console.log(`翻译了 ${translatedCount} 个已标记元素`);
     }
     
-    // 10. 重置为英文
+    // 标记未标记的元素
+    function markUnmarkedElements() {
+        console.log("正在标记未标记的元素...");
+        
+        // 需要检查的元素选择器
+        const selectors = [
+            'h1:not([data-i18n])',
+            'h2:not([data-i18n])',
+            'h3:not([data-i18n])',
+            'h4:not([data-i18n])',
+            'h5:not([data-i18n])',
+            'p:not([data-i18n])',
+            'label:not([data-i18n])',
+            'button:not([data-i18n])',
+            'a.btn:not([data-i18n])',
+            'a.btn-secondary:not([data-i18n])',
+            '.explore-content h3:not([data-i18n])',
+            '.explore-content p:not([data-i18n])',
+            '.room-card h3:not([data-i18n])',
+            '.room-card p:not([data-i18n])',
+            '.testimonial-content p:not([data-i18n])',
+            '.author-info p:not([data-i18n])',
+            '.ai-message:not([data-i18n])'
+        ];
+        
+        // 合并所有选择器并查询元素
+        const elements = document.querySelectorAll(selectors.join(', '));
+        let markedCount = 0;
+        
+        elements.forEach(el => {
+            // 跳过空元素或只包含空格的元素
+            const text = el.textContent.trim();
+            if (!text || text.length < 2) return;
+            
+            // 跳过特定的不需要翻译的元素
+            if (el.closest('.no-translate') || el.classList.contains('no-translate')) return;
+            if (el.id === 'map') return; // 跳过地图元素
+            
+            // 生成基于文本内容的唯一键
+            const key = generateKeyFromText(text);
+            
+            // 设置data-i18n属性
+            el.setAttribute('data-i18n', key);
+            el.setAttribute('data-default-text', text);
+            
+            // 检查现有翻译
+            checkAndAddTranslation(key, text);
+            
+            markedCount++;
+        });
+        
+        console.log(`标记了 ${markedCount} 个未标记元素`);
+    }
+    
+    // 从文本生成翻译键
+    function generateKeyFromText(text) {
+        // 从文本生成一个合理的翻译键
+        let key = text.toLowerCase()
+            .replace(/[^a-z0-9]/gi, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '')
+            .substring(0, 30);
+        
+        // 尝试查找现有翻译键
+        for (const lang in TRANSLATIONS) {
+            for (const existingKey in TRANSLATIONS[lang]) {
+                if (TRANSLATIONS[lang][existingKey] === text) {
+                    return existingKey;
+                }
+            }
+        }
+        
+        return key;
+    }
+    
+    // 检查并添加翻译
+    function checkAndAddTranslation(key, text) {
+        // 检查各语言中是否已有这个键
+        Object.keys(TRANSLATIONS).forEach(lang => {
+            if (lang === 'en') return; // 跳过英语
+            
+            // 如果没有这个键的翻译，尝试从其他键查找
+            if (!TRANSLATIONS[lang][key]) {
+                for (const existingKey in TRANSLATIONS[lang]) {
+                    if (TRANSLATIONS['en'] && TRANSLATIONS['en'][existingKey] === text) {
+                        // 找到匹配的英文，使用对应的翻译
+                        TRANSLATIONS[lang][key] = TRANSLATIONS[lang][existingKey];
+                        break;
+                    }
+                }
+            }
+        });
+    }
+    
+    // 翻译特殊结构（如卡片、网格等）
+    function translateSpecialStructures(lang) {
+        // 探索卡片
+        const exploreCards = document.querySelectorAll('.explore-card');
+        exploreCards.forEach(card => {
+            const titleEl = card.querySelector('h3');
+            const descEl = card.querySelector('p');
+            
+            if (titleEl && !titleEl.hasAttribute('data-i18n')) {
+                const text = titleEl.textContent.trim();
+                // 检查是否有匹配的键
+                for (const key in TRANSLATIONS[lang]) {
+                    if (key.includes('tea') && text.toLowerCase().includes('tea')) {
+                        titleEl.textContent = TRANSLATIONS[lang]['tea-plantations'] || text;
+                        titleEl.setAttribute('data-i18n', 'tea-plantations');
+                        break;
+                    } else if (key.includes('wildlife') && text.toLowerCase().includes('wildlife')) {
+                        titleEl.textContent = TRANSLATIONS[lang]['wildlife-safari'] || text;
+                        titleEl.setAttribute('data-i18n', 'wildlife-safari');
+                        break;
+                    } else if (key.includes('cultural') && text.toLowerCase().includes('cultural')) {
+                        titleEl.textContent = TRANSLATIONS[lang]['cultural-heritage'] || text;
+                        titleEl.setAttribute('data-i18n', 'cultural-heritage');
+                        break;
+                    }
+                }
+            }
+            
+            if (descEl && !descEl.hasAttribute('data-i18n')) {
+                const text = descEl.textContent.trim();
+                // 检查是否有匹配的键
+                for (const key in TRANSLATIONS[lang]) {
+                    if (key.includes('visit-tea') && text.toLowerCase().includes('tea')) {
+                        descEl.textContent = TRANSLATIONS[lang]['visit-tea'] || text;
+                        descEl.setAttribute('data-i18n', 'visit-tea');
+                        break;
+                    } else if (key.includes('experience-wildlife') && text.toLowerCase().includes('wildlife')) {
+                        descEl.textContent = TRANSLATIONS[lang]['experience-wildlife'] || text;
+                        descEl.setAttribute('data-i18n', 'experience-wildlife');
+                        break;
+                    } else if (key.includes('discover-temples') && text.toLowerCase().includes('temple')) {
+                        descEl.textContent = TRANSLATIONS[lang]['discover-temples'] || text;
+                        descEl.setAttribute('data-i18n', 'discover-temples');
+                        break;
+                    }
+                }
+            }
+        });
+        
+        // AI助手文本
+        const aiMessages = document.querySelectorAll('.ai-message');
+        aiMessages.forEach(msg => {
+            if (lang !== 'en' && msg.textContent.includes("I'm your Sri Lanka travel assistant")) {
+                if (TRANSLATIONS[lang]['ai-welcome']) {
+                    msg.innerHTML = TRANSLATIONS[lang]['ai-welcome'];
+                    
+                    // 添加翻译后的列表项
+                    if (TRANSLATIONS[lang]['hotel-info'] && 
+                        TRANSLATIONS[lang]['local-attractions'] && 
+                        TRANSLATIONS[lang]['travel-tips'] && 
+                        TRANSLATIONS[lang]['booking-assistance']) {
+                        
+                        msg.innerHTML += '<ul>' +
+                            `<li>${TRANSLATIONS[lang]['hotel-info']}</li>` +
+                            `<li>${TRANSLATIONS[lang]['local-attractions']}</li>` +
+                            `<li>${TRANSLATIONS[lang]['travel-tips']}</li>` +
+                            `<li>${TRANSLATIONS[lang]['booking-assistance']}</li>` +
+                            '</ul>';
+                        
+                        msg.innerHTML += TRANSLATIONS[lang]['how-assist'] || 'How may I assist you today?';
+                    }
+                }
+            }
+        });
+    }
+    
+    // 翻译动态内容
+    function translateDynamicContent(lang) {
+        // 用户输入占位符
+        const userInput = document.getElementById('userInput');
+        if (userInput && TRANSLATIONS[lang]['ask-anything']) {
+            userInput.placeholder = TRANSLATIONS[lang]['ask-anything'];
+        }
+        
+        // AI助手标题
+        const aiTitle = document.querySelector('.ai-title span');
+        if (aiTitle && TRANSLATIONS[lang]['travel-assistant']) {
+            aiTitle.textContent = TRANSLATIONS[lang]['travel-assistant'];
+        }
+        
+        // 需要帮助按钮
+        const helpBtn = document.querySelector('.show-ai-btn span');
+        if (helpBtn && TRANSLATIONS[lang]['need-help']) {
+            helpBtn.textContent = TRANSLATIONS[lang]['need-help'];
+        }
+        
+        // 章节标题
+        const sectionTitles = document.querySelectorAll('.section-title');
+        sectionTitles.forEach(title => {
+            const text = title.textContent.trim();
+            
+            if (text.includes('Transport Services') && TRANSLATIONS[lang]['transport-services']) {
+                title.textContent = TRANSLATIONS[lang]['transport-services'];
+                title.setAttribute('data-i18n', 'transport-services');
+            }
+            else if (text.includes('Discover Sri Lanka') && TRANSLATIONS[lang]['discover-lanka']) {
+                title.textContent = TRANSLATIONS[lang]['discover-lanka'];
+                title.setAttribute('data-i18n', 'discover-lanka');
+            }
+            else if (text.includes('What Our Clients Say') && TRANSLATIONS[lang]['what-clients-say']) {
+                title.textContent = TRANSLATIONS[lang]['what-clients-say'];
+                title.setAttribute('data-i18n', 'what-clients-say');
+            }
+            else if (text.includes('Luxurious Accommodations') && TRANSLATIONS[lang]['luxurious-accommodations']) {
+                title.textContent = TRANSLATIONS[lang]['luxurious-accommodations'];
+                title.setAttribute('data-i18n', 'luxurious-accommodations');
+            }
+            else if (text.includes('Contact Us') && TRANSLATIONS[lang]['contact-us']) {
+                title.textContent = TRANSLATIONS[lang]['contact-us'];
+                title.setAttribute('data-i18n', 'contact-us');
+            }
+        });
+    }
+    
+    // 强制页面重新渲染
+    function forcePageRefresh() {
+        // 轻微改变body透明度来触发重绘
+        document.body.style.opacity = '0.99';
+        setTimeout(() => {
+            document.body.style.opacity = '1';
+        }, 50);
+    }
+    
+    // 设置MutationObserver监听DOM变化
+    function setupMutationObserver() {
+        // 创建一个observer实例
+        const observer = new MutationObserver((mutations) => {
+            // 检查是否有新添加的元素
+            let hasNewElements = false;
+            
+            mutations.forEach(mutation => {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    hasNewElements = true;
+                }
+            });
+            
+            // 如果有新元素，重新应用当前语言
+            if (hasNewElements) {
+                const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+                if (currentLang !== 'en') {
+                    // 延迟执行，确保DOM完全更新
+                    setTimeout(() => {
+                        translateMarkedElements(currentLang);
+                        markUnmarkedElements();
+                        translateMarkedElements(currentLang);
+                    }, 100);
+                }
+            }
+        });
+        
+        // 配置observer
+        const config = { 
+            childList: true, 
+            subtree: true 
+        };
+        
+        // 开始观察
+        observer.observe(document.body, config);
+        
+        console.log("🔍 设置了DOM变化监听器");
+    }
+    
+    // 切换语言
+    function switchLanguage(lang) {
+        console.log(`🔄 切换语言到: ${lang}`);
+        
+        if (!LANGUAGES[lang]) {
+            console.error(`不支持的语言: ${lang}`);
+            return;
+        }
+        
+        // 保存语言设置
+        localStorage.setItem('selectedLanguage', lang);
+        
+        // 更新导航栏下拉菜单
+        const navSelect = document.getElementById('navLanguageSelect');
+        if (navSelect) {
+            navSelect.value = lang;
+        }
+        
+        // 如果是英语，重置为默认文本
+        if (lang === 'en') {
+            resetToEnglish();
+        } else {
+            // 应用翻译，深度扫描
+            deepScanAndTranslate(lang, true);
+        }
+        
+        // 显示通知
+        showNotification(`已切换到 ${LANGUAGES[lang].flag} ${LANGUAGES[lang].name}`);
+        
+        // 触发自定义事件
+        document.dispatchEvent(new CustomEvent('languageChanged', { 
+            detail: { language: lang } 
+        }));
+    }
+    
+    // 重置为英文
     function resetToEnglish() {
         console.log("🔄 重置为英文原文...");
         
@@ -861,11 +965,10 @@
         console.log("✅ 已重置为英文原文");
         
         // 强制重绘
-        document.body.style.opacity = '0.99';
-        setTimeout(() => { document.body.style.opacity = '1'; }, 50);
+        forcePageRefresh();
     }
     
-    // 11. 显示通知
+    // 显示通知
     function showNotification(message) {
         // 创建或获取通知元素
         let notification = document.getElementById('language-notification');
@@ -899,28 +1002,34 @@
         }, 3000);
     }
     
-    // 12. 导出全局函数
+    // 导出全局函数
     window.switchLanguage = switchLanguage;
     
-    // 13. 启动补丁
+    // 检测页面加载状态并初始化
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPatch);
+        // 页面仍在加载，添加DOMContentLoaded事件监听器
+        document.addEventListener('DOMContentLoaded', function() {
+            initPatch();
+            // 再次延迟执行，确保所有动态内容加载完成
+            setTimeout(initPatch, 500);
+        });
     } else {
         // 页面已加载，立即执行
         initPatch();
-        
-        // 500ms后再执行一次，确保翻译应用到所有元素
+        // 再次延迟执行，确保所有动态内容加载完成
         setTimeout(initPatch, 500);
     }
-    
-    // 14. 定期检查DOM变化并应用当前语言
-    setInterval(() => {
-        const currentLang = localStorage.getItem('selectedLanguage') || 'en';
-        if (currentLang !== 'en') {
-            // 重新应用当前非英语语言，不需要强制刷新
-            applyTranslation(currentLang, false);
-        }
-    }, 2000);
 
-    console.log("🔌 语言补丁已加载，等待初始化...");
+    // 页面加载完成后再次执行
+    window.addEventListener('load', function() {
+        // 确保在所有资源加载后再次翻译
+        setTimeout(() => {
+            const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+            if (currentLang !== 'en') {
+                deepScanAndTranslate(currentLang, true);
+            }
+        }, 1000);
+    });
+
+    console.log("🚀 增强版语言补丁加载完成，等待初始化...");
 })(); 
