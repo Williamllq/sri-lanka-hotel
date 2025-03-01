@@ -56,7 +56,70 @@
             'destination': '目的地',
             'enter-destination': '输入目的地',
             'requirements': '特殊要求',
-            'enter-requirements': '任何特殊要求？'
+            'enter-requirements': '任何特殊要求？',
+            
+            // 探索部分
+            'quality-vehicle': '高品质车辆',
+            'quality-desc': '精心维护的车辆确保您旅途中的舒适与安全',
+            'expert-driver': '当地专业司机',
+            'driver-desc': '会讲英语的专业司机，拥有丰富的当地知识',
+            'protection': '全程保障',
+            'protection-desc': '全天候陪伴与安全保障',
+            'insider': '内部知识',
+            'insider-desc': '带您探索隐藏景点和体验真实的当地生活',
+            
+            // 探索斯里兰卡
+            'discover-lanka': '探索斯里兰卡',
+            'tea-plantations': '茶园',
+            'visit-tea': '参观世界著名的锡兰茶园',
+            'wildlife-safari': '野生动物之旅',
+            'experience-wildlife': '体验独特的野生动物邂逅',
+            'cultural-heritage': '文化遗产',
+            'discover-temples': '探索古老的寺庙和历史遗迹',
+            'discover-more': '发现更多',
+            
+            // 客户评价
+            'what-clients-say': '客户评价',
+            'testimonial-1': '极好的服务！司机非常专业，知识渊博。使我们在斯里兰卡的旅行难忘。',
+            'testimonial-2': '车辆非常舒适，服务可靠。司机准时友好。强烈推荐！',
+            'testimonial-3': '很棒的体验！司机了解所有最佳景点，帮助我们探索真实的斯里兰卡。',
+            'from-uk': '来自英国',
+            'from-china': '来自中国',
+            'from-germany': '来自德国',
+            
+            // 酒店住宿
+            'luxurious-accommodations': '豪华住宿',
+            'ocean-suite': '海景套房',
+            'ocean-desc': '醒来即可欣赏印度洋的壮丽景色',
+            'garden-suite': '热带花园套房',
+            'garden-desc': '沉浸在郁郁葱葱的热带花园中',
+            'pool-villa': '私人泳池别墅',
+            'pool-desc': '拥有私人无边泳池的终极奢华体验',
+            'king-bed': '特大床',
+            'queen-bed': '大床',
+            'free-wifi': '免费WiFi',
+            'from-price': '起价',
+            'per-night': '/晚',
+            
+            // 联系我们
+            'give-feedback': '提供反馈',
+            'share-experience': '分享您的体验',
+            'name': '姓名',
+            'country': '国家',
+            'rating': '评分',
+            'your-feedback': '您的反馈',
+            'submit-feedback': '提交反馈',
+            
+            // AI助手
+            'travel-assistant': '旅行助手',
+            'ai-welcome': '您好！我是您的斯里兰卡旅行助手。我可以帮助您：',
+            'hotel-info': '酒店信息',
+            'local-attractions': '当地景点',
+            'travel-tips': '旅行提示',
+            'booking-assistance': '预订帮助',
+            'how-assist': '我今天能为您做些什么？',
+            'ask-anything': '关于斯里兰卡，您可以问我任何问题...',
+            'need-help': '需要帮助？'
         },
         'de': {
             'home': 'Startseite',
@@ -67,7 +130,9 @@
             'hero-subtitle': 'Ihr Premium-Reiseerlebnis in Sri Lanka',
             'book-transport': 'Transport buchen',
             'explore-lanka': 'Sri Lanka entdecken',
-            'transport-services': 'Transportdienstleistungen'
+            'transport-services': 'Transportdienstleistungen',
+            'discover-lanka': 'Entdecken Sie Sri Lanka',
+            'need-help': 'Brauchen Sie Hilfe?'
         },
         'fr': {
             'home': 'Accueil',
@@ -78,7 +143,9 @@
             'hero-subtitle': 'Votre expérience de voyage premium au Sri Lanka',
             'book-transport': 'Réserver un transport',
             'explore-lanka': 'Explorer le Sri Lanka',
-            'transport-services': 'Services de transport'
+            'transport-services': 'Services de transport',
+            'discover-lanka': 'Découvrez le Sri Lanka',
+            'need-help': 'Besoin d\'aide?'
         },
         'es': {
             'home': 'Inicio',
@@ -89,7 +156,9 @@
             'hero-subtitle': 'Su experiencia de viaje premium en Sri Lanka',
             'book-transport': 'Reservar transporte',
             'explore-lanka': 'Explorar Sri Lanka',
-            'transport-services': 'Servicios de transporte'
+            'transport-services': 'Servicios de transporte',
+            'discover-lanka': 'Descubra Sri Lanka',
+            'need-help': '¿Necesita ayuda?'
         },
         'si': {
             'home': 'මුල් පිටුව',
@@ -100,7 +169,9 @@
             'hero-subtitle': 'ශ්‍රී ලංකාවේ ඔබේ ප්‍රීමියම් සංචාරක අත්දැකීම',
             'book-transport': 'ප්‍රවාහනය වෙන් කරන්න',
             'explore-lanka': 'ශ්‍රී ලංකාව ගවේෂණය කරන්න',
-            'transport-services': 'ප්‍රවාහන සේවා'
+            'transport-services': 'ප්‍රවාහන සේවා',
+            'discover-lanka': 'ශ්‍රී ලංකාව සොයා ගන්න',
+            'need-help': 'උදව් අවශ්‍යද?'
         }
     };
 
@@ -111,8 +182,8 @@
         // 清理页面上的所有额外语言选择器
         cleanupLanguageSelectors();
         
-        // 创建正确的语言选择器（只创建按钮面板）
-        createLanguageButtonPanel();
+        // 创建正确的语言选择器（在导航栏中创建下拉菜单）
+        createNavbarLanguageSelector();
         
         // 初始化当前语言 (从本地存储或默认为英语)
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
@@ -121,6 +192,11 @@
         setTimeout(() => {
             applyTranslation(currentLang, true);
         }, 300);
+        
+        // 增加data-i18n属性到未标记的元素
+        setTimeout(() => {
+            addMissingI18nAttributes();
+        }, 500);
         
         console.log("✅ 语言补丁初始化完成!");
     }
@@ -160,75 +236,118 @@
         }
     }
     
-    // 5. 只创建按钮面板
-    function createLanguageButtonPanel() {
-        console.log("🔨 创建语言按钮面板...");
+    // 5. 在导航栏创建下拉菜单语言选择器
+    function createNavbarLanguageSelector() {
+        console.log("🔨 创建导航栏语言选择器...");
         
-        // 移除旧的按钮面板
-        const oldPanel = document.getElementById('language-buttons');
-        if (oldPanel) {
-            oldPanel.remove();
+        const navLangSwitch = document.querySelector('.language-switch');
+        if (!navLangSwitch) {
+            console.error("未找到导航栏语言选择器容器");
+            return;
         }
         
-        // 创建新的按钮面板
-        const btnPanel = document.createElement('div');
-        btnPanel.id = 'language-buttons';
-        btnPanel.style.cssText = `
-            position: fixed;
-            top: 130px;
-            right: 10px;
-            z-index: 9999;
-            background: rgba(0,0,0,0.7);
-            border-radius: 8px;
-            padding: 6px;
-            display: flex;
-            flex-direction: row;
+        // 创建下拉选择框
+        const select = document.createElement('select');
+        select.id = 'navLanguageSelect';
+        
+        // 添加样式
+        select.style.cssText = `
+            padding: 5px 28px 5px 8px;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 5px center;
+            cursor: pointer;
+            font-size: 14px;
         `;
         
-        // 添加语言按钮
+        // 获取当前选择的语言
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+        
+        // 添加选项
         Object.keys(LANGUAGES).forEach(code => {
-            const btn = document.createElement('button');
-            
-            // 使用两个字母的代码
-            btn.textContent = code.toUpperCase();
-            btn.title = LANGUAGES[code].name + ' ' + LANGUAGES[code].flag;
-            btn.setAttribute('data-lang', code);
-            
-            // 设置按钮样式
-            btn.style.cssText = `
-                background: ${code === currentLang ? '#444' : 'transparent'};
-                color: white;
-                border: none;
-                padding: 5px 10px;
-                margin: 0 2px;
-                cursor: pointer;
-                border-radius: 4px;
-                font-weight: bold;
-                min-width: 40px;
-            `;
-            
-            // 添加点击事件
-            btn.addEventListener('click', function() {
-                // 切换语言
-                switchLanguage(code);
-                
-                // 高亮当前选择的按钮
-                document.querySelectorAll('#language-buttons button').forEach(b => {
-                    b.style.background = 'transparent';
-                });
-                this.style.background = '#444';
-            });
-            
-            btnPanel.appendChild(btn);
+            const option = document.createElement('option');
+            option.value = code;
+            option.innerHTML = `${LANGUAGES[code].flag} ${LANGUAGES[code].name}`;
+            option.selected = (code === currentLang);
+            select.appendChild(option);
         });
         
-        // 添加到页面
-        document.body.appendChild(btnPanel);
-        console.log("✅ 创建了语言按钮面板");
+        // 添加事件监听器
+        select.addEventListener('change', function() {
+            switchLanguage(this.value);
+        });
+        
+        // 添加到导航栏
+        navLangSwitch.appendChild(select);
+        console.log("✅ 创建了导航栏语言选择器");
     }
     
-    // 6. 切换语言
+    // 6. 为未标记的元素添加data-i18n属性
+    function addMissingI18nAttributes() {
+        console.log("🔍 检查未标记的元素并添加data-i18n属性...");
+        
+        // 查找页面中的主要标题和段落
+        const sections = [
+            { selector: 'h2.section-title:not([data-i18n])', keyPrefix: 'section-title-' },
+            { selector: 'h3:not([data-i18n])', keyPrefix: 'heading-' }, 
+            { selector: '.explore-content h3:not([data-i18n])', keyPrefix: 'explore-' },
+            { selector: '.explore-content p:not([data-i18n])', keyPrefix: 'explore-desc-' },
+            { selector: '.testimonial-content p:not([data-i18n])', keyPrefix: 'testimonial-' },
+            { selector: '.author-info p:not([data-i18n])', keyPrefix: 'author-' },
+            { selector: '.room-card h3:not([data-i18n])', keyPrefix: 'room-' },
+            { selector: '.room-card p:not([data-i18n])', keyPrefix: 'room-desc-' },
+            { selector: '.room-details span:not([data-i18n])', keyPrefix: 'room-feature-' },
+            { selector: '.btn-secondary:not([data-i18n])', keyPrefix: 'btn-' }
+        ];
+        
+        let addedCount = 0;
+        
+        // 处理每个选择器
+        sections.forEach(section => {
+            const elements = document.querySelectorAll(section.selector);
+            
+            elements.forEach((el, index) => {
+                // 创建唯一键名
+                const key = `${section.keyPrefix}${index}`;
+                
+                // 保存原始文本
+                const originalText = el.textContent.trim();
+                
+                // 设置data-i18n属性
+                el.setAttribute('data-i18n', key);
+                
+                // 保存默认英文文本
+                el.setAttribute('data-default-text', originalText);
+                
+                // 尝试翻译此元素
+                const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+                if (currentLang !== 'en' && TRANSLATIONS[currentLang]) {
+                    // 为当前语言添加这个键值对到翻译对象
+                    if (!TRANSLATIONS[currentLang][key]) {
+                        // 如果我们没有翻译，暂时保留英文
+                        // 这里可以根据需要调用在线翻译API
+                    }
+                }
+                
+                addedCount++;
+            });
+        });
+        
+        console.log(`✅ 添加了 ${addedCount} 个data-i18n属性`);
+        
+        // 再次应用当前语言翻译
+        const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+        if (currentLang !== 'en') {
+            applyTranslation(currentLang, false);
+        }
+    }
+    
+    // 7. 切换语言
     function switchLanguage(lang) {
         console.log(`🔄 切换语言到: ${lang}`);
         
@@ -240,10 +359,11 @@
         // 保存语言设置
         localStorage.setItem('selectedLanguage', lang);
         
-        // 更新按钮状态
-        document.querySelectorAll('#language-buttons button').forEach(btn => {
-            btn.style.background = btn.getAttribute('data-lang') === lang ? '#444' : 'transparent';
-        });
+        // 更新导航栏下拉菜单
+        const navSelect = document.getElementById('navLanguageSelect');
+        if (navSelect) {
+            navSelect.value = lang;
+        }
         
         // 应用翻译，强制刷新
         applyTranslation(lang, true);
@@ -257,7 +377,7 @@
         }));
     }
     
-    // 7. 应用翻译
+    // 8. 应用翻译
     function applyTranslation(lang, forceRefresh = false) {
         console.log(`📝 应用 ${lang} 语言翻译...${forceRefresh ? '(强制刷新)' : ''}`);
         
@@ -318,7 +438,7 @@
                 }
                 translatedCount++;
             } else {
-                console.log(`⚠️ 未找到翻译: ${key}`);
+                if (forceRefresh) console.log(`⚠️ 未找到翻译: ${key}`);
             }
         });
         
@@ -341,7 +461,7 @@
         }
     }
     
-    // 8. 重置为英文
+    // 9. 重置为英文
     function resetToEnglish() {
         console.log("🔄 重置为英文原文...");
         
@@ -372,7 +492,7 @@
         setTimeout(() => { document.body.style.opacity = '1'; }, 50);
     }
     
-    // 9. 显示通知
+    // 10. 显示通知
     function showNotification(message) {
         // 创建或获取通知元素
         let notification = document.getElementById('language-notification');
@@ -406,10 +526,10 @@
         }, 3000);
     }
     
-    // 10. 导出全局函数
+    // 11. 导出全局函数
     window.switchLanguage = switchLanguage;
     
-    // 11. 启动补丁
+    // 12. 启动补丁
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPatch);
     } else {
@@ -420,7 +540,7 @@
         setTimeout(initPatch, 500);
     }
     
-    // 12. 定期检查DOM变化并应用当前语言
+    // 13. 定期检查DOM变化并应用当前语言
     setInterval(() => {
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
         if (currentLang !== 'en') {
