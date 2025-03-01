@@ -111,14 +111,16 @@
         // 清理页面上的所有额外语言选择器
         cleanupLanguageSelectors();
         
-        // 创建正确的语言选择器
-        createNewLanguageSelector();
+        // 创建正确的语言选择器（只创建按钮面板）
+        createLanguageButtonPanel();
         
         // 初始化当前语言 (从本地存储或默认为英语)
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
         
-        // 应用翻译
-        applyTranslation(currentLang);
+        // 强制重新应用翻译，确保整个页面都被翻译
+        setTimeout(() => {
+            applyTranslation(currentLang, true);
+        }, 300);
         
         console.log("✅ 语言补丁初始化完成!");
     }
@@ -127,76 +129,75 @@
     function cleanupLanguageSelectors() {
         console.log("🧹 清理多余的语言选择器...");
         
-        // 移除现有的浮动面板
-        const existingPanels = [
+        // 移除之前创建的任何语言选择器
+        const selectorsToRemove = [
             document.getElementById('floating-language-panel'),
-            document.getElementById('floating-language-switcher')
+            document.getElementById('floating-language-switcher'),
+            document.getElementById('language-buttons'),
+            document.getElementById('topLanguageSelect')
         ];
         
-        existingPanels.forEach(panel => {
-            if (panel) {
-                panel.remove();
-                console.log("删除了浮动面板");
+        selectorsToRemove.forEach(selector => {
+            if (selector) {
+                selector.remove();
+                console.log("删除了语言选择器元素");
             }
         });
         
-        // 查找并修改导航栏中的语言选择器
+        // 移除顶部导航栏中下拉菜单
         const navLangSwitch = document.querySelector('.language-switch');
         if (navLangSwitch) {
-            navLangSwitch.innerHTML = ''; // 清空原有内容
+            // 清空内容，但保留容器
+            navLangSwitch.innerHTML = '';
+            
+            // 如果有select下拉框，将其移除
+            const selectElements = navLangSwitch.querySelectorAll('select');
+            selectElements.forEach(select => {
+                select.remove();
+            });
+            
             console.log("清空了导航栏语言选择器");
         }
     }
     
-    // 5. 创建新的语言选择器
-    function createNewLanguageSelector() {
-        console.log("🔨 创建新的语言选择器...");
+    // 5. 只创建按钮面板
+    function createLanguageButtonPanel() {
+        console.log("🔨 创建语言按钮面板...");
         
-        // 为顶部导航栏创建选择器
-        const navLangSwitch = document.querySelector('.language-switch');
-        if (navLangSwitch) {
-            const dropdown = document.createElement('select');
-            dropdown.id = 'topLanguageSelect';
-            dropdown.addEventListener('change', function() {
-                switchLanguage(this.value);
-            });
-            
-            // 添加所有语言选项
-            Object.keys(LANGUAGES).forEach(code => {
-                const opt = document.createElement('option');
-                opt.value = code;
-                opt.innerHTML = `${LANGUAGES[code].flag} ${LANGUAGES[code].name}`;
-                opt.selected = (code === (localStorage.getItem('selectedLanguage') || 'en'));
-                dropdown.appendChild(opt);
-            });
-            
-            navLangSwitch.appendChild(dropdown);
-            console.log("添加了导航栏选择器");
+        // 移除旧的按钮面板
+        const oldPanel = document.getElementById('language-buttons');
+        if (oldPanel) {
+            oldPanel.remove();
         }
         
-        // 创建一个额外的纯按钮式语言选择器 (在截图中看到的那种)
+        // 创建新的按钮面板
         const btnPanel = document.createElement('div');
         btnPanel.id = 'language-buttons';
         btnPanel.style.cssText = `
             position: fixed;
-            top: 138px;
+            top: 130px;
             right: 10px;
             z-index: 9999;
             background: rgba(0,0,0,0.7);
             border-radius: 8px;
-            padding: 5px;
+            padding: 6px;
             display: flex;
             flex-direction: row;
         `;
         
-        // 添加按钮
+        // 添加语言按钮
+        const currentLang = localStorage.getItem('selectedLanguage') || 'en';
         Object.keys(LANGUAGES).forEach(code => {
             const btn = document.createElement('button');
+            
+            // 使用两个字母的代码
             btn.textContent = code.toUpperCase();
-            btn.title = LANGUAGES[code].name;
+            btn.title = LANGUAGES[code].name + ' ' + LANGUAGES[code].flag;
             btn.setAttribute('data-lang', code);
+            
+            // 设置按钮样式
             btn.style.cssText = `
-                background: ${code === (localStorage.getItem('selectedLanguage') || 'en') ? '#444' : 'transparent'};
+                background: ${code === currentLang ? '#444' : 'transparent'};
                 color: white;
                 border: none;
                 padding: 5px 10px;
@@ -204,11 +205,15 @@
                 cursor: pointer;
                 border-radius: 4px;
                 font-weight: bold;
+                min-width: 40px;
             `;
             
+            // 添加点击事件
             btn.addEventListener('click', function() {
+                // 切换语言
                 switchLanguage(code);
-                // 更新按钮状态
+                
+                // 高亮当前选择的按钮
                 document.querySelectorAll('#language-buttons button').forEach(b => {
                     b.style.background = 'transparent';
                 });
@@ -218,8 +223,9 @@
             btnPanel.appendChild(btn);
         });
         
+        // 添加到页面
         document.body.appendChild(btnPanel);
-        console.log("添加了悬浮按钮面板");
+        console.log("✅ 创建了语言按钮面板");
     }
     
     // 6. 切换语言
@@ -234,20 +240,16 @@
         // 保存语言设置
         localStorage.setItem('selectedLanguage', lang);
         
-        // 更新选项值
-        const topSelect = document.getElementById('topLanguageSelect');
-        if (topSelect) topSelect.value = lang;
-        
         // 更新按钮状态
         document.querySelectorAll('#language-buttons button').forEach(btn => {
             btn.style.background = btn.getAttribute('data-lang') === lang ? '#444' : 'transparent';
         });
         
-        // 应用翻译
-        applyTranslation(lang);
+        // 应用翻译，强制刷新
+        applyTranslation(lang, true);
         
         // 显示通知
-        showNotification(`已切换到${LANGUAGES[lang].name}`);
+        showNotification(`已切换到 ${LANGUAGES[lang].flag} ${LANGUAGES[lang].name}`);
         
         // 触发自定义事件
         document.dispatchEvent(new CustomEvent('languageChanged', { 
@@ -256,8 +258,8 @@
     }
     
     // 7. 应用翻译
-    function applyTranslation(lang) {
-        console.log(`📝 应用 ${lang} 语言翻译...`);
+    function applyTranslation(lang, forceRefresh = false) {
+        console.log(`📝 应用 ${lang} 语言翻译...${forceRefresh ? '(强制刷新)' : ''}`);
         
         // 默认为英语 - 不需要翻译
         if (lang === 'en') {
@@ -268,15 +270,16 @@
         // 获取翻译数据
         let translations = {};
         
-        // 首先尝试使用全局翻译数据
-        if (window.translations && window.translations[lang]) {
-            translations = window.translations[lang];
-            console.log("使用全局翻译数据");
-        }
-        // 然后合并我们的内置翻译
+        // 首先尝试使用内置翻译
         if (TRANSLATIONS[lang]) {
-            translations = {...TRANSLATIONS[lang], ...translations};
-            console.log("合并了内置翻译数据");
+            translations = {...TRANSLATIONS[lang]};
+            console.log("使用内置翻译数据");
+        }
+        
+        // 然后合并全局翻译数据(如果存在)
+        if (window.translations && window.translations[lang]) {
+            translations = {...translations, ...window.translations[lang]};
+            console.log("合并全局翻译数据");
         }
         
         // 查找所有带有 data-i18n 属性的元素
@@ -287,6 +290,19 @@
         let translatedCount = 0;
         elements.forEach(el => {
             const key = el.getAttribute('data-i18n');
+            
+            // 确保在第一次翻译之前保存原始英文
+            if (!el.hasAttribute('data-default-text')) {
+                if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
+                    el.setAttribute('data-default-text', el.placeholder);
+                } else if (el.tagName === 'OPTION') {
+                    el.setAttribute('data-default-text', el.text);
+                } else {
+                    el.setAttribute('data-default-text', el.textContent);
+                }
+            }
+            
+            // 应用翻译
             if (translations[key]) {
                 // 对于输入元素，设置占位符
                 if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
@@ -301,16 +317,28 @@
                     el.textContent = translations[key];
                 }
                 translatedCount++;
+            } else {
+                console.log(`⚠️ 未找到翻译: ${key}`);
             }
         });
         
         console.log(`✅ 翻译了 ${translatedCount} 个元素`);
         
         // 强制重绘以确保所有内容更新
-        setTimeout(() => {
+        if (forceRefresh) {
             document.body.style.opacity = '0.99';
-            setTimeout(() => { document.body.style.opacity = '1'; }, 50);
-        }, 100);
+            setTimeout(() => { 
+                document.body.style.opacity = '1';
+                // 二次尝试翻译，处理动态加载的元素
+                setTimeout(() => {
+                    const secondElements = document.querySelectorAll('[data-i18n]');
+                    if (secondElements.length > elements.length) {
+                        console.log(`发现 ${secondElements.length - elements.length} 个新元素，重新应用翻译`);
+                        applyTranslation(lang, false);
+                    }
+                }, 200);
+            }, 50);
+        }
     }
     
     // 8. 重置为英文
@@ -322,43 +350,26 @@
         
         // 恢复原始英文内容
         elements.forEach(el => {
-            // 获取默认的英文文本（存储在 data-default-text 属性中，如果有的话）
+            // 获取默认的英文文本（存储在 data-default-text 属性中）
             const defaultText = el.getAttribute('data-default-text');
             
             if (defaultText) {
                 // 如果有存储的默认文本，使用它
                 if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
                     el.placeholder = defaultText;
+                } else if (el.tagName === 'OPTION') {
+                    el.text = defaultText;
                 } else {
                     el.textContent = defaultText;
-                }
-            } else {
-                // 否则，使用元素当前的英文内容
-                // 这可能不是完美的解决方案，但在大多数情况下应该工作
-                const key = el.getAttribute('data-i18n');
-                
-                // 从我们的英文翻译字典尝试获取文本
-                if (window.translations && window.translations.en && window.translations.en[key]) {
-                    if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
-                        el.placeholder = window.translations.en[key];
-                    } else {
-                        el.textContent = window.translations.en[key];
-                    }
-                }
-                // 否则保留当前文本
-            }
-            
-            // 存储默认英文文本以备将来使用
-            if (!el.hasAttribute('data-default-text')) {
-                if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
-                    el.setAttribute('data-default-text', el.placeholder);
-                } else {
-                    el.setAttribute('data-default-text', el.textContent);
                 }
             }
         });
         
         console.log("✅ 已重置为英文原文");
+        
+        // 强制重绘
+        document.body.style.opacity = '0.99';
+        setTimeout(() => { document.body.style.opacity = '1'; }, 50);
     }
     
     // 9. 显示通知
@@ -370,7 +381,7 @@
             notification.id = 'language-notification';
             notification.style.cssText = `
                 position: fixed;
-                top: 20px;
+                top: 60px;
                 left: 50%;
                 transform: translateX(-50%);
                 background: rgba(0,0,0,0.8);
@@ -402,16 +413,19 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPatch);
     } else {
-        // 如果页面已加载，延迟一点执行，让其他脚本先运行
-        setTimeout(initPatch, 100);
+        // 页面已加载，立即执行
+        initPatch();
+        
+        // 500ms后再执行一次，确保翻译应用到所有元素
+        setTimeout(initPatch, 500);
     }
     
-    // 12. 定期检查DOM变化
+    // 12. 定期检查DOM变化并应用当前语言
     setInterval(() => {
         const currentLang = localStorage.getItem('selectedLanguage') || 'en';
         if (currentLang !== 'en') {
-            // 再次应用当前非英语语言
-            applyTranslation(currentLang);
+            // 重新应用当前非英语语言，不需要强制刷新
+            applyTranslation(currentLang, false);
         }
     }, 2000);
 
