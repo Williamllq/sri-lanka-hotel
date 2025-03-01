@@ -3,6 +3,21 @@
  * 支持：英文(默认)、中文、德语、法语、西班牙语、僧伽罗语(斯里兰卡)
  */
 
+import i18next from 'i18next';
+
+i18next.init({
+  lng: 'en', // default language
+  debug: true,
+  resources: {
+    en: {
+      translation: require('../public/locales/en/translation.json')
+    },
+    de: {
+      translation: require('../public/locales/de/translation.json')
+    }
+  }
+});
+
 // 语言标识与国旗emoji映射
 const languageFlags = {
     en: '🇬🇧', // 英国
@@ -299,4 +314,24 @@ window.addEventListener('DOMContentLoaded', () => {
     document.documentElement.lang = initialLanguage;
     languageSelector.value = initialLanguage; // Set the selector to the current language
   });
+});
+
+// Function to change language
+function changeLanguage(lang) {
+  i18next.changeLanguage(lang, (err, t) => {
+    if (err) return console.log('something went wrong loading', err);
+    updateContent();
+  });
+}
+
+// Update content according to the current language
+function updateContent() {
+  document.querySelectorAll('[data-i18n]').forEach(function(elem) {
+    elem.innerHTML = i18next.t(elem.getAttribute('data-i18n'));
+  });
+}
+
+// Initialize language on page load
+window.addEventListener('DOMContentLoaded', () => {
+  changeLanguage(i18next.language);
 }); 
