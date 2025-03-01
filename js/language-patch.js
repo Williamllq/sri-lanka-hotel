@@ -24,16 +24,58 @@
             // ... 保持原来的中文翻译
         },
         'de': {
-            // ... 保持原来的德语翻译
+            // 德语翻译
+            'book-your-journey': 'Buchen Sie Ihre Reise',
+            'service-type': 'Service auswählen',
+            'date': 'Datum',
+            'time': 'Zeit',
+            'passengers': 'Bis zu 4 Passagiere',
+            'pickup-location': 'Abholort',
+            'destination': 'Zielort',
+            'special-requirements': 'Besondere Anforderungen',
+            'get-quote': 'Angebot erhalten',
+            'book-now': 'Jetzt buchen',
+            'select-service': 'Service auswählen',
+            'enter-pickup': 'Abholort eingeben',
+            'enter-destination': 'Zielort eingeben',
+            'any-requirements': 'Irgendwelche besonderen Anforderungen?',
+            'quality-vehicle': 'Qualitätsfahrzeuge',
+            'local-driver': 'Lokaler Fahrer',
+            'journey-protection': 'Reiseschutz',
+            'local-knowledge': 'Lokales Wissen',
+            'quality-vehicle-desc': 'Gut gewartete Fahrzeuge für eine komfortable und sichere Reise',
+            'local-driver-desc': 'Professionelle englischsprachige Fahrer mit umfassendem lokalen Wissen',
+            'journey-protection-desc': 'Rundumschutz und Sicherheit während Ihrer gesamten Reise',
+            'local-knowledge-desc': 'Entdecken Sie versteckte Juwelen und erleben Sie das echte lokale Leben',
+            // ... 其他德语翻译
         },
         'fr': {
-            // ... 保持原来的法语翻译
+            // 法语翻译 
+            // ... 其他法语翻译
+            'quality-vehicle': 'Véhicules de Qualité',
+            'local-driver': 'Chauffeur Local',
+            'journey-protection': 'Protection du Voyage',
+            'local-knowledge': 'Connaissance Locale',
+            'quality-vehicle-desc': 'Véhicules bien entretenus pour un voyage confortable et sûr',
+            'local-driver-desc': 'Chauffeurs professionnels anglophones avec une connaissance approfondie des lieux',
+            'journey-protection-desc': 'Protection et sécurité complètes tout au long de votre voyage',
+            'local-knowledge-desc': 'Découvrez des joyaux cachés et vivez la vraie vie locale',
         },
         'es': {
-            // ... 保持原来的西班牙语翻译  
+            // 西班牙语翻译
+            // ... 其他西班牙语翻译
+            'quality-vehicle': 'Vehículos de Calidad',
+            'local-driver': 'Conductor Local',
+            'journey-protection': 'Protección de Viaje',
+            'local-knowledge': 'Conocimiento Local',
+            'quality-vehicle-desc': 'Vehículos bien mantenidos para un viaje cómodo y seguro',
+            'local-driver-desc': 'Conductores profesionales de habla inglesa con amplio conocimiento local',
+            'journey-protection-desc': 'Protección y seguridad completa durante todo su viaje',
+            'local-knowledge-desc': 'Descubra joyas escondidas y experimente la vida local auténtica',
         },
         'si': {
-            // ... 保持原来的僧伽罗语翻译
+            // 僧伽罗语翻译
+            // ... 其他僧伽罗语翻译
         }
     };
 
@@ -561,6 +603,63 @@
                 });
             });
             
+            // 特别处理底部服务卡片（解决中德文混合问题）
+            document.querySelectorAll('.service-card, .card').forEach(card => {
+                // 处理卡片标题
+                const title = card.querySelector('h3');
+                if (title) {
+                    const titleText = title.textContent.trim();
+                    
+                    // 高品质车辆卡片
+                    if (titleText === '高品质车辆' && translations['quality-vehicle']) {
+                        title.textContent = translations['quality-vehicle'];
+                        title.setAttribute('data-translated', 'true');
+                    }
+                    // 当地专业司机卡片
+                    else if (titleText === '当地专业司机' && translations['local-driver']) {
+                        title.textContent = translations['local-driver'];
+                        title.setAttribute('data-translated', 'true');
+                    }
+                    // 全程保障卡片
+                    else if (titleText === '全程保障' && translations['journey-protection']) {
+                        title.textContent = translations['journey-protection'];
+                        title.setAttribute('data-translated', 'true');
+                    }
+                    // 内部知识卡片
+                    else if (titleText === '内部知识' && translations['local-knowledge']) {
+                        title.textContent = translations['local-knowledge'];
+                        title.setAttribute('data-translated', 'true');
+                    }
+                }
+                
+                // 处理卡片描述
+                const desc = card.querySelector('p');
+                if (desc) {
+                    const descText = desc.textContent.trim();
+                    
+                    // 高品质车辆描述
+                    if (descText.includes('精心维护的车辆') && translations['quality-vehicle-desc']) {
+                        desc.textContent = translations['quality-vehicle-desc'];
+                        desc.setAttribute('data-translated', 'true');
+                    }
+                    // 当地专业司机描述
+                    else if (descText.includes('会讲英语的专业司机') && translations['local-driver-desc']) {
+                        desc.textContent = translations['local-driver-desc'];
+                        desc.setAttribute('data-translated', 'true');
+                    }
+                    // 全程保障描述
+                    else if (descText.includes('全天候陪伴与安全保障') && translations['journey-protection-desc']) {
+                        desc.textContent = translations['journey-protection-desc'];
+                        desc.setAttribute('data-translated', 'true');
+                    }
+                    // 内部知识描述
+                    else if (descText.includes('带您探索隐藏景点') && translations['local-knowledge-desc']) {
+                        desc.textContent = translations['local-knowledge-desc'];
+                        desc.setAttribute('data-translated', 'true');
+                    }
+                }
+            });
+            
             // AI助手
             document.querySelectorAll('.ai-message').forEach(msg => {
                 if (msg.textContent.includes("I'm your Sri Lanka travel assistant")) {
@@ -710,6 +809,13 @@
         
         // 初始化I18N系统
         I18N.init();
+
+        // 延迟执行一次深度扫描，确保捕获所有动态内容
+        setTimeout(() => {
+            I18N.scanAndRegisterElements();
+            I18N.applyTranslations();
+            console.log('完成初始深度扫描和翻译应用');
+        }, 1000);
         
         console.log('语言补丁初始化完成!');
     }
