@@ -16,9 +16,8 @@
     
     <!-- JavaScript -->
     <script src="js/translations.js"></script>
+    <script src="js/language-switcher.js"></script>
     <script src="js/main.js"></script>
-    <!-- 调试脚本 -->
-    <script src="js/debug-language.js"></script>
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR-GA-ID"></script>
@@ -517,18 +516,6 @@
         <i class="fas fa-robot"></i>
         <span>Need Help?</span>
     </button>
-
-    <!-- 在footer之前添加测试按钮 -->
-    <div id="langDebugPanel" style="position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 5px; z-index: 9999; color: white;">
-        <h4 style="margin: 0 0 10px 0; font-size: 16px;">语言测试</h4>
-        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-            <button onclick="simpleLanguageSwitch('en')" style="padding: 5px 10px; cursor: pointer; margin: 2px;">English</button>
-            <button onclick="simpleLanguageSwitch('zh')" style="padding: 5px 10px; cursor: pointer; margin: 2px;">中文</button>
-            <button onclick="simpleLanguageSwitch('si')" style="padding: 5px 10px; cursor: pointer; margin: 2px;">සිංහල</button>
-            <button onclick="simpleLanguageSwitch('ta')" style="padding: 5px 10px; cursor: pointer; margin: 2px;">தமிழ்</button>
-        </div>
-        <div style="margin-top: 5px; font-size: 12px; text-align: center;">简化版切换器</div>
-    </div>
 
     <footer>
         <div class="footer-content">

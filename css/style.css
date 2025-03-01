@@ -1154,4 +1154,63 @@ footer {
 img {
     max-width: 100%;
     height: auto;
+}
+
+/* 语言选择器样式 */
+.language-switch {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+}
+
+#languageSelect {
+    padding: 8px 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; /* 确保emoji显示正常 */
+}
+
+#languageSelect:hover {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+#languageSelect option {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+}
+
+/* 语言通知样式 */
+.language-notification {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 为移动设备优化语言选择器 */
+@media (max-width: 768px) {
+    .language-switch {
+        margin: 10px 0;
+    }
+    
+    #languageSelect {
+        font-size: 13px;
+        padding: 6px 8px;
+    }
 } 

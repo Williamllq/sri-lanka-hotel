@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // 已经在translations.js中处理了语言切换逻辑，这里不再重复实现
+    // 注意：语言切换逻辑已移至 language-switcher.js
     
     // 导航栏滚动效果
     const nav = document.querySelector('.main-nav');
