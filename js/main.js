@@ -31,12 +31,70 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 图片轮播功能
-    initCarousel();
+    // Initialize the Discover More tabs
+    initDiscoverTabs();
     
     // Display all images from admin in the gallery section
     displayAdminImages();
 });
+
+// Initialize the tabs in the Discover More section
+function initDiscoverTabs() {
+    const tabs = document.querySelectorAll('.discover-tab');
+    const contents = document.querySelectorAll('.discover-content');
+    
+    if (tabs.length === 0 || contents.length === 0) {
+        console.warn("Discover tabs or content not found");
+        return;
+    }
+    
+    console.log("Initializing discover tabs...");
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active class from all tabs and contents
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Get the tab data attribute and find matching content
+            const tabId = this.getAttribute('data-tab');
+            const content = document.getElementById(tabId + '-content');
+            
+            if (content) {
+                content.classList.add('active');
+                console.log(`Switched to ${tabId} tab`);
+            } else {
+                console.warn(`Content with ID ${tabId}-content not found`);
+            }
+        });
+    });
+    
+    // Initialize "Load More" buttons
+    const loadMoreButtons = document.querySelectorAll('.load-more-btn');
+    
+    loadMoreButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // This is where you would implement loading more content
+            // For example, through an API call or revealing hidden content
+            console.log("Load more button clicked");
+            alert("More content would load here. This feature will be implemented with actual content.");
+        });
+    });
+    
+    // Initialize video thumbnails to show a modal or play video
+    const videoThumbnails = document.querySelectorAll('.video-thumbnail');
+    
+    videoThumbnails.forEach(thumbnail => {
+        thumbnail.addEventListener('click', function() {
+            const videoTitle = this.parentElement.querySelector('h4').textContent;
+            console.log(`Video clicked: ${videoTitle}`);
+            alert(`Video "${videoTitle}" would play here. This feature will be implemented with actual video content.`);
+        });
+    });
+}
 
 // Display images uploaded from admin dashboard in the website gallery
 function displayAdminImages() {

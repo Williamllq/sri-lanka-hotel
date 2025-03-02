@@ -239,35 +239,143 @@
                 <!-- 添加图片轮播 -->
                 <div class="image-showcase">
                     <h3>Discover More</h3>
-                    <div class="image-carousel">
-                        <div class="carousel-track">
-                            <div class="carousel-slide">
-                                <img src="images/Scenery in Sir Lanka 12.jpg" alt="Beautiful Scenery">
+                    
+                    <!-- Content type navigation tabs -->
+                    <div class="discover-tabs">
+                        <button class="discover-tab active" data-tab="articles">Articles & News</button>
+                        <button class="discover-tab" data-tab="videos">Videos</button>
+                        <button class="discover-tab" data-tab="links">Recommended Links</button>
+                    </div>
+                    
+                    <!-- Articles & News Tab Content -->
+                    <div class="discover-content active" id="articles-content">
+                        <div class="discover-grid">
+                            <div class="discover-card">
+                                <div class="discover-image">
+                                    <img src="images/sigiriya-rock.jpg" alt="Sigiriya Rock">
+                                </div>
+                                <div class="discover-text">
+                                    <h4>The Ancient Wonder of Sigiriya Rock</h4>
+                                    <p>Explore the history and mystery behind Sri Lanka's most famous rock fortress...</p>
+                                    <a href="#" class="read-more">Read Full Article</a>
+                                </div>
                             </div>
-                            <div class="carousel-slide">
-                                <img src="images/Scenery in Sir Lanka 13.jpg" alt="Beach View">
+                            
+                            <div class="discover-card">
+                                <div class="discover-image">
+                                    <img src="images/elephant.jpg" alt="Sri Lankan Elephant">
+                                </div>
+                                <div class="discover-text">
+                                    <h4>Wildlife Conservation Efforts in Sri Lanka</h4>
+                                    <p>How local initiatives are helping to protect the island's endangered elephants...</p>
+                                    <a href="#" class="read-more">Read Full Article</a>
+                                </div>
                             </div>
-                            <div class="carousel-slide">
-                                <img src="images/Scenery in Sir Lanka 14.jpg" alt="Nature">
-                            </div>
-                            <div class="carousel-slide">
-                                <img src="images/Scenery in Sir Lanka 15.jpg" alt="Landscape">
-                            </div>
-                            <div class="carousel-slide">
-                                <img src="images/Scenery in Sir Lanka 1.jpg" alt="Sri Lanka Scenery">
-                            </div>
-                            <div class="carousel-slide">
-                                <img src="images/Scenery in Sir Lanka 2.jpg" alt="Beautiful View">
-                            </div>
-                            <div class="carousel-slide">
-                                <img src="images/Scenery in Sir Lanka 3.jpg" alt="Nature View">
-                            </div>
-                            <div class="carousel-slide">
-                                <img src="images/Scenery in Sir Lanka 4.jpg" alt="Scenic Beauty">
+                            
+                            <div class="discover-card">
+                                <div class="discover-image">
+                                    <img src="images/train-ella.jpg" alt="Train to Ella">
+                                </div>
+                                <div class="discover-text">
+                                    <h4>The Most Scenic Train Journey in Asia</h4>
+                                    <p>Why the train ride through Sri Lanka's tea country should be on every traveler's bucket list...</p>
+                                    <a href="#" class="read-more">Read Full Article</a>
+                                </div>
                             </div>
                         </div>
-                        <button class="carousel-button prev">❮</button>
-                        <button class="carousel-button next">❯</button>
+                        <button class="load-more-btn">Load More Articles</button>
+                    </div>
+                    
+                    <!-- Videos Tab Content -->
+                    <div class="discover-content" id="videos-content">
+                        <div class="discover-grid">
+                            <div class="video-card">
+                                <div class="video-thumbnail">
+                                    <img src="images/video-thumbnail1.jpg" alt="Sri Lanka Travel Guide">
+                                    <div class="play-button"><i class="fas fa-play"></i></div>
+                                </div>
+                                <h4>Sri Lanka Travel Guide 2023</h4>
+                                <p>Everything you need to know before visiting this tropical paradise.</p>
+                            </div>
+                            
+                            <div class="video-card">
+                                <div class="video-thumbnail">
+                                    <img src="images/video-thumbnail2.jpg" alt="Sri Lankan Cuisine">
+                                    <div class="play-button"><i class="fas fa-play"></i></div>
+                                </div>
+                                <h4>Exploring Sri Lankan Cuisine</h4>
+                                <p>A culinary journey through the island's most delicious dishes.</p>
+                            </div>
+                            
+                            <div class="video-card">
+                                <div class="video-thumbnail">
+                                    <img src="images/video-thumbnail3.jpg" alt="Wildlife Safari">
+                                    <div class="play-button"><i class="fas fa-play"></i></div>
+                                </div>
+                                <h4>Wildlife Safari Experience</h4>
+                                <p>Join us on an adventure through Sri Lanka's national parks.</p>
+                            </div>
+                        </div>
+                        <button class="load-more-btn">Load More Videos</button>
+                    </div>
+                    
+                    <!-- Recommended Links Tab Content -->
+                    <div class="discover-content" id="links-content">
+                        <div class="links-grid">
+                            <div class="link-card">
+                                <i class="fas fa-globe"></i>
+                                <div class="link-content">
+                                    <h4>Sri Lanka Tourism Board</h4>
+                                    <p>Official tourism information and resources.</p>
+                                    <a href="https://www.srilanka.travel/" target="_blank" class="external-link">Visit Website <i class="fas fa-external-link-alt"></i></a>
+                                </div>
+                            </div>
+                            
+                            <div class="link-card">
+                                <i class="fas fa-map-marked-alt"></i>
+                                <div class="link-content">
+                                    <h4>Lonely Planet: Sri Lanka</h4>
+                                    <p>Travel guides and recommendations from Lonely Planet.</p>
+                                    <a href="https://www.lonelyplanet.com/sri-lanka" target="_blank" class="external-link">Visit Website <i class="fas fa-external-link-alt"></i></a>
+                                </div>
+                            </div>
+                            
+                            <div class="link-card">
+                                <i class="fas fa-hotel"></i>
+                                <div class="link-content">
+                                    <h4>Booking.com: Sri Lanka Hotels</h4>
+                                    <p>Find and book accommodations across Sri Lanka.</p>
+                                    <a href="https://www.booking.com/country/lk.html" target="_blank" class="external-link">Visit Website <i class="fas fa-external-link-alt"></i></a>
+                                </div>
+                            </div>
+                            
+                            <div class="link-card">
+                                <i class="fas fa-plane"></i>
+                                <div class="link-content">
+                                    <h4>SriLankan Airlines</h4>
+                                    <p>Sri Lanka's national carrier with flights to and from the island.</p>
+                                    <a href="https://www.srilankan.com/" target="_blank" class="external-link">Visit Website <i class="fas fa-external-link-alt"></i></a>
+                                </div>
+                            </div>
+                            
+                            <div class="link-card">
+                                <i class="fas fa-hiking"></i>
+                                <div class="link-content">
+                                    <h4>Hiking Sri Lanka</h4>
+                                    <p>Information about hiking trails and outdoor adventures.</p>
+                                    <a href="#" target="_blank" class="external-link">Visit Website <i class="fas fa-external-link-alt"></i></a>
+                                </div>
+                            </div>
+                            
+                            <div class="link-card">
+                                <i class="fas fa-utensils"></i>
+                                <div class="link-content">
+                                    <h4>Sri Lankan Recipes</h4>
+                                    <p>Authentic Sri Lankan recipes to try at home.</p>
+                                    <a href="#" target="_blank" class="external-link">Visit Website <i class="fas fa-external-link-alt"></i></a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
