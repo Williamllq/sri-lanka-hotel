@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -16,115 +16,203 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
+        :root {
+            --primary-color: #4a6eb5;
+            --primary-hover: #3a5b9f;
+            --text-color: #333333;
+            --light-text: #6c757d;
+            --border-color: #e0e6f1;
+            --bg-color: #f5f7fb;
+            --error-color: #e53935;
+            --success-color: #28a745;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.1);
+            --spacing-xs: 5px;
+            --spacing-sm: 10px;
+            --spacing-md: 15px;
+            --spacing-lg: 25px;
+            --spacing-xl: 40px;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 15px;
+            --transition: all 0.3s ease;
+        }
+
         body {
-            background-color: #f5f5f5;
+            background-color: var(--bg-color);
+            background-image: linear-gradient(135deg, #f5f7fb 0%, #e4ecf7 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
             font-family: 'Arial', sans-serif;
+            color: var(--text-color);
         }
         
         .login-container {
             background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            width: 400px;
-            max-width: 90%;
-            padding: 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            width: 420px;
+            max-width: 92%;
+            padding: var(--spacing-xl);
             text-align: center;
+            transition: var(--transition);
         }
         
         .login-logo {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto var(--spacing-lg);
             display: block;
-            background-color: white;
-            padding: 5px;
+            transition: var(--transition);
+        }
+        
+        .login-logo:hover {
+            transform: scale(1.05);
         }
         
         .login-title {
-            color: var(--admin-primary);
-            margin-bottom: 30px;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-xl);
+            font-size: 30px;
+            font-weight: 600;
         }
         
         .login-form .form-group {
-            margin-bottom: 20px;
+            margin-bottom: var(--spacing-lg);
             text-align: left;
         }
         
         .login-form label {
             display: block;
-            margin-bottom: 5px;
-            color: var(--admin-dark);
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 16px;
         }
         
         .login-form .input-group {
             position: relative;
+            transition: var(--transition);
+            margin-top: var(--spacing-xs);
+        }
+        
+        .login-form .input-group:focus-within {
+            transform: translateY(-2px);
         }
         
         .login-form .input-group i {
             position: absolute;
-            left: 12px;
+            left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: #aaa;
+            color: var(--light-text);
+            font-size: 18px;
         }
         
         .login-form input {
             width: 100%;
-            padding: 12px 12px 12px 40px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 16px 16px 16px 50px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
             font-size: 16px;
             box-sizing: border-box;
-            transition: all 0.3s;
+            transition: var(--transition);
+            background-color: var(--bg-color);
         }
         
         .login-form input:focus {
-            border-color: var(--admin-primary);
+            border-color: var(--primary-color);
             outline: none;
-            box-shadow: 0 0 0 2px rgba(74, 110, 181, 0.2);
+            box-shadow: 0 0 0 3px rgba(74, 110, 181, 0.15);
+            background-color: white;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .remember-me input {
+            margin-right: var(--spacing-sm);
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+        
+        .remember-me label {
+            margin-bottom: 0;
+            font-size: 15px;
+            cursor: pointer;
         }
         
         .login-button {
             width: 100%;
-            padding: 12px;
-            background-color: var(--admin-primary);
+            padding: 16px;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 5px;
-            font-size: 16px;
+            border-radius: var(--radius-md);
+            font-size: 17px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-lg);
         }
         
         .login-button:hover {
-            background-color: #3a5b9f;
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .login-button:active {
+            transform: translateY(0);
         }
         
         .back-link {
-            display: inline-block;
-            margin-top: 20px;
-            color: var(--admin-secondary);
+            display: inline-flex;
+            align-items: center;
+            margin-top: var(--spacing-xl);
+            color: var(--light-text);
             text-decoration: none;
-            transition: all 0.3s;
+            transition: var(--transition);
+            font-size: 15px;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            gap: var(--spacing-xs);
         }
         
         .back-link:hover {
-            color: var(--admin-primary);
+            color: var(--primary-color);
+            background-color: rgba(74, 110, 181, 0.08);
         }
         
         .login-error {
-            background-color: #ffebee;
-            color: #d32f2f;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            background-color: #fff0f0;
+            color: var(--error-color);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
             display: none;
+            text-align: left;
+            border-left: 4px solid var(--error-color);
+            font-size: 15px;
+            align-items: center;
+        }
+        
+        .login-error i {
+            margin-right: var(--spacing-sm);
+            font-size: 18px;
         }
         
         @keyframes shake {
@@ -136,41 +224,131 @@
         .shake {
             animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
         }
+        
+        /* Divider line with "or" text */
+        .divider {
+            margin: var(--spacing-xl) 0;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--light-text);
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .divider::before {
+            margin-right: var(--spacing-md);
+        }
+        
+        .divider::after {
+            margin-left: var(--spacing-md);
+        }
+        
+        /* Admin help section */
+        .admin-help {
+            margin-top: var(--spacing-lg);
+            font-size: 14px;
+            color: var(--light-text);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .admin-help a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .admin-help a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 480px) {
+            :root {
+                --spacing-lg: 20px;
+                --spacing-xl: 30px;
+            }
+            
+            .login-container {
+                padding: var(--spacing-lg);
+            }
+            
+            .login-title {
+                font-size: 24px;
+            }
+            
+            .login-logo {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .login-form input {
+                padding: 14px 14px 14px 45px;
+                font-size: 15px;
+            }
+            
+            .login-button {
+                padding: 14px;
+                font-size: 16px;
+            }
+            
+            .login-form .input-group i {
+                font-size: 16px;
+                left: 14px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <img src="./images/ranga_bandara_logo_v2.png" alt="Ranga Bandara Logo" class="login-logo">
-        <h2 class="login-title">Admin Login</h2>
+        <h2 class="login-title">Admin Portal</h2>
         
         <div id="loginError" class="login-error">
-            <i class="fas fa-exclamation-circle"></i> Invalid username or password. Please try again.
+            <i class="fas fa-exclamation-circle"></i> Ungültiger Benutzername oder Passwort. Bitte versuchen Sie es erneut.
         </div>
         
         <form id="loginForm" class="login-form">
             <div class="form-group">
-                <label for="username">Username</label>
+                <label for="username">Benutzername</label>
                 <div class="input-group">
                     <i class="fas fa-user"></i>
-                    <input type="text" id="username" name="username" placeholder="Enter username" required>
+                    <input type="text" id="username" name="username" placeholder="Benutzername eingeben" required autocomplete="username">
                 </div>
             </div>
             
             <div class="form-group">
-                <label for="password">Password</label>
+                <label for="password">Passwort</label>
                 <div class="input-group">
                     <i class="fas fa-lock"></i>
-                    <input type="password" id="password" name="password" placeholder="Enter password" required>
+                    <input type="password" id="password" name="password" placeholder="Passwort eingeben" required autocomplete="current-password">
                 </div>
             </div>
             
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Angemeldet bleiben</label>
+            </div>
+            
             <button type="submit" class="login-button">
-                <i class="fas fa-sign-in-alt"></i> Login
+                <i class="fas fa-sign-in-alt"></i> Anmelden
             </button>
         </form>
         
+        <div class="admin-help">
+            <a href="#">Passwort vergessen?</a>
+            <a href="#">Hilfe</a>
+        </div>
+        
+        <div class="divider">oder</div>
+        
         <a href="index.html" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Website
+            <i class="fas fa-arrow-left"></i> Zurück zur Website
         </a>
     </div>
     
