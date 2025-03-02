@@ -57,6 +57,7 @@ body {
 .logo {
     display: flex;
     align-items: center;
+    margin-left: auto;
 }
 
 .logo a {
@@ -85,8 +86,9 @@ body {
 
 .nav-links {
     display: flex;
-    gap: 2.5rem;
+    gap: 2rem;
     list-style: none;
+    margin-right: auto;
 }
 
 .nav-links a {
