@@ -687,10 +687,82 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize transport price calculation
     initTransportCalculation();
     
+    // Initialize modals and feedback
+    initModals();
+    
     // Initialize the animation on scroll
     AOS.init({
         duration: 800,
         easing: 'ease-in-out',
         once: true
     });
-}); 
+});
+
+// Initialize all modals and feedback functionality
+function initModals() {
+    // Feedback modal
+    const feedbackModal = document.getElementById('feedbackModal');
+    const showFeedbackBtn = document.getElementById('showFeedback');
+    const closeFeedbackBtn = feedbackModal ? feedbackModal.querySelector('.close-modal') : null;
+    
+    if (feedbackModal && showFeedbackBtn) {
+        // Show feedback modal when clicking the button
+        showFeedbackBtn.addEventListener('click', function() {
+            feedbackModal.classList.add('active');
+        });
+        
+        // Close modal when clicking the close button
+        if (closeFeedbackBtn) {
+            closeFeedbackBtn.addEventListener('click', function() {
+                feedbackModal.classList.remove('active');
+            });
+        }
+        
+        // Close modal when clicking outside the modal content
+        feedbackModal.addEventListener('click', function(e) {
+            if (e.target === feedbackModal) {
+                feedbackModal.classList.remove('active');
+            }
+        });
+    }
+    
+    // Handle feedback form submission
+    const feedbackForm = document.getElementById('feedbackForm');
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const name = document.getElementById('feedbackName').value;
+            const country = document.getElementById('feedbackCountry').value;
+            const rating = document.querySelector('input[name="rating"]:checked')?.value || 5;
+            const feedback = document.getElementById('feedbackText').value;
+            
+            // In a real app, you would send this data to a server
+            console.log('Feedback submitted:', { name, country, rating, feedback });
+            
+            // Show success message
+            alert('Thank you for your feedback!');
+            
+            // Reset form and close modal
+            feedbackForm.reset();
+            feedbackModal.classList.remove('active');
+        });
+    }
+    
+    // Map modal
+    const mapModal = document.getElementById('mapModal');
+    const closeMapBtn = mapModal ? mapModal.querySelector('.close-modal') : null;
+    
+    if (mapModal && closeMapBtn) {
+        closeMapBtn.addEventListener('click', function() {
+            mapModal.classList.remove('active');
+        });
+        
+        mapModal.addEventListener('click', function(e) {
+            if (e.target === mapModal) {
+                mapModal.classList.remove('active');
+            }
+        });
+    }
+} 
