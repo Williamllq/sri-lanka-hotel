@@ -1465,6 +1465,17 @@ select:focus {
     .vehicle-option {
         min-width: 100%;
     }
+    
+    /* 移动设备上的反馈按钮样式 */
+    .feedback-btn {
+        bottom: 5rem; /* 在移动设备上提高位置，防止被其他元素遮挡 */
+        padding: 8px 12px; /* 稍微缩小按钮 */
+        font-size: 14px; /* 缩小字体 */
+    }
+    
+    .feedback-btn i {
+        font-size: 14px;
+    }
 }
 
 /* 地图相关样式 */
