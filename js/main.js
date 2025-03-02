@@ -8,16 +8,29 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 注意：语言切换逻辑已移至 language-switcher.js
     
-    // 导航栏滚动效果
-    const nav = document.querySelector('.main-nav');
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 100) {
-            nav.classList.add('scrolled');
-        } else {
-            nav.classList.remove('scrolled');
+    // 导航菜单响应式处理
+    const navToggle = document.querySelector('.nav-toggle');
+    const navMenu = document.querySelector('.nav-menu');
+    
+    if (navToggle) {
+        navToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+    }
+    
+    // 滚动时导航栏效果
+    window.addEventListener('scroll', function() {
+        const header = document.querySelector('.header');
+        if (header) {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
         }
     });
-
+    
     // 图片轮播功能
     initCarousel();
 });
@@ -28,6 +41,40 @@ function initCarousel() {
     if (!carousel) return;
     
     const track = carousel.querySelector('.carousel-track');
+    if (!track) return;
+    
+    // Check if we have carousel images in localStorage
+    const storedCarouselImages = localStorage.getItem('siteCarouselImages');
+    
+    // If we have stored images, replace the carousel slides with them
+    if (storedCarouselImages) {
+        try {
+            const carouselImages = JSON.parse(storedCarouselImages);
+            
+            // Only proceed if we have images
+            if (carouselImages && carouselImages.length > 0) {
+                // Clear existing slides
+                track.innerHTML = '';
+                
+                // Add slides from localStorage
+                carouselImages.forEach(image => {
+                    const slide = document.createElement('div');
+                    slide.className = 'carousel-slide';
+                    
+                    const img = document.createElement('img');
+                    img.src = image.url;
+                    img.alt = image.name || 'Carousel Image';
+                    
+                    slide.appendChild(img);
+                    track.appendChild(slide);
+                });
+            }
+        } catch (e) {
+            console.error('Error loading carousel images:', e);
+        }
+    }
+    
+    // Get updated slides after possible replacement
     const slides = Array.from(track.children);
     const nextButton = carousel.querySelector('.carousel-button.next');
     const prevButton = carousel.querySelector('.carousel-button.prev');
@@ -35,7 +82,6 @@ function initCarousel() {
     if (!slides.length) return;
     
     let currentIndex = 0;
-    const slidesToShow = window.innerWidth < 768 ? 1 : 3;
     
     // 根据视窗宽度调整可见幻灯片数量
     function updateSlidesToShow() {

@@ -165,14 +165,20 @@ function initPictureManagement() {
     const pictureGrid = document.getElementById('pictureGrid');
     const pictureCategory = document.getElementById('pictureCategory');
     
-    // Mock picture data - in a real app, this would come from an API
-    const mockPictures = [
+    // Get pictures from localStorage or use mock data if none exists
+    let storedPictures = localStorage.getItem('sitePictures');
+    let mockPictures = storedPictures ? JSON.parse(storedPictures) : [
         { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
         { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg' },
         { id: 3, name: 'Cinnamon Grand Hotel', category: 'hotel', url: 'images/cinnamon-grand.jpg' },
         { id: 4, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/elephant.jpg' },
         { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
     ];
+    
+    // Save pictures to localStorage whenever they change
+    function savePictures() {
+        localStorage.setItem('sitePictures', JSON.stringify(mockPictures));
+    }
     
     // Open upload modal
     uploadPictureBtn.addEventListener('click', function() {
@@ -204,36 +210,50 @@ function initPictureManagement() {
         e.preventDefault();
         
         // In a real app, this would upload the file to a server
-        // For this demo, we'll just add it to our mock data
+        // For this demo, we'll use FileReader to create a data URL
         
         const pictureName = document.getElementById('pictureName').value;
         const category = document.getElementById('uploadCategory').value;
         const description = document.getElementById('pictureDescription').value;
         
-        // Create a new mock picture object
-        const newPicture = {
-            id: mockPictures.length + 1,
-            name: pictureName,
-            category: category,
-            url: URL.createObjectURL(pictureFile.files[0]),
-            description: description
+        if (!pictureFile.files || !pictureFile.files[0]) {
+            alert('Please select an image file');
+            return;
+        }
+        
+        const reader = new FileReader();
+        
+        reader.onload = function(event) {
+            // Create a new picture object with the data URL
+            const newPicture = {
+                id: Date.now(), // Use timestamp as unique ID
+                name: pictureName,
+                category: category,
+                url: event.target.result, // This is the data URL containing the image data
+                description: description
+            };
+            
+            // Add to data
+            mockPictures.push(newPicture);
+            
+            // Save to localStorage
+            savePictures();
+            
+            // Reset form
+            uploadPictureForm.reset();
+            filePreview.innerHTML = '';
+            
+            // Close modal
+            uploadModal.style.display = 'none';
+            
+            // Refresh grid
+            displayPictures();
+            
+            // Show success message
+            alert('Picture uploaded successfully!');
         };
         
-        // Add to mock data
-        mockPictures.push(newPicture);
-        
-        // Reset form
-        uploadPictureForm.reset();
-        filePreview.innerHTML = '';
-        
-        // Close modal
-        uploadModal.style.display = 'none';
-        
-        // Refresh grid
-        displayPictures();
-        
-        // Show success message (in a real app)
-        alert('Picture uploaded successfully!');
+        reader.readAsDataURL(pictureFile.files[0]);
     });
     
     // Filter by category
@@ -289,10 +309,12 @@ function initPictureManagement() {
                 const pictureId = parseInt(this.getAttribute('data-id'));
                 
                 if (confirm('Are you sure you want to delete this picture?')) {
-                    // Remove from mock data
+                    // Remove from data
                     const index = mockPictures.findIndex(pic => pic.id === pictureId);
                     if (index !== -1) {
                         mockPictures.splice(index, 1);
+                        // Save changes to localStorage
+                        savePictures();
                         displayPictures(); // Refresh the grid
                     }
                 }
@@ -309,46 +331,38 @@ function initCarouselManagement() {
     const addToCarouselBtn = document.getElementById('addToCarouselBtn');
     const carouselModal = document.getElementById('carouselModal');
     const closeModalBtns = document.querySelectorAll('.close-modal');
-    const selectPictureGrid = document.getElementById('selectPictureGrid');
+    const availablePicturesList = document.getElementById('availablePicturesList');
     const carouselImagesList = document.getElementById('carouselImagesList');
-    const cancelSelectBtn = document.getElementById('cancelSelectBtn');
-    const confirmSelectBtn = document.getElementById('confirmSelectBtn');
+    const selectPictureForm = document.getElementById('selectPictureForm');
     const saveCarouselOrderBtn = document.getElementById('saveCarouselOrderBtn');
     
-    // Mock carousel data - in a real app, this would come from an API
-    let mockCarouselImages = [
-        { id: 1, name: 'Sigiriya Rock', url: 'images/sigiriya-rock.jpg' },
-        { id: 2, name: 'Kandy Lake', url: 'images/kandy-lake.jpg' }
+    // Get carousel images from localStorage or use mock data if none exists
+    let storedCarouselImages = localStorage.getItem('siteCarouselImages');
+    let mockCarouselImages = storedCarouselImages ? JSON.parse(storedCarouselImages) : [
+        { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
+        { id: 4, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/elephant.jpg' },
+        { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
     ];
     
-    // Mock available pictures for carousel - in a real app, this would come from an API
-    const mockAvailablePictures = [
-        { id: 1, name: 'Sigiriya Rock', url: 'images/sigiriya-rock.jpg' },
-        { id: 2, name: 'Kandy Lake', url: 'images/kandy-lake.jpg' },
-        { id: 3, name: 'Galle Fort', url: 'images/galle-fort.jpg' },
-        { id: 4, name: 'Nine Arch Bridge', url: 'images/nine-arch-bridge.jpg' },
-        { id: 5, name: 'Mirissa Beach', url: 'images/mirissa-beach.jpg' },
-        { id: 6, name: 'Dambulla Cave Temple', url: 'images/dambulla-temple.jpg' }
-    ];
+    // Save carousel images to localStorage whenever they change
+    function saveCarouselImages() {
+        localStorage.setItem('siteCarouselImages', JSON.stringify(mockCarouselImages));
+    }
     
     // Open carousel modal
     addToCarouselBtn.addEventListener('click', function() {
         // Populate available images
-        selectPictureGrid.innerHTML = '';
+        availablePicturesList.innerHTML = '';
         
-        mockAvailablePictures.forEach(picture => {
-            // Check if image is already in carousel
-            const isInCarousel = mockCarouselImages.some(img => img.id === picture.id);
-            if (!isInCarousel) {
-                const pictureItem = document.createElement('div');
-                pictureItem.classList.add('select-picture-item');
-                pictureItem.setAttribute('data-id', picture.id);
-                pictureItem.innerHTML = `
-                    <img src="${picture.url}" alt="${picture.name}">
-                    <div class="picture-name">${picture.name}</div>
-                `;
-                selectPictureGrid.appendChild(pictureItem);
-            }
+        mockCarouselImages.forEach(picture => {
+            const pictureItem = document.createElement('div');
+            pictureItem.classList.add('select-picture-item');
+            pictureItem.setAttribute('data-id', picture.id);
+            pictureItem.innerHTML = `
+                <img src="${picture.url}" alt="${picture.name}">
+                <div class="picture-name">${picture.name}</div>
+            `;
+            availablePicturesList.appendChild(pictureItem);
         });
         
         // Add click event to select images
@@ -369,17 +383,17 @@ function initCarouselManagement() {
     });
     
     // Cancel button
-    cancelSelectBtn.addEventListener('click', function() {
+    document.getElementById('cancelSelectBtn').addEventListener('click', function() {
         carouselModal.style.display = 'none';
     });
     
     // Confirm selection button
-    confirmSelectBtn.addEventListener('click', function() {
+    document.getElementById('confirmSelectBtn').addEventListener('click', function() {
         const selectedItems = document.querySelectorAll('.select-picture-item.selected');
         
         selectedItems.forEach(item => {
             const pictureId = parseInt(item.getAttribute('data-id'));
-            const picture = mockAvailablePictures.find(pic => pic.id === pictureId);
+            const picture = mockCarouselImages.find(pic => pic.id === pictureId);
             
             if (picture) {
                 mockCarouselImages.push(picture);
@@ -419,6 +433,8 @@ function initCarouselManagement() {
                 
                 if (confirm('Remove this image from the carousel?')) {
                     mockCarouselImages = mockCarouselImages.filter(img => img.id !== imageId);
+                    // Save changes to localStorage
+                    saveCarouselImages();
                     displayCarouselImages();
                 }
             });
@@ -435,8 +451,12 @@ function initCarouselManagement() {
     
     // Save carousel order
     saveCarouselOrderBtn.addEventListener('click', function() {
-        // In a real app, this would save to server
-        // For demo, we'll just show a success message
+        // In a real app, this would send the order to a server
+        // For this demo, we just update our local data and localStorage
+        
+        // Save to localStorage
+        saveCarouselImages();
+        
         alert('Carousel order saved successfully!');
     });
     
