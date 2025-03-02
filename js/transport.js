@@ -371,4 +371,62 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Fare result element not found');
         }
     }
+
+    // 计算价格函数
+    function calculatePrice(distance) {
+        console.log('计算价格，距离:', distance, 'km');
+        
+        if (!distance || isNaN(distance)) {
+            console.error('无效的距离值');
+            return;
+        }
+        
+        // 获取选择的车辆类型
+        const vehicleType = document.querySelector('input[name="vehicle"]:checked');
+        if (!vehicleType) {
+            console.error('未选择车辆类型');
+            alert('请选择车辆类型');
+            return;
+        }
+        
+        const vehicleValue = vehicleType.value;
+        console.log('选择的车辆类型:', vehicleValue);
+        
+        // 基础价格（根据车辆类型）
+        let baseFare = 0;
+        let ratePerKm = 0;
+        
+        switch (vehicleValue) {
+            case 'sedan':
+                baseFare = 20;
+                ratePerKm = 0.8;
+                break;
+            case 'suv':
+                baseFare = 25;
+                ratePerKm = 1;
+                break;
+            case 'van':
+                baseFare = 30;
+                ratePerKm = 1.2;
+                break;
+            case 'luxury':
+                baseFare = 50;
+                ratePerKm = 1.5;
+                break;
+            default:
+                baseFare = 20;
+                ratePerKm = 0.8;
+        }
+        
+        // 计算总价
+        const totalFare = baseFare + (distance * ratePerKm);
+        console.log('计算的价格:', totalFare);
+        
+        // 显示结果
+        const fareResultElement = document.getElementById('fareResult');
+        if (fareResultElement) {
+            fareResultElement.textContent = `预估费用: $${totalFare.toFixed(2)}`;
+            fareResultElement.style.display = 'block';
+        }
+    }
 }); 

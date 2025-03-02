@@ -251,14 +251,20 @@
             <!-- Map modal for selecting locations -->
             <div id="mapModal" class="map-modal">
                 <div class="map-modal-content">
-                    <span class="close-modal" id="closeMapModal">&times;</span>
-                    <h3 id="mapModalTitle">Select Location</h3>
-                    <div class="map-search">
-                        <input type="text" id="mapSearchInput" placeholder="Search for a location">
-                        <button id="mapSearchBtn"><i class="fas fa-search"></i></button>
+                    <div class="map-modal-header">
+                        <h3 id="mapModalTitle">选择位置</h3>
+                        <button id="closeMapModal" class="close-map-btn">&times;</button>
                     </div>
-                    <div id="modalMap" class="modal-map"></div>
-                    <button id="confirmLocationBtn" class="main-btn">Confirm Location</button>
+                    <div class="map-modal-body">
+                        <div class="map-search-container">
+                            <input type="text" id="mapSearchInput" placeholder="搜索位置">
+                            <button id="mapSearchBtn">搜索</button>
+                        </div>
+                        <div id="modalMap"></div>
+                    </div>
+                    <div class="map-modal-footer">
+                        <button id="confirmLocationBtn" class="confirm-location-btn">确认位置</button>
+                    </div>
                 </div>
             </div>
         </div>
