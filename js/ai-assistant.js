@@ -4,7 +4,13 @@ class AIAssistant {
         console.log('AI Assistant initializing...');
         this.initializeUI();
         this.isCollapsed = true;
-        this.initializeResponses();
+        this.initializeAPIs();
+        
+        // Welcome message shown once on initialization
+        this.showWelcomeMessage();
+        
+        // Test API connection
+        this.testAPIConnection();
     }
 
     initializeUI() {
@@ -15,6 +21,7 @@ class AIAssistant {
         this.sendButton = document.getElementById('sendMessage');
         this.toggleButton = document.getElementById('toggleAI');
         this.showButton = document.getElementById('showAI');
+        this.statusIndicator = document.getElementById('aiStatus');
 
         // Bind events
         if (this.showButton) {
@@ -50,45 +57,100 @@ class AIAssistant {
                 this.userInput.style.height = (this.userInput.scrollHeight) + 'px';
             });
         }
+
+        // Clear existing messages
+        if (this.chatMessages) {
+            this.chatMessages.innerHTML = '';
+        }
+        
+        // Initialize status indicator
+        this.updateStatus('connecting', 'Connecting to AI...');
     }
 
-    initializeResponses() {
-        // Predefined responses for common questions
-        this.responses = {
-            greetings: [
-                "Hello! How can I help you with your Sri Lanka travel plans?",
-                "Hi there! Welcome to Sri Lanka Stay & Explore. What can I assist you with?",
-                "Greetings! I'm your Sri Lanka travel assistant. How may I help you today?"
-            ],
-            hotels: [
-                "We offer a variety of luxurious accommodations including Ocean View Suites, Tropical Garden Suites, and Private Pool Villas. Each comes with amenities like free WiFi, air conditioning, and beautiful views.",
-                "Our accommodations range from $180 to $450 per night depending on the room type. All rooms include breakfast and access to our facilities."
-            ],
-            transport: [
-                "We offer airport transfers, city tours, and custom journeys across Sri Lanka. Our vehicles are comfortable and our drivers are experienced locals.",
-                "Our transport services start from $30 for airport transfers. Custom journeys are priced based on distance and duration."
-            ],
-            attractions: [
-                "Popular attractions in Sri Lanka include ancient temples in Anuradhapura, beautiful beaches in Mirissa, tea plantations in Nuwara Eliya, and wildlife safaris in Yala National Park.",
-                "Sri Lanka is known for its beautiful landscapes, rich culture, delicious cuisine, and friendly people. You'll love exploring the island!"
-            ],
-            weather: [
-                "Sri Lanka has a tropical climate. The best time to visit depends on which region you plan to explore. Generally, December to March is ideal for the south coast, while May to September is better for the north and east.",
-                "Sri Lanka's weather is warm year-round, with temperatures typically ranging from 22°C to 30°C depending on elevation. The monsoon season affects different parts of the island at different times of the year."
-            ],
-            food: [
-                "Sri Lankan cuisine is known for its complex flavors and generous use of spices, coconut, and rice. Must-try dishes include hoppers, kottu roti, and various curry dishes.",
-                "We can accommodate dietary restrictions including vegetarian, vegan, and gluten-free options. Just let us know your preferences in advance."
-            ],
-            booking: [
-                "To book our services, you can use the booking form on our website or contact us directly via phone or email. We require a 30% deposit to confirm your reservation.",
-                "For bookings, please provide your travel dates, number of travelers, and specific requirements. We'll get back to you with availability and pricing."
-            ],
-            default: [
-                "I'm sorry, I don't have specific information about that. Please contact us directly for more detailed assistance.",
-                "That's an interesting question. For more personalized information, please email us at info@srilankastay.com or call +94 XX XXX XXXX."
-            ]
-        };
+    updateStatus(type, message) {
+        if (this.statusIndicator) {
+            this.statusIndicator.className = `ai-status ${type}`;
+            this.statusIndicator.textContent = message;
+        }
+    }
+
+    initializeAPIs() {
+        // Use API configuration from config.js
+        if (typeof config !== 'undefined' && config.apiKeys) {
+            this.apis = config.apiKeys;
+        } else {
+            // Fallback if config is not available
+            console.warn('Config not found, using fallback API configuration');
+            this.apis = {
+                deepseek: {
+                    name: 'DeepSeek-R1',
+                    url: 'https://platform.deepseek.com/v1/chat/completions',
+                    key: 'sk-1f52de6f9ed24ad2b4a01ad811a4265e',
+                    model: 'deepseek-r1'
+                },
+                aliyun: {
+                    name: '阿里云-DeepSeek-R1',
+                    url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+                    key: 'sk-66c9b06e32ea46beacce3a45c13c1bc0',
+                    model: 'deepseek-r1'
+                }
+            };
+        }
+        
+        // Set primary and fallback API order
+        this.primaryAPI = 'deepseek';
+        this.fallbackAPI = 'aliyun';
+        this.activeAPI = null;
+        
+        // System prompt for travel assistant
+        this.systemPrompt = "You are a knowledgeable Sri Lanka travel assistant. Help visitors with hotel information, local attractions, travel tips, and booking assistance. Be friendly, concise, and provide specific information about Sri Lanka. If asked about booking or reservations, suggest using the booking form on the website.";
+    }
+
+    async testAPIConnection() {
+        this.updateStatus('connecting', 'Testing API connection...');
+        
+        // Simple test prompt
+        const testPrompt = "Respond with just the word 'Connected' if you can receive this message.";
+        
+        try {
+            // Test primary API
+            console.log(`Testing primary API: ${this.apis[this.primaryAPI].name}`);
+            let response = await this.callAPI(this.primaryAPI, testPrompt);
+            
+            if (!response || response.includes('error')) {
+                // If primary fails, try fallback
+                console.log(`Primary API failed, testing fallback API: ${this.apis[this.fallbackAPI].name}`);
+                response = await this.callAPI(this.fallbackAPI, testPrompt);
+                
+                if (!response || response.includes('error')) {
+                    // Both APIs failed
+                    this.updateStatus('error', 'Unable to connect to AI service');
+                    console.error('Both APIs failed connection test');
+                } else {
+                    // Fallback API succeeded
+                    this.activeAPI = this.fallbackAPI;
+                    this.updateStatus('connected', `Connected to ${this.apis[this.fallbackAPI].name}`);
+                    console.log(`Connected to fallback API: ${this.apis[this.fallbackAPI].name}`);
+                }
+            } else {
+                // Primary API succeeded
+                this.activeAPI = this.primaryAPI;
+                this.updateStatus('connected', `Connected to ${this.apis[this.primaryAPI].name}`);
+                console.log(`Connected to primary API: ${this.apis[this.primaryAPI].name}`);
+            }
+        } catch (error) {
+            console.error('API connection test error:', error);
+            this.updateStatus('error', 'Connection error: Check console for details');
+        }
+    }
+
+    showWelcomeMessage() {
+        // Check if welcome message exists
+        if (this.chatMessages && this.chatMessages.children.length === 0) {
+            const welcomeMessage = "Hello! I'm your Sri Lanka travel assistant. I can help you with: <ul><li>Hotel information</li><li>Local attractions</li><li>Travel tips</li><li>Booking assistance</li></ul>How may I assist you today?";
+            
+            this.addMessage(welcomeMessage, 'ai');
+        }
     }
 
     showChat() {
@@ -117,69 +179,154 @@ class AIAssistant {
         }
     }
 
-    sendMessage() {
+    async sendMessage() {
         if (!this.userInput) return;
         
         const message = this.userInput.value.trim();
         if (!message) return;
 
+        // Disable send button while processing
+        if (this.sendButton) {
+            this.sendButton.disabled = true;
+            this.sendButton.classList.add('sending');
+        }
+
+        // Display user message
         this.addMessage(message, 'user');
+        
+        // Clear input and reset height
         this.userInput.value = '';
         this.userInput.style.height = 'auto';
 
-        // Add slight delay to simulate thinking
-        setTimeout(() => {
-            const response = this.getResponse(message);
-            this.addMessage(response, 'ai');
-        }, 1000);
-    }
-
-    getResponse(message) {
-        message = message.toLowerCase();
+        // Add loading message
+        const loadingId = this.addMessage('<i class="fas fa-spinner fa-spin"></i> Thinking...', 'ai', true);
         
-        // Check if message matches any category
-        if (this.containsAny(message, ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening'])) {
-            return this.getRandomResponse('greetings');
-        } else if (this.containsAny(message, ['hotel', 'room', 'accommodation', 'stay', 'suite', 'villa', 'lodging'])) {
-            return this.getRandomResponse('hotels');
-        } else if (this.containsAny(message, ['transport', 'travel', 'car', 'driver', 'airport', 'transfer', 'vehicle', 'journey'])) {
-            return this.getRandomResponse('transport');
-        } else if (this.containsAny(message, ['attraction', 'visit', 'see', 'sight', 'place', 'location', 'explore', 'tour'])) {
-            return this.getRandomResponse('attractions');
-        } else if (this.containsAny(message, ['weather', 'climate', 'temperature', 'rain', 'season', 'monsoon'])) {
-            return this.getRandomResponse('weather');
-        } else if (this.containsAny(message, ['food', 'eat', 'restaurant', 'meal', 'cuisine', 'dish', 'dietary', 'vegetarian', 'vegan'])) {
-            return this.getRandomResponse('food');
-        } else if (this.containsAny(message, ['book', 'reservation', 'reserve', 'confirm', 'booking', 'deposit', 'payment'])) {
-            return this.getRandomResponse('booking');
-        } else {
-            return this.getRandomResponse('default');
+        try {
+            let response;
+            
+            // If we already know which API works, use it directly
+            if (this.activeAPI) {
+                console.log(`Using known working API: ${this.apis[this.activeAPI].name}`);
+                response = await this.callAPI(this.activeAPI, message);
+                
+                // If it fails, try the other API
+                if (!response || response.includes('error')) {
+                    const otherAPI = this.activeAPI === this.primaryAPI ? this.fallbackAPI : this.primaryAPI;
+                    console.log(`Active API failed, trying other API: ${this.apis[otherAPI].name}`);
+                    response = await this.callAPI(otherAPI, message);
+                    
+                    if (!response || response.includes('error')) {
+                        response = "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later or contact our team directly for assistance.";
+                        this.updateStatus('error', 'API connection failed');
+                    } else {
+                        // Update active API
+                        this.activeAPI = otherAPI;
+                        this.updateStatus('connected', `Connected to ${this.apis[otherAPI].name}`);
+                    }
+                }
+            } else {
+                // Try primary first if no API is known to work
+                console.log(`No known working API, trying primary: ${this.apis[this.primaryAPI].name}`);
+                response = await this.callAPI(this.primaryAPI, message);
+                
+                if (!response || response.includes('error')) {
+                    console.log(`Primary API failed, trying fallback: ${this.apis[this.fallbackAPI].name}`);
+                    response = await this.callAPI(this.fallbackAPI, message);
+                    
+                    if (!response || response.includes('error')) {
+                        response = "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later or contact our team directly for assistance.";
+                        this.updateStatus('error', 'Both APIs failed');
+                    } else {
+                        this.activeAPI = this.fallbackAPI;
+                        this.updateStatus('connected', `Connected to ${this.apis[this.fallbackAPI].name}`);
+                    }
+                } else {
+                    this.activeAPI = this.primaryAPI;
+                    this.updateStatus('connected', `Connected to ${this.apis[this.primaryAPI].name}`);
+                }
+            }
+            
+            // Remove loading message and add response
+            this.removeMessage(loadingId);
+            this.addMessage(response, 'ai');
+            
+        } catch (error) {
+            console.error('Error in AI response:', error);
+            this.removeMessage(loadingId);
+            this.addMessage("I apologize, but I'm experiencing technical difficulties. Please try again later.", 'ai');
+            this.updateStatus('error', 'Error: ' + error.message);
+        } finally {
+            // Re-enable send button
+            if (this.sendButton) {
+                this.sendButton.disabled = false;
+                this.sendButton.classList.remove('sending');
+            }
         }
     }
 
-    containsAny(str, keywords) {
-        return keywords.some(keyword => str.includes(keyword));
+    async callAPI(apiKey, userMessage) {
+        const api = this.apis[apiKey];
+        
+        try {
+            const response = await fetch(api.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${api.key}`
+                },
+                body: JSON.stringify({
+                    model: api.model,
+                    messages: [
+                        {
+                            role: "system",
+                            content: this.systemPrompt
+                        },
+                        {
+                            role: "user",
+                            content: userMessage
+                        }
+                    ]
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (error) {
+            console.error(`Error with ${api.name} API:`, error);
+            return `error: ${error.message}`;
+        }
     }
 
-    getRandomResponse(category) {
-        const responses = this.responses[category] || this.responses.default;
-        const randomIndex = Math.floor(Math.random() * responses.length);
-        return responses[randomIndex];
-    }
-
-    addMessage(text, sender) {
-        if (!this.chatMessages) return;
+    addMessage(text, sender, isLoading = false) {
+        if (!this.chatMessages) return null;
         
         const messageDiv = document.createElement('div');
+        const messageId = isLoading ? 'loading-message' : `msg-${Date.now()}`;
+        messageDiv.id = messageId;
         messageDiv.className = `message ${sender}-message`;
         
         // Support for markdown-like formatting
-        text = this.formatMessage(text);
+        if (!isLoading) {
+            text = this.formatMessage(text);
+        }
         
         messageDiv.innerHTML = text;
         
         this.chatMessages.appendChild(messageDiv);
         this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        
+        return messageId;
+    }
+    
+    removeMessage(messageId) {
+        const message = document.getElementById(messageId);
+        if (message) {
+            message.remove();
+        }
     }
 
     formatMessage(text) {
