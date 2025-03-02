@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 检查 translations 是否正确加载
     if (typeof translations === 'undefined') {
         console.error('translations.js not loaded!');
-        return;
+        // Continue anyway to avoid breaking the site
     }
     
     // 注意：语言切换逻辑已移至 language-switcher.js
@@ -37,49 +37,75 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 初始化轮播功能
 function initCarousel() {
+    console.log("Initializing carousel...");
     const carousel = document.querySelector('.image-carousel');
-    if (!carousel) return;
+    if (!carousel) {
+        console.warn("Carousel element not found");
+        return;
+    }
     
     const track = carousel.querySelector('.carousel-track');
-    if (!track) return;
+    if (!track) {
+        console.warn("Carousel track element not found");
+        return;
+    }
     
-    // Check if we have carousel images in localStorage
+    // Load carousel images from localStorage
     const storedCarouselImages = localStorage.getItem('siteCarouselImages');
+    console.log("Found stored carousel images:", storedCarouselImages ? "Yes" : "No");
     
     // If we have stored images, replace the carousel slides with them
     if (storedCarouselImages) {
         try {
             const carouselImages = JSON.parse(storedCarouselImages);
+            console.log("Parsed carousel images:", carouselImages.length);
             
             // Only proceed if we have images
             if (carouselImages && carouselImages.length > 0) {
                 // Clear existing slides
                 track.innerHTML = '';
+                console.log("Cleared existing slides, adding", carouselImages.length, "new slides");
                 
                 // Add slides from localStorage
-                carouselImages.forEach(image => {
+                carouselImages.forEach((image, index) => {
+                    console.log(`Adding image ${index + 1}:`, image.name);
                     const slide = document.createElement('div');
                     slide.className = 'carousel-slide';
                     
                     const img = document.createElement('img');
                     img.src = image.url;
                     img.alt = image.name || 'Carousel Image';
+                    img.onerror = function() {
+                        console.error(`Failed to load image: ${image.url}`);
+                        // Replace with placeholder
+                        this.src = 'images/placeholder.jpg';
+                        this.alt = 'Image not available';
+                    };
                     
                     slide.appendChild(img);
                     track.appendChild(slide);
                 });
+            } else {
+                console.warn("No carousel images found in localStorage or array is empty");
             }
         } catch (e) {
             console.error('Error loading carousel images:', e);
         }
+    } else {
+        console.log("Using default carousel slides");
     }
     
-    // Get updated slides after possible replacement
+    // Check if we have slides after possible replacement
     const slides = Array.from(track.children);
+    console.log("Final carousel slide count:", slides.length);
+    
+    if (slides.length === 0) {
+        console.warn("No slides found in carousel");
+        return;
+    }
+    
     const nextButton = carousel.querySelector('.carousel-button.next');
     const prevButton = carousel.querySelector('.carousel-button.prev');
-    
-    if (!slides.length) return;
     
     let currentIndex = 0;
     
@@ -143,4 +169,5 @@ function initCarousel() {
     
     // 初始化
     setupCarousel();
+    console.log("Carousel initialization complete");
 } 

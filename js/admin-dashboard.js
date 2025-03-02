@@ -175,9 +175,47 @@ function initPictureManagement() {
         { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
     ];
     
+    console.log("Loaded pictures from localStorage:", mockPictures.length);
+    
     // Save pictures to localStorage whenever they change
     function savePictures() {
         localStorage.setItem('sitePictures', JSON.stringify(mockPictures));
+        console.log("Saved pictures to localStorage:", mockPictures.length);
+    }
+    
+    // Compress image to reduce storage size
+    function compressImage(dataURL, maxWidth = 1200, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = function() {
+                // Calculate new dimensions
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth) {
+                    const ratio = maxWidth / width;
+                    width = maxWidth;
+                    height = height * ratio;
+                }
+                
+                // Create canvas and resize image
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw image
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Get compressed data URL
+                const compressedDataURL = canvas.toDataURL('image/jpeg', quality);
+                resolve(compressedDataURL);
+            };
+            img.onerror = function() {
+                reject(new Error('Failed to load image for compression'));
+            };
+            img.src = dataURL;
+        });
     }
     
     // Open upload modal
@@ -206,11 +244,8 @@ function initPictureManagement() {
     });
     
     // Form submission
-    uploadPictureForm.addEventListener('submit', function(e) {
+    uploadPictureForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
-        // In a real app, this would upload the file to a server
-        // For this demo, we'll use FileReader to create a data URL
         
         const pictureName = document.getElementById('pictureName').value;
         const category = document.getElementById('uploadCategory').value;
@@ -221,39 +256,63 @@ function initPictureManagement() {
             return;
         }
         
-        const reader = new FileReader();
-        
-        reader.onload = function(event) {
-            // Create a new picture object with the data URL
-            const newPicture = {
-                id: Date.now(), // Use timestamp as unique ID
-                name: pictureName,
-                category: category,
-                url: event.target.result, // This is the data URL containing the image data
-                description: description
+        try {
+            // Show loading message
+            filePreview.innerHTML += '<p>Processing image...</p>';
+            
+            const reader = new FileReader();
+            
+            reader.onload = async function(event) {
+                try {
+                    // Compress the image
+                    const compressedImage = await compressImage(event.target.result);
+                    
+                    // Generate a unique ID using timestamp and random number
+                    const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
+                    
+                    // Create a new picture object with the data URL
+                    const newPicture = {
+                        id: uniqueId,
+                        name: pictureName,
+                        category: category,
+                        url: compressedImage,
+                        description: description,
+                        dateAdded: new Date().toISOString()
+                    };
+                    
+                    // Add to data
+                    mockPictures.push(newPicture);
+                    
+                    // Save to localStorage
+                    savePictures();
+                    
+                    // Reset form
+                    uploadPictureForm.reset();
+                    filePreview.innerHTML = '';
+                    
+                    // Close modal
+                    uploadModal.style.display = 'none';
+                    
+                    // Refresh grid
+                    displayPictures();
+                    
+                    // Show success message
+                    alert('Picture uploaded successfully!');
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                    alert('Failed to process image. Please try again with a smaller image.');
+                }
             };
             
-            // Add to data
-            mockPictures.push(newPicture);
+            reader.onerror = function() {
+                alert('Error reading the image file. Please try again.');
+            };
             
-            // Save to localStorage
-            savePictures();
-            
-            // Reset form
-            uploadPictureForm.reset();
-            filePreview.innerHTML = '';
-            
-            // Close modal
-            uploadModal.style.display = 'none';
-            
-            // Refresh grid
-            displayPictures();
-            
-            // Show success message
-            alert('Picture uploaded successfully!');
-        };
-        
-        reader.readAsDataURL(pictureFile.files[0]);
+            reader.readAsDataURL(pictureFile.files[0]);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('An error occurred while uploading the image.');
+        }
     });
     
     // Filter by category
@@ -273,6 +332,11 @@ function initPictureManagement() {
             ? mockPictures 
             : mockPictures.filter(pic => pic.category === category);
         
+        if (filteredPictures.length === 0) {
+            pictureGrid.innerHTML = '<p class="no-images-message">No images found in this category. Upload images to see them here.</p>';
+            return;
+        }
+        
         // Add pictures to grid
         filteredPictures.forEach(picture => {
             const pictureCard = document.createElement('div');
@@ -289,6 +353,9 @@ function initPictureManagement() {
                     </button>
                     <button class="picture-action-btn delete-picture" data-id="${picture.id}">
                         <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="picture-action-btn add-to-carousel" data-id="${picture.id}" title="Add to Carousel">
+                        <i class="fas fa-images"></i>
                     </button>
                 </div>
             `;
@@ -312,11 +379,56 @@ function initPictureManagement() {
                     // Remove from data
                     const index = mockPictures.findIndex(pic => pic.id === pictureId);
                     if (index !== -1) {
+                        // Check if this image is used in carousel
+                        const storedCarouselImages = localStorage.getItem('siteCarouselImages');
+                        if (storedCarouselImages) {
+                            const carouselImages = JSON.parse(storedCarouselImages);
+                            const inCarousel = carouselImages.some(img => img.id === pictureId);
+                            
+                            if (inCarousel && !confirm('This image is used in the carousel. Deleting it will also remove it from the carousel. Continue?')) {
+                                return;
+                            }
+                            
+                            // Remove from carousel if present
+                            const updatedCarousel = carouselImages.filter(img => img.id !== pictureId);
+                            localStorage.setItem('siteCarouselImages', JSON.stringify(updatedCarousel));
+                        }
+                        
+                        // Remove from pictures
                         mockPictures.splice(index, 1);
+                        
                         // Save changes to localStorage
                         savePictures();
                         displayPictures(); // Refresh the grid
                     }
+                }
+            });
+        });
+        
+        // Add to carousel directly from pictures grid
+        document.querySelectorAll('.add-to-carousel').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const pictureId = parseInt(this.getAttribute('data-id'));
+                const picture = mockPictures.find(pic => pic.id === pictureId);
+                
+                if (picture) {
+                    // Get current carousel images
+                    const storedCarouselImages = localStorage.getItem('siteCarouselImages');
+                    let carouselImages = storedCarouselImages ? JSON.parse(storedCarouselImages) : [];
+                    
+                    // Check if already in carousel
+                    if (carouselImages.some(img => img.id === pictureId)) {
+                        alert('This image is already in the carousel.');
+                        return;
+                    }
+                    
+                    // Add to carousel
+                    carouselImages.push(picture);
+                    
+                    // Save to localStorage
+                    localStorage.setItem('siteCarouselImages', JSON.stringify(carouselImages));
+                    
+                    alert('Image added to carousel successfully!');
                 }
             });
         });
@@ -336,7 +448,7 @@ function initCarouselManagement() {
     const selectPictureForm = document.getElementById('selectPictureForm');
     const saveCarouselOrderBtn = document.getElementById('saveCarouselOrderBtn');
     
-    // Get carousel images from localStorage or use mock data if none exists
+    // Get carousel images from localStorage or use default data if none exists
     let storedCarouselImages = localStorage.getItem('siteCarouselImages');
     let mockCarouselImages = storedCarouselImages ? JSON.parse(storedCarouselImages) : [
         { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
@@ -347,30 +459,56 @@ function initCarouselManagement() {
     // Save carousel images to localStorage whenever they change
     function saveCarouselImages() {
         localStorage.setItem('siteCarouselImages', JSON.stringify(mockCarouselImages));
+        console.log('Carousel images saved:', mockCarouselImages);
     }
     
     // Open carousel modal
     addToCarouselBtn.addEventListener('click', function() {
-        // Populate available images
+        // Get all available pictures from localStorage
+        let allPictures = [];
+        const storedPictures = localStorage.getItem('sitePictures');
+        
+        if (storedPictures) {
+            allPictures = JSON.parse(storedPictures);
+        } else {
+            // Fallback to default pictures if none in localStorage
+            allPictures = [
+                { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
+                { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg' },
+                { id: 3, name: 'Cinnamon Grand Hotel', category: 'hotel', url: 'images/cinnamon-grand.jpg' },
+                { id: 4, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/elephant.jpg' },
+                { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
+            ];
+        }
+        
+        // Populate available images - show only images not already in carousel
         availablePicturesList.innerHTML = '';
         
-        mockCarouselImages.forEach(picture => {
-            const pictureItem = document.createElement('div');
-            pictureItem.classList.add('select-picture-item');
-            pictureItem.setAttribute('data-id', picture.id);
-            pictureItem.innerHTML = `
-                <img src="${picture.url}" alt="${picture.name}">
-                <div class="picture-name">${picture.name}</div>
-            `;
-            availablePicturesList.appendChild(pictureItem);
-        });
+        // Filter out images that are already in the carousel
+        const carouselImageIds = mockCarouselImages.map(img => img.id);
+        const availablePictures = allPictures.filter(pic => !carouselImageIds.includes(pic.id));
         
-        // Add click event to select images
-        document.querySelectorAll('.select-picture-item').forEach(item => {
-            item.addEventListener('click', function() {
-                this.classList.toggle('selected');
+        if (availablePictures.length === 0) {
+            availablePicturesList.innerHTML = '<p class="no-images-message">All images are already in the carousel. Upload more images to add them.</p>';
+        } else {
+            availablePictures.forEach(picture => {
+                const pictureItem = document.createElement('div');
+                pictureItem.classList.add('select-picture-item');
+                pictureItem.setAttribute('data-id', picture.id);
+                pictureItem.innerHTML = `
+                    <img src="${picture.url}" alt="${picture.name}">
+                    <div class="picture-name">${picture.name}</div>
+                `;
+                availablePicturesList.appendChild(pictureItem);
             });
-        });
+            
+            // Add click event to select images
+            document.querySelectorAll('.select-picture-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                });
+            });
+        }
         
         carouselModal.style.display = 'block';
     });
@@ -390,26 +528,47 @@ function initCarouselManagement() {
     // Confirm selection button
     document.getElementById('confirmSelectBtn').addEventListener('click', function() {
         const selectedItems = document.querySelectorAll('.select-picture-item.selected');
+        let addedCount = 0;
+        
+        // Get all pictures from localStorage
+        const storedPictures = localStorage.getItem('sitePictures');
+        const allPictures = storedPictures ? JSON.parse(storedPictures) : [];
         
         selectedItems.forEach(item => {
             const pictureId = parseInt(item.getAttribute('data-id'));
-            const picture = mockCarouselImages.find(pic => pic.id === pictureId);
+            const pictureToAdd = allPictures.find(pic => pic.id === pictureId);
             
-            if (picture) {
-                mockCarouselImages.push(picture);
+            if (pictureToAdd && !mockCarouselImages.some(img => img.id === pictureId)) {
+                mockCarouselImages.push(pictureToAdd);
+                addedCount++;
             }
         });
+        
+        // Save changes to localStorage
+        saveCarouselImages();
         
         // Update carousel display
         displayCarouselImages();
         
         // Close modal
         carouselModal.style.display = 'none';
+        
+        // Show success message
+        if (addedCount > 0) {
+            alert(`${addedCount} image(s) added to carousel successfully!`);
+        } else {
+            alert('No new images were added to the carousel.');
+        }
     });
     
     // Display carousel images
     function displayCarouselImages() {
         carouselImagesList.innerHTML = '';
+        
+        if (mockCarouselImages.length === 0) {
+            carouselImagesList.innerHTML = '<p class="no-images-message">No images in the carousel. Click "Add Image to Carousel" to add images.</p>';
+            return;
+        }
         
         mockCarouselImages.forEach(image => {
             const imageItem = document.createElement('div');
@@ -417,6 +576,9 @@ function initCarouselManagement() {
             imageItem.setAttribute('data-id', image.id);
             imageItem.innerHTML = `
                 <img src="${image.url}" alt="${image.name}">
+                <div class="image-details">
+                    <span>${image.name}</span>
+                </div>
                 <div class="carousel-image-actions">
                     <button class="picture-action-btn remove-carousel-image" data-id="${image.id}">
                         <i class="fas fa-trash"></i>
@@ -444,15 +606,31 @@ function initCarouselManagement() {
         if (typeof Sortable !== 'undefined') {
             new Sortable(carouselImagesList, {
                 animation: 150,
-                ghostClass: 'sortable-ghost'
+                ghostClass: 'sortable-ghost',
+                onEnd: function() {
+                    // Update the order of images in the mockCarouselImages array
+                    const newOrder = Array.from(carouselImagesList.children)
+                        .map(item => parseInt(item.getAttribute('data-id')));
+                    
+                    // Reorder the array based on the DOM order
+                    mockCarouselImages = newOrder.map(id => 
+                        mockCarouselImages.find(img => img.id === id)
+                    ).filter(Boolean);
+                }
             });
         }
     }
     
     // Save carousel order
     saveCarouselOrderBtn.addEventListener('click', function() {
-        // In a real app, this would send the order to a server
-        // For this demo, we just update our local data and localStorage
+        // Update the order of images based on the current DOM order
+        const newOrder = Array.from(carouselImagesList.children)
+            .map(item => parseInt(item.getAttribute('data-id')));
+        
+        // Reorder the array based on the DOM order
+        mockCarouselImages = newOrder.map(id => 
+            mockCarouselImages.find(img => img.id === id)
+        ).filter(Boolean);
         
         // Save to localStorage
         saveCarouselImages();
