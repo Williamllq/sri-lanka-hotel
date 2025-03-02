@@ -1,8 +1,8 @@
-// 简化版地图初始化 - 备用方案
+// Enhanced map functionality for Sri Lanka location selection
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('地图备用方案已加载');
+    console.log('Sri Lanka Map Selection Tool Loaded');
     
-    // 获取需要的DOM元素
+    // Get necessary DOM elements
     const mapModal = document.getElementById('mapModal');
     const pickupInput = document.getElementById('pickupLocation');
     const destinationInput = document.getElementById('destinationLocation');
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('mapSearchInput');
     const debugBtn = document.getElementById('debugMapBtn');
     
-    // 全局变量
+    // Global variables
     let map = null;
     let currentMarker = null;
     let activeField = null;
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
         destination: null
     };
     
-    // 为相关元素添加事件监听器
+    // Set up event listeners for the location inputs and buttons
     if (pickupInput) {
         pickupInput.addEventListener('click', function() {
             openMapModal('pickup');
@@ -80,175 +80,243 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 计算按钮
+    // Calculate button event listener
     const calculateBtn = document.getElementById('calculateFareBtn');
     if (calculateBtn) {
         calculateBtn.addEventListener('click', calculateDistance);
     }
     
-    // 调试按钮点击事件
+    // Debug button event listener
     if (debugBtn) {
         debugBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('调试按钮被点击，尝试强制打开地图');
+            console.log('Debug button clicked, forcing map to open');
             
-            // 修复模态窗口样式
+            // Ensure modal is visible with proper styling
             if (mapModal) {
-                mapModal.style.position = 'fixed';
-                mapModal.style.top = '0';
-                mapModal.style.left = '0';
-                mapModal.style.width = '100%';
-                mapModal.style.height = '100%';
-                mapModal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                mapModal.style.zIndex = '9999';
                 mapModal.style.display = 'flex';
-                mapModal.style.justifyContent = 'center';
-                mapModal.style.alignItems = 'center';
+                mapModal.style.zIndex = '10000';
             }
             
-            // 修复地图容器样式
+            // Force map container to be visible
             if (mapContainer) {
                 mapContainer.style.height = '400px';
                 mapContainer.style.width = '100%';
                 mapContainer.style.display = 'block';
             }
             
-            // 强制打开地图模态窗口
+            // Open map modal focusing on Sri Lanka
             openMapModal('pickup');
             
-            // 延迟初始化地图
+            // Re-initialize map after a short delay
             setTimeout(function() {
-                console.log('强制重新初始化地图');
+                console.log('Reinitializing map');
                 if (map) {
                     map.remove();
                     map = null;
                 }
                 initMap();
-            }, 500);
+            }, 300);
         });
     }
     
-    // 打开地图模态窗口
+    // Function to open the map modal
     function openMapModal(field) {
-        console.log('打开地图模态窗口:', field);
+        console.log('Opening map modal for:', field);
         
         if (!mapModal) {
-            console.error('找不到地图模态窗口元素');
+            console.error('Map modal element not found');
             return;
         }
         
-        // 设置活动字段
+        // Set active field (pickup or destination)
         activeField = field;
         
-        // 设置模态窗口标题
+        // Update modal title
         const modalTitle = document.getElementById('mapModalTitle');
         if (modalTitle) {
-            modalTitle.textContent = field === 'pickup' ? '选择接送地点' : '选择目的地';
+            modalTitle.textContent = field === 'pickup' ? 'Select Pickup Location' : 'Select Destination';
         }
         
-        // 显示模态窗口
+        // Show modal with proper styling
         mapModal.style.display = 'flex';
+        mapModal.classList.add('active');
         
-        // 延迟初始化地图，确保模态窗口已显示
-        setTimeout(initMap, 200);
+        // Ensure map container is visible
+        if (mapContainer) {
+            mapContainer.style.height = '400px';
+            mapContainer.style.width = '100%';
+            mapContainer.style.display = 'block';
+        }
+        
+        // Initialize map with short delay to ensure modal is visible
+        setTimeout(function() {
+            initMap();
+            
+            // Force map to refresh by triggering a resize event
+            if (map) {
+                setTimeout(function() {
+                    map.invalidateSize();
+                }, 100);
+            }
+        }, 200);
     }
     
-    // 关闭地图模态窗口
+    // Function to close the map modal
     function closeMapModal() {
-        console.log('关闭地图模态窗口');
+        console.log('Closing map modal');
         
         if (mapModal) {
             mapModal.style.display = 'none';
+            mapModal.classList.remove('active');
         }
         
-        activeField = null;
+        // Clear current marker if not confirmed
+        if (currentMarker && !markers[activeField]) {
+            map.removeLayer(currentMarker);
+            currentMarker = null;
+        }
     }
     
-    // 初始化地图
+    // Function to initialize the map
     function initMap() {
-        console.log('初始化地图');
+        console.log('Initializing Sri Lanka map');
         
         if (!mapContainer) {
-            console.error('找不到地图容器元素');
+            console.error('Map container element not found');
             return;
         }
         
-        // 如果地图已存在，只需调整大小
+        // If map already exists, just resize it
         if (map) {
-            console.log('地图已存在，调整大小');
+            console.log('Map already exists, resizing');
             map.invalidateSize();
             return;
         }
         
         try {
-            // 创建地图
-            map = L.map('modalMap').setView([7.8731, 80.7718], 8);
+            // Ensure the map container is visible
+            mapContainer.style.display = 'block';
+            mapContainer.style.height = '400px';
+            mapContainer.style.width = '100%';
             
-            // 添加地图图层
+            // Create map centered on Sri Lanka
+            map = L.map('modalMap', {
+                zoomControl: true,
+                scrollWheelZoom: true
+            }).setView([7.8731, 80.7718], 8);
+            
+            // Add OpenStreetMap tile layer
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
             }).addTo(map);
             
-            // 添加地图点击事件
+            // Add popular Sri Lanka destinations as helper markers
+            addSriLankaDestinations();
+            
+            // Add click event to map
             map.on('click', function(e) {
                 setMarker(e.latlng);
             });
             
-            console.log('地图初始化成功');
+            // If a marker already exists for the active field, show it
+            if (markers[activeField]) {
+                currentMarker = L.marker(markers[activeField].getLatLng()).addTo(map);
+                map.setView(markers[activeField].getLatLng(), 15);
+            }
             
-            // 强制调整地图大小
+            // Force map to refresh after a short delay
             setTimeout(function() {
-                if (map) {
-                    map.invalidateSize();
-                }
+                map.invalidateSize();
             }, 300);
             
+            console.log('Map initialized successfully');
         } catch (error) {
-            console.error('初始化地图时出错:', error);
+            console.error('Error initializing map:', error);
         }
     }
     
-    // 设置标记
+    // Function to add popular Sri Lanka destinations to help users
+    function addSriLankaDestinations() {
+        // Major locations in Sri Lanka that tourists might want to visit
+        const destinations = [
+            { name: "Colombo", lat: 6.9271, lng: 79.8612 },
+            { name: "Kandy", lat: 7.2906, lng: 80.6337 },
+            { name: "Galle", lat: 6.0535, lng: 80.2210 },
+            { name: "Sigiriya", lat: 7.9570, lng: 80.7603 },
+            { name: "Nuwara Eliya", lat: 6.9497, lng: 80.7891 },
+            { name: "Trincomalee", lat: 8.5874, lng: 81.2152 }
+        ];
+        
+        // Add small markers for each destination
+        destinations.forEach(dest => {
+            const marker = L.marker([dest.lat, dest.lng], {
+                opacity: 0.7,
+                title: dest.name
+            }).addTo(map);
+            
+            marker.bindPopup(`<b>${dest.name}</b><br>Click to select this location`);
+            
+            // When clicked, set as the current selection
+            marker.on('click', function() {
+                setMarker(L.latLng(dest.lat, dest.lng));
+            });
+        });
+    }
+    
+    // Function to set a marker on the map
     function setMarker(latlng) {
-        console.log('设置标记:', latlng);
+        console.log('Setting marker at:', latlng);
         
         if (!map || !activeField) return;
         
-        // 移除当前标记（如果有）
+        // Remove current marker if it exists
         if (currentMarker) {
             map.removeLayer(currentMarker);
         }
         
-        // 创建新标记
+        // Create a new marker
         currentMarker = L.marker(latlng).addTo(map);
         
-        // 保存标记
+        // Store marker location
         markers[activeField] = {
             lat: latlng.lat,
             lng: latlng.lng
         };
+        
+        // Pan the map to center on the new marker
+        map.panTo(latlng);
+        
+        // Add a popup to the marker
+        currentMarker.bindPopup(`<b>${activeField === 'pickup' ? 'Pickup' : 'Destination'} Location</b><br>Lat: ${latlng.lat.toFixed(6)}, Lng: ${latlng.lng.toFixed(6)}`).openPopup();
     }
     
-    // 搜索位置
+    // Function to search for a location
     function searchLocation(query) {
-        console.log('搜索位置:', query);
+        console.log('Searching for location:', query);
         
         if (!query || !map) return;
         
-        // 禁用搜索输入框
-        if (searchInput) {
-            searchInput.disabled = true;
-            searchInput.placeholder = '搜索中...';
+        // Append "Sri Lanka" to search query if not already included
+        if (!query.toLowerCase().includes('sri lanka')) {
+            query += ' Sri Lanka';
         }
         
-        // 使用Nominatim API搜索位置
+        // Disable search input while searching
+        if (searchInput) {
+            searchInput.disabled = true;
+            searchInput.placeholder = 'Searching...';
+        }
+        
+        // Use Nominatim API to search for location
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
             .then(response => response.json())
             .then(data => {
-                // 恢复搜索输入框
+                // Re-enable search input
                 if (searchInput) {
                     searchInput.disabled = false;
-                    searchInput.placeholder = '搜索位置';
+                    searchInput.placeholder = 'Search for a location in Sri Lanka';
                 }
                 
                 if (data && data.length > 0) {
@@ -256,94 +324,94 @@ document.addEventListener('DOMContentLoaded', function() {
                     const lat = parseFloat(location.lat);
                     const lng = parseFloat(location.lon);
                     
-                    // 更新地图视图
+                    // Update map view
                     map.setView([lat, lng], 14);
                     
-                    // 设置标记
+                    // Set marker
                     setMarker(L.latLng(lat, lng));
                 } else {
-                    alert('未找到位置，请尝试其他搜索词。');
+                    alert('Location not found. Please try a different search term.');
                 }
             })
             .catch(error => {
-                console.error('搜索位置时出错:', error);
-                alert('搜索位置时出错，请稍后再试。');
+                console.error('Error searching for location:', error);
+                alert('Error searching for location. Please try again later.');
                 
                 if (searchInput) {
                     searchInput.disabled = false;
-                    searchInput.placeholder = '搜索位置';
+                    searchInput.placeholder = 'Search for a location in Sri Lanka';
                 }
             });
     }
     
-    // 确认选择的位置
+    // Function to confirm selected location
     function confirmLocation() {
-        console.log('确认位置');
+        console.log('Confirming location selection');
         
         if (!activeField || !markers[activeField]) {
-            alert('请先在地图上选择一个位置。');
+            alert('Please select a location on the map first.');
             return;
         }
         
-        // 获取标记位置
+        // Get marker location
         const location = markers[activeField];
         
-        // 反向地理编码获取地址
+        // Use reverse geocoding to get address
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}`)
             .then(response => response.json())
             .then(data => {
-                // 获取输入框
+                // Get input field
                 const input = document.getElementById(activeField === 'pickup' ? 'pickupLocation' : 'destinationLocation');
                 
                 if (input && data && data.display_name) {
-                    // 设置输入框值为地址
+                    // Set input value to address
                     input.value = data.display_name;
                 } else if (input) {
-                    // 设置输入框值为坐标
+                    // Set input value to coordinates
                     input.value = `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`;
                 }
                 
-                // 如果两个位置都已设置，尝试计算距离
+                // If both locations are set, calculate distance
                 if (markers.pickup && markers.destination) {
                     calculateDistance();
                 }
                 
-                // 关闭模态窗口
+                // Close modal
                 closeMapModal();
             })
             .catch(error => {
-                console.error('反向地理编码出错:', error);
+                console.error('Error in reverse geocoding:', error);
                 
-                // 获取输入框
+                // Get input field
                 const input = document.getElementById(activeField === 'pickup' ? 'pickupLocation' : 'destinationLocation');
                 
                 if (input) {
-                    // 设置输入框值为坐标
+                    // Set input value to coordinates
                     input.value = `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`;
                 }
                 
-                // 关闭模态窗口
+                // Close modal
                 closeMapModal();
             });
     }
     
-    // 计算距离
+    // Function to calculate distance
     function calculateDistance() {
-        console.log('计算距离');
+        console.log('Calculating distance');
         
         if (!markers.pickup || !markers.destination) {
-            alert('请先选择接送地点和目的地。');
+            alert('Please select both pickup and destination locations first.');
             return;
         }
         
-        // 计算两点之间的距离
+        // Calculate distance between two points
         const lat1 = markers.pickup.lat;
         const lng1 = markers.pickup.lng;
         const lat2 = markers.destination.lat;
         const lng2 = markers.destination.lng;
         
-        // 使用Haversine公式计算距离
-        const R = 6371; // 地球半径（千米）
+        // Use Haversine formula to calculate distance
+        const R = 6371; // Earth radius in km
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLng = (lng2 - lng1) * Math.PI / 180;
         const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -352,25 +420,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         const distance = R * c;
         
-        // 显示距离
+        // Display distance
         const distanceDisplay = document.getElementById('distance');
         if (distanceDisplay) {
-            distanceDisplay.textContent = `距离: ${distance.toFixed(2)} 公里`;
+            distanceDisplay.textContent = `Distance: ${distance.toFixed(2)} km`;
             distanceDisplay.style.display = 'block';
         }
         
-        // 计算价格
+        // Calculate fare
         if (typeof calculatePrice === 'function') {
             calculatePrice(distance);
         } else {
-            // 简单价格计算
+            // Simple fare calculation
             const fareResult = document.getElementById('fareResult');
             if (fareResult) {
                 const baseFare = 20;
                 const rate = 0.8;
                 const totalFare = baseFare + (distance * rate);
                 
-                fareResult.textContent = `预估费用: $${totalFare.toFixed(2)}`;
+                fareResult.textContent = `Estimated fare: $${totalFare.toFixed(2)}`;
                 fareResult.style.display = 'block';
             }
         }
