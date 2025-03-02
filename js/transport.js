@@ -193,28 +193,52 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Calculate price based on service type
     function calculatePrice() {
-        if (!serviceType || !serviceType.value) {
-            showNotification('Please select a service type', 'error');
+        console.log('Calculating price');
+        
+        // Get the distance
+        const distanceDisplay = document.getElementById('distance');
+        if (!distanceDisplay || distanceDisplay.style.display === 'none') {
+            showFareResult('Please select both pickup and destination locations to calculate fare.', 'error');
             return;
         }
         
-        let estimatedPrice = 0;
-        const service = serviceType.value;
+        // Extract distance value from text
+        const distanceText = distanceDisplay.textContent;
+        const distanceMatch = distanceText.match(/Distance: (\d+\.?\d*) km/);
         
-        switch(service) {
-            case 'airport':
-                estimatedPrice = prices.airportTransfer.basePrice;
-                break;
-            case 'city':
-                estimatedPrice = prices.cityTour.basePrice;
-                break;
-            case 'custom':
-                estimatedPrice = prices.customJourney.basePrice;
-                break;
+        if (!distanceMatch) {
+            showFareResult('Unable to determine distance. Please try again.', 'error');
+            return;
         }
         
-        // Show quote notification
-        showNotification(`Estimated price: $${estimatedPrice}. For exact pricing, please complete your booking.`, 'info');
+        const distance = parseFloat(distanceMatch[1]);
+        if (isNaN(distance)) {
+            showFareResult('Invalid distance value. Please try again.', 'error');
+            return;
+        }
+        
+        // Get selected vehicle type
+        const vehicleType = document.querySelector('input[name="vehicleType"]:checked').value;
+        
+        // Base price per km for different vehicle types
+        const pricePerKm = {
+            sedan: 0.8,
+            suv: 1.0,
+            van: 1.2,
+            luxury: 1.5
+        };
+        
+        // Base fare
+        const baseFare = 10;
+        
+        // Calculate total fare
+        const fare = baseFare + (distance * pricePerKm[vehicleType]);
+        
+        // Round to 2 decimal places
+        const roundedFare = Math.round(fare * 100) / 100;
+        
+        // Display result
+        showFareResult(`Estimated fare: $${roundedFare.toFixed(2)}`, 'success');
     }
     
     // Validate the form
@@ -303,5 +327,21 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             notification.style.display = 'none';
         }, 5000);
+    }
+
+    function showFareResult(message, type) {
+        const fareResult = document.getElementById('fareResult');
+        if (fareResult) {
+            fareResult.textContent = message;
+            fareResult.style.display = 'block';
+            
+            // Clear existing classes
+            fareResult.className = 'fare-result';
+            
+            // Add status class
+            if (type) {
+                fareResult.classList.add(type);
+            }
+        }
     }
 }); 
