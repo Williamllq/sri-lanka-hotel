@@ -1854,7 +1854,7 @@ img {
 .feedback-btn {
     position: fixed;
     bottom: 2rem;
-    right: 150px;
+    left: 2rem;
     background-color: var(--primary-color);
     color: white;
     border: none;
