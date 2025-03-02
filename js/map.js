@@ -6,13 +6,25 @@ let markers = {
     pickup: null,
     destination: null
 };
+let mapContainer = null;
+let mapModal = null;
 
 // 当DOM加载完成时执行
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Sri Lanka Map Selection Tool Loaded');
     
+    // Check for Leaflet library
+    if (typeof L === 'undefined') {
+        console.error('Leaflet library not available on page load');
+        // Try to load Leaflet dynamically
+        loadLeaflet();
+    } else {
+        console.log('Leaflet library available on page load:', L.version);
+    }
+    
     // Get necessary DOM elements
-    const mapModal = document.getElementById('mapModal');
+    mapModal = document.getElementById('mapModal');
+    mapContainer = document.getElementById('modalMap');
     const pickupInput = document.getElementById('pickupLocation');
     const destinationInput = document.getElementById('destinationLocation');
     // 兼容两种可能的ID
@@ -20,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const pickupBtn = document.getElementById('pickupMapBtn');
     const destinationBtn = document.getElementById('destinationMapBtn');
     const closeBtn = document.getElementById('closeMapModal');
-    const mapContainer = document.getElementById('modalMap');
     const confirmBtn = document.getElementById('confirmLocationBtn');
     const searchBtn = document.getElementById('mapSearchBtn');
     const searchInput = document.getElementById('mapSearchInput');
@@ -28,6 +39,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Global variables
     let currentMarker = null;
+    
+    // 确认地图容器存在
+    if (!mapContainer) {
+        console.error('Map container element #modalMap not found');
+        return; // 如果没有地图容器，不要继续初始化地图相关功能
+    }
+    
+    if (!mapModal) {
+        console.error('Map modal element #mapModal not found');
+        return;
+    }
     
     // Set up event listeners for the location inputs and buttons
     if (pickupInput) {
@@ -101,58 +123,115 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             console.log('Debug button clicked, forcing map to open');
             
-            // Ensure modal is visible with proper styling
-            if (mapModal) {
-                mapModal.style.display = 'flex';
-                mapModal.style.zIndex = '10000';
-                mapModal.classList.add('active');
+            // First, check if Leaflet is loaded
+            if (typeof L === 'undefined') {
+                console.error('Leaflet not available when debug clicked');
+                loadLeaflet(function() {
+                    console.log('Leaflet loaded by debug button');
+                    forceOpenMap();
+                });
+            } else {
+                forceOpenMap();
             }
-            
-            // Force map container to be visible
-            if (mapContainer) {
-                mapContainer.style.height = '400px';
-                mapContainer.style.width = '100%';
-                mapContainer.style.display = 'block';
-            }
-            
-            // Open map modal focusing on Sri Lanka
-            openMapModal('pickup');
-            
-            // Re-initialize map after a short delay
-            setTimeout(function() {
-                console.log('Reinitializing map');
-                if (map) {
-                    map.remove();
-                    map = null;
-                }
-                initMap();
-            }, 300);
         });
     }
     
     // 确保地图元素存在
-    if (!mapContainer) {
-        console.error('[DEBUG] 找不到地图容器元素 #modalMap');
-    } else {
-        console.log('[DEBUG] 找到地图容器元素');
-        const rect = mapContainer.getBoundingClientRect();
-        console.log('[DEBUG] 地图容器位置和尺寸:', rect.top, rect.left, rect.width, rect.height);
-    }
+    console.log('[DEBUG] 找到地图容器元素');
+    const rect = mapContainer.getBoundingClientRect();
+    console.log('[DEBUG] 地图容器位置和尺寸:', rect.top, rect.left, rect.width, rect.height);
     
-    // 测试模态窗口 - 在页面加载后1秒尝试打开地图模态窗口
+    // 测试模态窗口 - 在页面加载后5秒尝试打开地图模态窗口
     setTimeout(function() {
         console.log('[DEBUG] 自动测试打开地图模态窗口');
-        openMapModal('pickup');
-    }, 5000);
+        // Only auto-open on page load if debug flag is set
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('debug_map')) {
+            forceOpenMap();
+        }
+    }, 2000);
 });
+
+// Helper function to load Leaflet
+function loadLeaflet(callback) {
+    console.log('Dynamically loading Leaflet library');
+    
+    // First load CSS
+    const leafletCSS = document.createElement('link');
+    leafletCSS.rel = 'stylesheet';
+    leafletCSS.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    leafletCSS.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+    leafletCSS.crossOrigin = '';
+    document.head.appendChild(leafletCSS);
+    
+    // Then load JS
+    const leafletScript = document.createElement('script');
+    leafletScript.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    leafletScript.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+    leafletScript.crossOrigin = '';
+    
+    leafletScript.onload = function() {
+        console.log('Leaflet library loaded dynamically');
+        if (typeof callback === 'function') {
+            callback();
+        }
+    };
+    
+    document.head.appendChild(leafletScript);
+}
+
+// Helper function to force map to open
+function forceOpenMap() {
+    console.log('Force opening map modal');
+    
+    // Ensure modal is visible with proper styling
+    if (mapModal) {
+        mapModal.style.display = 'flex';
+        mapModal.style.zIndex = '10000';
+        mapModal.classList.add('active');
+    }
+    
+    // Force map container to be visible
+    if (mapContainer) {
+        mapContainer.style.height = '400px';
+        mapContainer.style.width = '100%';
+        mapContainer.style.display = 'block';
+    }
+    
+    // Open map modal focusing on Sri Lanka
+    openMapModal('pickup');
+    
+    // Re-initialize map after a short delay
+    setTimeout(function() {
+        console.log('Reinitializing map');
+        if (map) {
+            map.remove();
+            map = null;
+        }
+        initMap();
+    }, 500);
+}
 
 // 打开地图模态窗口
 function openMapModal(field) {
     console.log('Opening map modal for:', field);
     
     if (!mapModal) {
-        console.error('Map modal element not found');
-        return;
+        mapModal = document.getElementById('mapModal');
+        if (!mapModal) {
+            console.error('Map modal element not found');
+            alert('Map modal not found. Please reload the page and try again.');
+            return;
+        }
+    }
+    
+    if (!mapContainer) {
+        mapContainer = document.getElementById('modalMap');
+        if (!mapContainer) {
+            console.error('Map container element not found');
+            alert('Map container not found. Please reload the page and try again.');
+            return;
+        }
     }
     
     // Set active field (pickup or destination)
@@ -168,29 +247,62 @@ function openMapModal(field) {
     mapModal.style.display = 'flex';
     mapModal.classList.add('active');
     
-    // Ensure map container is visible
-    if (mapContainer) {
-        mapContainer.style.height = '400px';
-        mapContainer.style.width = '100%';
-        mapContainer.style.display = 'block';
+    // Ensure map container is visible with proper dimensions
+    mapContainer.style.height = '400px';
+    mapContainer.style.width = '100%';
+    mapContainer.style.display = 'block';
+    
+    console.log('Map container after style updates:', 
+        'display:', mapContainer.style.display, 
+        'height:', mapContainer.style.height, 
+        'width:', mapContainer.style.width);
+    
+    // Reset map if needed
+    if (map && !map._loaded) {
+        console.log('Map exists but is not loaded, destroying it');
+        map.remove();
+        map = null;
     }
     
-    // Initialize map with short delay to ensure modal is visible
+    // Ensure the modal is fully visible before initializing map
     setTimeout(function() {
+        // Check if container is visible now
+        const rect = mapContainer.getBoundingClientRect();
+        console.log('Map container dimensions after timeout:', 
+            'width:', rect.width, 
+            'height:', rect.height,
+            'visibility:', window.getComputedStyle(mapContainer).visibility,
+            'display:', window.getComputedStyle(mapContainer).display);
+        
+        // Initialize map
         initMap();
         
         // Force map to refresh by triggering a resize event
         if (map) {
             setTimeout(function() {
+                console.log('Forcing map resize after initialization');
                 map.invalidateSize();
-            }, 100);
+                
+                // Center map if a marker exists
+                if (markers[activeField]) {
+                    map.setView(markers[activeField].getLatLng(), 15);
+                }
+            }, 500);
         }
-    }, 200);
+    }, 300);
+    
+    // Log modal status
+    mapModalActive = true;
+    console.log('Map modal opened, active field:', activeField);
 }
 
 // 关闭地图模态窗口
 function closeMapModal() {
     console.log('Closing map modal');
+    
+    if (!mapModal) {
+        mapModal = document.getElementById('mapModal');
+    }
     
     if (mapModal) {
         mapModal.style.display = 'none';
@@ -198,7 +310,7 @@ function closeMapModal() {
     }
     
     // Clear current marker if not confirmed
-    if (currentMarker && !markers[activeField]) {
+    if (currentMarker && !markers[activeField] && map) {
         map.removeLayer(currentMarker);
         currentMarker = null;
     }
@@ -207,42 +319,107 @@ function closeMapModal() {
 // 初始化地图
 function initMap() {
     console.log('Initializing Sri Lanka map');
+    console.log('Leaflet available:', typeof L !== 'undefined');
     
     if (!mapContainer) {
-        console.error('Map container element not found');
+        mapContainer = document.getElementById('modalMap');
+        if (!mapContainer) {
+            console.error('Map container element not found');
+            return;
+        }
+    }
+    
+    // Ensure the Leaflet library is loaded
+    if (typeof L === 'undefined') {
+        console.error('Leaflet library not loaded!');
+        
+        // Display error message in the map container
+        if (mapContainer) {
+            mapContainer.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">' +
+                '<h3>Map Error</h3>' +
+                '<p>The map library failed to load. Please try again or reload the page.</p>' +
+                '</div>';
+        }
+        
+        // 尝试动态加载Leaflet库
+        const leafletCSS = document.createElement('link');
+        leafletCSS.rel = 'stylesheet';
+        leafletCSS.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        leafletCSS.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+        leafletCSS.crossOrigin = '';
+        document.head.appendChild(leafletCSS);
+        
+        const leafletScript = document.createElement('script');
+        leafletScript.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        leafletScript.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+        leafletScript.crossOrigin = '';
+        document.head.appendChild(leafletScript);
+        
+        leafletScript.onload = function() {
+            console.log('Leaflet library loaded dynamically');
+            // 库加载后重新尝试初始化地图
+            setTimeout(initMap, 500);
+        };
+        
         return;
     }
     
     // If map already exists, just resize it
     if (map) {
         console.log('Map already exists, resizing');
-        map.invalidateSize();
-        return;
+        try {
+            map.invalidateSize();
+            console.log('Map resized successfully');
+            return;
+        } catch (e) {
+            console.error('Error resizing existing map:', e);
+            // If error occurs, recreate the map
+            map = null;
+        }
     }
     
     try {
-        // Ensure the map container is visible
+        // Ensure the map container is visible and properly sized
         mapContainer.style.display = 'block';
         mapContainer.style.height = '400px';
         mapContainer.style.width = '100%';
         
-        // Check if Leaflet is loaded
-        if (typeof L === 'undefined') {
-            console.error('Leaflet library not loaded!');
+        console.log('Map container dimensions:', mapContainer.clientWidth, 'x', mapContainer.clientHeight);
+        
+        // Check if container is visible and has dimensions
+        const rect = mapContainer.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) {
+            console.error('Map container has zero width or height:', rect);
+            
+            // Try to fix container visibility
+            setTimeout(function() {
+                mapContainer.style.display = 'block';
+                mapContainer.style.height = '400px';
+                mapContainer.style.width = '100%';
+                
+                // Try again after a short delay
+                setTimeout(initMap, 300);
+            }, 300);
+            
             return;
         }
         
         // Create map centered on Sri Lanka
+        console.log('Creating Leaflet map with L:', L);
         map = L.map('modalMap', {
             zoomControl: true,
             scrollWheelZoom: true
         }).setView([7.8731, 80.7718], 8);
+        
+        console.log('Map created successfully');
         
         // Add OpenStreetMap tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19
         }).addTo(map);
+        
+        console.log('Tile layer added');
         
         // Add popular Sri Lanka destinations as helper markers
         addSriLankaDestinations();
@@ -260,17 +437,40 @@ function initMap() {
         
         // Force map to refresh after a short delay
         setTimeout(function() {
+            console.log('Forcing map resize');
             map.invalidateSize();
-        }, 300);
+        }, 500);
         
         console.log('Map initialized successfully');
     } catch (error) {
         console.error('Error initializing map:', error);
+        
+        // Display error message in the map container
+        if (mapContainer) {
+            mapContainer.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">' +
+                '<h3>Map Error</h3>' +
+                '<p>There was an error initializing the map: ' + error.message + '</p>' +
+                '<button id="retryMapBtn" style="padding: 8px 15px; background: #00a6a6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px;">Retry</button>' +
+                '</div>';
+            
+            // Add event listener to retry button
+            const retryBtn = document.getElementById('retryMapBtn');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', function() {
+                    // Clear the error message
+                    mapContainer.innerHTML = '';
+                    // Try initializing again
+                    setTimeout(initMap, 300);
+                });
+            }
+        }
     }
 }
 
 // Function to add popular Sri Lanka destinations as markers
 function addSriLankaDestinations() {
+    if (!map) return;
+    
     const destinations = [
         { name: 'Colombo', lat: 6.9271, lng: 79.8612 },
         { name: 'Kandy', lat: 7.2906, lng: 80.6337 },
@@ -303,6 +503,11 @@ function addSriLankaDestinations() {
 function setMarker(latlng) {
     console.log('Setting marker at:', latlng);
     
+    if (!map) {
+        console.error('Map not initialized');
+        return;
+    }
+    
     // Remove existing temporary marker
     if (currentMarker) {
         map.removeLayer(currentMarker);
@@ -326,23 +531,31 @@ function setMarker(latlng) {
 function searchLocation(query) {
     console.log('Searching for location:', query);
     
+    if (!searchInput) {
+        searchInput = document.getElementById('mapSearchInput');
+    }
+    
     // Add "Sri Lanka" to the query if not already included
     if (!query.toLowerCase().includes('sri lanka')) {
         query += ', Sri Lanka';
     }
     
     // Show loading indicator
-    searchInput.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z\'/%3E%3C/svg%3E")';
-    searchInput.style.backgroundRepeat = 'no-repeat';
-    searchInput.style.backgroundPosition = 'right center';
-    searchInput.style.backgroundSize = '20px';
+    if (searchInput) {
+        searchInput.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z\'/%3E%3C/svg%3E")';
+        searchInput.style.backgroundRepeat = 'no-repeat';
+        searchInput.style.backgroundPosition = 'right center';
+        searchInput.style.backgroundSize = '20px';
+    }
     
     // Use Nominatim API for geocoding
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
         .then(response => response.json())
         .then(data => {
             // Remove loading indicator
-            searchInput.style.backgroundImage = 'none';
+            if (searchInput) {
+                searchInput.style.backgroundImage = 'none';
+            }
             
             if (data && data.length > 0) {
                 const result = data[0];
@@ -355,7 +568,9 @@ function searchLocation(query) {
                 setMarker(latlng);
                 
                 // Update search input with found location name
-                searchInput.value = result.display_name;
+                if (searchInput) {
+                    searchInput.value = result.display_name;
+                }
             } else {
                 // No results found
                 alert('Location not found. Please try a different search term.');
@@ -363,7 +578,9 @@ function searchLocation(query) {
         })
         .catch(error => {
             console.error('Error searching for location:', error);
-            searchInput.style.backgroundImage = 'none';
+            if (searchInput) {
+                searchInput.style.backgroundImage = 'none';
+            }
             alert('Error searching for location. Please try again.');
         });
 }
@@ -382,6 +599,11 @@ function confirmLocation() {
     // Save marker for the active field
     markers[activeField] = currentMarker;
     
+    // Get input field references
+    const pickupInput = document.getElementById('pickupLocation');
+    const destinationInput = document.getElementById('destinationLocation');
+    const destinationInputAlt = document.getElementById('destination');
+    
     // Get address using reverse geocoding
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`)
         .then(response => response.json())
@@ -395,11 +617,8 @@ function confirmLocation() {
                 // 适配两种可能的输入框ID
                 if (destinationInput) {
                     destinationInput.value = address;
-                } else {
-                    const destAlt = document.getElementById('destination');
-                    if (destAlt) {
-                        destAlt.value = address;
-                    }
+                } else if (destinationInputAlt) {
+                    destinationInputAlt.value = address;
                 }
             }
             
@@ -424,11 +643,8 @@ function confirmLocation() {
                 // 适配两种可能的输入框ID
                 if (destinationInput) {
                     destinationInput.value = coordsText;
-                } else {
-                    const destAlt = document.getElementById('destination');
-                    if (destAlt) {
-                        destAlt.value = coordsText;
-                    }
+                } else if (destinationInputAlt) {
+                    destinationInputAlt.value = coordsText;
                 }
             }
             

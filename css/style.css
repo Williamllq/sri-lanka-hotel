@@ -1299,659 +1299,7 @@ select:focus {
     color: #333;
 }
 
-/* Map Modal */
-.map-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 10000;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-    margin: 0;
-}
-
-.map-modal.active {
-    display: flex !important;
-}
-
-.map-modal-content {
-    position: relative;
-    background-color: #fff;
-    width: 90%;
-    max-width: 800px;
-    height: 80%;
-    max-height: 600px;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.close-modal {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 28px;
-    cursor: pointer;
-    color: #888;
-    transition: color 0.3s ease;
-    z-index: 1000;
-}
-
-.close-modal:hover {
-    color: #333;
-}
-
-#mapModalTitle {
-    margin-top: 0;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.map-search {
-    display: flex;
-    margin: 0 0 15px 0;
-}
-
-.map-search input {
-    flex: 1;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px 0 0 5px;
-    font-size: 16px;
-}
-
-.map-search button {
-    padding: 10px 15px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 0 5px 5px 0;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.map-search button:hover {
-    background-color: var(--accent-color);
-}
-
-.modal-map {
-    flex: 1;
-    width: 100%;
-    border-radius: 5px;
-    margin-bottom: 15px;
-    min-height: 300px;
-}
-
-#confirmLocationBtn {
-    align-self: center;
-    margin-top: 15px;
-    padding: 10px 20px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-#confirmLocationBtn:hover {
-    background-color: var(--accent-color);
-}
-
-/* 确保响应式样式适用于地图模态窗口 */
-@media (max-width: 768px) {
-    .map-modal-content {
-        width: 95%;
-        height: 90%;
-    }
-    
-    .modal-map {
-        min-height: 250px;
-    }
-}
-
-/* Booking Process */
-.process-steps {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    margin-top: 30px;
-}
-
-.process-step {
-    flex: 1;
-    min-width: 200px;
-    max-width: 250px;
-    background-color: white;
-    padding: 25px;
-    border-radius: 10px;
-    text-align: center;
-    margin: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.process-step:hover {
-    transform: translateY(-10px);
-}
-
-.step-icon {
-    width: 80px;
-    height: 80px;
-    background-color: rgba(76, 175, 80, 0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-}
-
-.step-icon i {
-    font-size: 36px;
-    color: #4CAF50;
-}
-
-.process-step h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #333;
-}
-
-.process-step p {
-    color: #666;
-    line-height: 1.5;
-}
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-    .page-banner {
-        height: 300px;
-    }
-    
-    .banner-content h1 {
-        font-size: 2.2rem;
-    }
-    
-    .process-step {
-        min-width: 100%;
-    }
-    
-    .calculator-wrapper {
-        flex-direction: column;
-    }
-    
-    .map-container {
-        height: 300px;
-    }
-    
-    .vehicle-options {
-        flex-direction: column;
-    }
-    
-    .vehicle-option {
-        min-width: 100%;
-    }
-    
-    /* 移动设备上的反馈按钮样式 */
-    .feedback-btn {
-        bottom: 5rem; /* 在移动设备上提高位置，防止被其他元素遮挡 */
-        padding: 8px 12px; /* 稍微缩小按钮 */
-        font-size: 14px; /* 缩小字体 */
-    }
-    
-    .feedback-btn i {
-        font-size: 14px;
-    }
-}
-
-/* 地图相关样式 */
-.location-input {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.map-btn {
-    position: absolute;
-    right: 10px;
-    background: none;
-    border: none;
-    color: var(--primary-color);
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0.5rem;
-}
-
-#map {
-    width: 100%;
-    height: 500px;
-    border-radius: 10px;
-    margin: 1rem 0;
-    background: #f0f0f0;
-    z-index: 1;
-}
-
-.map-search {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-    z-index: 2;
-}
-
-.map-search input {
-    flex: 1;
-    padding: 0.8rem;
-    border: 1px solid rgba(0, 166, 166, 0.2);
-    border-radius: 10px;
-    font-size: 1rem;
-}
-
-.map-search .btn {
-    padding: 0.8rem 1.5rem;
-}
-
-/* Map Loading Indicator */
-.map-search input.loading {
-    background-image: url('data:image/svg+xml;charset=utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"%3E%3Cpath fill="%23333" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"%3E%3CanimateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" /%3E%3C/path%3E%3C/svg%3E');
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 20px;
-    padding-right: 40px;
-}
-
-/* 图片响应式 */
-img {
-    max-width: 100%;
-    height: auto;
-}
-
-/* 语言选择器样式 */
-.language-switch {
-    position: relative;
-    margin-left: 20px;
-    z-index: 100;
-    font-size: 16px;
-}
-
-#languageSelect {
-    padding: 8px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.2);
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    padding-right: 30px;
-    transition: all 0.3s;
-}
-
-#languageSelect:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.main-nav.scrolled #languageSelect {
-    color: #333;
-    background-color: rgba(255, 255, 255, 0.9);
-    border-color: rgba(0, 0, 0, 0.1);
-    background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-}
-
-.language-notification {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    z-index: 10000;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeInUp 0.3s forwards;
-    font-size: 16px;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@media (max-width: 768px) {
-    .language-switch {
-        margin-left: 10px;
-    }
-    
-    #languageSelect {
-        font-size: 14px;
-        padding: 5px 25px 5px 8px;
-    }
-}
-
-/* Notification Styles */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 25px;
-    border-radius: 5px;
-    color: white;
-    font-weight: 500;
-    z-index: 1000;
-    display: none;
-    animation: slideIn 0.3s ease-out;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    max-width: 350px;
-}
-
-.notification.success {
-    background-color: #4CAF50;
-}
-
-.notification.error {
-    background-color: #F44336;
-}
-
-.notification.info {
-    background-color: #2196F3;
-}
-
-.notification.warning {
-    background-color: #FF9800;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-
-/* AI Assistant Loading Indicator */
-.message.ai-message .fa-spinner {
-    color: #4a90e2;
-    margin-right: 8px;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* AI Assistant Message Formatting */
-.message.ai-message ul {
-    padding-left: 20px;
-    margin: 5px 0;
-}
-
-.message.ai-message li {
-    margin-bottom: 5px;
-}
-
-.message.ai-message a {
-    color: #4a90e2;
-    text-decoration: underline;
-}
-
-.message.ai-message strong {
-    font-weight: bold;
-}
-
-.message.ai-message em {
-    font-style: italic;
-}
-
-.chat-input button.sending {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-
-/* AI Status Indicator */
-.ai-status {
-    font-size: 12px;
-    color: #777;
-    margin-top: 5px;
-    text-align: center;
-    font-style: italic;
-}
-
-.ai-status.connected {
-    color: #2ecc71;
-}
-
-.ai-status.error {
-    color: #e74c3c;
-}
-
-.ai-status.connecting {
-    color: #f39c12;
-}
-
-/* Gallery Styles */
-.gallery-filter {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-}
-
-.gallery-filter-btn {
-    background: var(--bg-light);
-    border: 1px solid var(--primary-color);
-    color: var(--primary-color);
-    padding: 0.5rem 1.5rem;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-}
-
-.gallery-filter-btn.active, 
-.gallery-filter-btn:hover {
-    background: var(--primary-color);
-    color: var(--light-text);
-}
-
-.gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
-}
-
-.gallery-item {
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    height: 280px;
-}
-
-.gallery-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-}
-
-.gallery-image-container {
-    position: relative;
-    height: 100%;
-    overflow: hidden;
-}
-
-.gallery-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s ease;
-}
-
-.gallery-item:hover .gallery-image {
-    transform: scale(1.05);
-}
-
-.gallery-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(0,0,0,0.8));
-    color: var(--light-text);
-    padding: 1rem;
-    transform: translateY(100%);
-    transition: transform 0.3s ease;
-}
-
-.gallery-item:hover .gallery-overlay {
-    transform: translateY(0);
-}
-
-.gallery-overlay h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-}
-
-.gallery-overlay p {
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-
-.gallery-message {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 2rem;
-    color: var(--text-color);
-    font-style: italic;
-}
-
-/* Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal.active {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background-color: white;
-    margin: 10% auto;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    width: 90%;
-    max-width: 500px;
-    position: relative;
-    animation: modalFadeIn 0.3s ease;
-}
-
-@keyframes modalFadeIn {
-    from {opacity: 0; transform: translateY(-20px);}
-    to {opacity: 1; transform: translateY(0);}
-}
-
-/* Feedback Button */
-.feedback-btn {
-    position: fixed;
-    bottom: 2rem;
-    left: 2rem;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    padding: 10px 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    z-index: 900;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-}
-
-.feedback-btn:hover {
-    background-color: var(--secondary-color);
-    transform: translateY(-2px);
-}
-
-.feedback-btn i {
-    font-size: 16px;
-}
-
-/* Rating Input Styling */
-.rating {
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: flex-end;
-    margin: 10px 0;
-}
-
-.rating input {
-    display: none;
-}
-
-.rating label {
-    font-size: 30px;
-    color: #ddd;
-    cursor: pointer;
-    margin: 0 2px;
-}
-
-.rating input:checked ~ label {
-    color: #ffc107;
-}
-
-.rating label:hover,
-.rating label:hover ~ label {
-    color: #ffc107;
-}
-
-/* Improved Map Modal Styles */
+/* Map Modal Styles */
 #mapModal, .map-modal {
     display: none;
     position: fixed;
@@ -2035,12 +1383,14 @@ img {
 }
 
 #modalMap {
-    height: 400px;
-    width: 100%;
+    height: 400px !important;
+    width: 100% !important;
     border-radius: 4px;
     border: 1px solid #ddd;
     margin-bottom: 15px;
     z-index: 1;
+    background-color: #f0f0f0;
+    position: relative;
 }
 
 .map-modal-footer {
@@ -2051,22 +1401,45 @@ img {
 }
 
 .confirm-location-btn {
-    background-color: #4CAF50;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-/* Make sure Leaflet container is visible */
+.confirm-location-btn:hover {
+    background-color: #008b8b;
+}
+
+/* Leaflet map styles */
 .leaflet-container {
-    z-index: 1;
     height: 100%;
     width: 100%;
 }
 
+.destination-marker {
+    background: transparent;
+    border: none;
+}
+
+.dest-marker-inner {
+    background-color: rgba(0, 166, 166, 0.8);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* 确保响应式样式适用于地图模态窗口 */
 @media (max-width: 768px) {
     .map-modal-content {
         width: 95%;
@@ -2164,4 +1537,128 @@ img {
 
 #fareResult {
     border-left: 4px solid var(--accent-color);
-} 
+}
+
+/* 地图常见问题修复 */
+.leaflet-container {
+    height: 100% !important;
+    width: 100% !important;
+    z-index: 1 !important;
+}
+
+/* 确保控件正确显示 */
+.leaflet-control-container {
+    z-index: 800 !important;
+}
+
+/* 调整模态窗口显示动画 */
+#mapModal, .map-modal {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* 确保地图按钮样式正确 */
+.map-select-btn {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 15px !important;
+    cursor: pointer !important;
+    border-radius: 4px !important;
+    font-weight: bold !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.map-select-btn:hover {
+    background-color: #008080 !important;
+}
+
+/* 确保地图输入框样式正确 */
+.map-input {
+    flex: 1 !important;
+    padding: 10px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    font-size: 1rem !important;
+}
+
+/* 目的地标记样式 */
+.destination-marker {
+    background: transparent;
+    border: none;
+}
+
+.dest-marker-inner {
+    background-color: rgba(0, 166, 166, 0.8);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* 确保距离和价格显示正确 */
+#distance, #fareResult {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+#fareResult {
+    border-left: 4px solid var(--accent-color);
+}
+
+/* Critical Map Modal Styles - DO NOT MODIFY */
+#mapModal.active, .map-modal.active {
+    display: flex !important;
+    z-index: 10000 !important;
+}
+
+#mapModal .map-modal-content, .map-modal .map-modal-content {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 90vh !important;
+    width: 90% !important;
+    max-width: 800px !important;
+}
+
+#modalMap {
+    height: 400px !important;
+    min-height: 400px !important;
+    width: 100% !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 1 !important;
+    overflow: hidden !important;
+}
+
+/* Ensure Leaflet components are visible */
+.leaflet-container {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+.leaflet-control-container {
+    z-index: 1000 !important;
+}
+
+/* Required marker styles */
+.leaflet-marker-icon {
+    z-index: 1000 !important;
+}
+
+.leaflet-popup {
+    z-index: 1001 !important;
+}
+
+/* Bottom footer rules */ 

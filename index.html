@@ -573,7 +573,7 @@
     <div id="mapModal" class="map-modal">
         <div class="map-modal-content">
             <div class="map-modal-header">
-                <h3 id="mapModalTitle">Select Location on Map</h3>
+                <h3 id="mapModalTitle">Select Pickup Location</h3>
                 <button id="closeMapModal" class="close-map-btn">&times;</button>
             </div>
             <div class="map-modal-body">
@@ -581,7 +581,7 @@
                     <input type="text" id="mapSearchInput" placeholder="Search for a location in Sri Lanka">
                     <button id="mapSearchBtn"><i class="fas fa-search"></i></button>
                 </div>
-                <div id="modalMap"></div>
+                <div id="modalMap" style="height: 400px; width: 100%; display: block;"></div>
                 <p style="margin: 0 0 10px; font-size: 14px; color: #666;">
                     <i class="fas fa-info-circle"></i> Click on the map to select a location or use the search box above to find a specific place in Sri Lanka.
                 </p>
@@ -589,6 +589,9 @@
             <div class="map-modal-footer">
                 <button id="confirmLocationBtn" class="confirm-location-btn">
                     <i class="fas fa-check"></i> Confirm Location
+                </button>
+                <button id="debugMapBtn" style="margin-left: 10px; background-color: #f0ad4e; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">
+                    <i class="fas fa-bug"></i> Debug Map
                 </button>
             </div>
         </div>
@@ -601,6 +604,35 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <!-- Custom Map JS -->
     <script src="js/map.js"></script>
+    <!-- Force Leaflet Load -->
+    <script>
+        // Force check for Leaflet loading
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Checking Leaflet status:', typeof L !== 'undefined' ? 'Loaded' : 'Not loaded');
+            
+            // If Leaflet is not loaded, try to load it again
+            if (typeof L === 'undefined') {
+                console.log('Attempting to load Leaflet again');
+                var script = document.createElement('script');
+                script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+                script.crossOrigin = '';
+                
+                script.onload = function() {
+                    console.log('Leaflet loaded successfully');
+                    // Wait a moment, then try to initialize the map
+                    setTimeout(function() {
+                        if (typeof initMap === 'function') {
+                            console.log('Attempting to initialize map after Leaflet load');
+                            initMap();
+                        }
+                    }, 500);
+                };
+                
+                document.head.appendChild(script);
+            }
+        });
+    </script>
     <!-- AOS Animations -->
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
