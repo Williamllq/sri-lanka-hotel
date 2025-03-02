@@ -13,6 +13,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginError = document.getElementById('loginError');
     const rememberCheckbox = document.getElementById('remember');
     
+    // Get references to the icons
+    const usernameIcon = document.querySelector('.form-group:nth-child(1) .input-group i');
+    const passwordIcon = document.querySelector('.form-group:nth-child(2) .input-group i');
+    
+    // Function to toggle icon visibility based on input value
+    function toggleIconVisibility(input, icon) {
+        if (input.value.trim() !== '') {
+            icon.style.display = 'none';
+        } else {
+            icon.style.display = 'block';
+        }
+    }
+    
+    // Hide username icon if there's a saved username
+    if (localStorage.getItem('adminRememberUsername')) {
+        usernameIcon.style.display = 'none';
+    }
+    
+    // Add input event listeners to hide icons when typing
+    usernameInput.addEventListener('input', function() {
+        toggleIconVisibility(usernameInput, usernameIcon);
+    });
+    
+    passwordInput.addEventListener('input', function() {
+        toggleIconVisibility(passwordInput, passwordIcon);
+    });
+    
     // Set focus on username field
     usernameInput.focus();
     
@@ -41,13 +68,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validate inputs
         if (!username) {
-            showError('Bitte geben Sie einen Benutzernamen ein.');
+            showError('Please enter a username.');
             usernameInput.focus();
             return;
         }
         
         if (!password) {
-            showError('Bitte geben Sie ein Passwort ein.');
+            showError('Please enter a password.');
             passwordInput.focus();
             return;
         }
@@ -77,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show success message before redirect
             const successMessage = document.createElement('div');
             successMessage.className = 'login-success';
-            successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Anmeldung erfolgreich. Sie werden weitergeleitet...';
+            successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Login successful. Redirecting...';
             successMessage.style.backgroundColor = '#f0fff5';
             successMessage.style.color = '#28a745';
             successMessage.style.padding = '12px 15px';
@@ -101,10 +128,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1500);
         } else {
             // Login failed
-            showError('Ungültiger Benutzername oder Passwort. Bitte versuchen Sie es erneut.');
+            showError('Invalid username or password. Please try again.');
             
             // Clear password
             passwordInput.value = '';
+            
+            // Check icon visibility after clearing password
+            toggleIconVisibility(passwordInput, passwordIcon);
             
             // Focus on username field if empty, otherwise focus on password
             if (!username) {
@@ -131,4 +161,13 @@ document.addEventListener('DOMContentLoaded', function() {
             loginError.style.display = 'none';
         }, 4000);
     }
+
+    // Add focus and blur events to check for empty fields
+    usernameInput.addEventListener('blur', function() {
+        toggleIconVisibility(usernameInput, usernameIcon);
+    });
+
+    passwordInput.addEventListener('blur', function() {
+        toggleIconVisibility(passwordInput, passwordIcon);
+    });
 }); 
