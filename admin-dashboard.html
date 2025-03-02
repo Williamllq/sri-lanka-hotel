@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Dashboard - Sri Lanka Stay & Explore</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <div class="admin-sidebar">
+            <div class="sidebar-header">
+                <img src="./images/ranga_bandara_logo_v2.png" alt="Ranga Bandara Logo" class="sidebar-logo">
+                <h3>Admin Panel</h3>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="active" data-section="dashboard">
+                    <a href="#dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                </li>
+                <li data-section="pictures">
+                    <a href="#pictures"><i class="fas fa-images"></i> Manage Pictures</a>
+                </li>
+                <li data-section="carousel">
+                    <a href="#carousel"><i class="fas fa-sliders-h"></i> Image Carousel</a>
+                </li>
+                <li data-section="hotels">
+                    <a href="#hotels"><i class="fas fa-hotel"></i> Hotel Recommendations</a>
+                </li>
+                <li data-section="settings">
+                    <a href="#settings"><i class="fas fa-cog"></i> Settings</a>
+                </li>
+                <li class="logout">
+                    <a href="#" id="logoutButton"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <a href="index.html" target="_blank"><i class="fas fa-globe"></i> View Website</a>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="admin-content">
+            <div class="admin-topbar">
+                <button id="sidebarToggle" class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="admin-user">
+                    <span id="lastLoginTime">Last login: N/A</span>
+                    <div class="user-info">
+                        <span>Admin</span>
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Section -->
+            <div class="admin-section active" id="dashboardSection">
+                <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h4>Total Visits</h4>
+                        <div class="stat-number" id="totalVisits">0</div>
+                        <div class="stat-chart" id="visitsChart"></div>
+                    </div>
+                    <div class="stat-box">
+                        <h4>Bookings</h4>
+                        <div class="stat-number" id="totalBookings">0</div>
+                        <div class="stat-chart" id="bookingsChart"></div>
+                    </div>
+                    <div class="stat-box">
+                        <h4>Average Rating</h4>
+                        <div class="stat-number" id="avgRating">0.0</div>
+                        <div class="stat-chart" id="ratingsChart"></div>
+                    </div>
+                    <div class="stat-box">
+                        <h4>Popular Routes</h4>
+                        <div class="stat-list" id="popularRoutes"></div>
+                    </div>
+                </div>
+                
+                <div class="recent-feedback">
+                    <h4>Recent Feedback</h4>
+                    <div id="feedbackList"></div>
+                </div>
+            </div>
+            
+            <!-- Pictures Management Section -->
+            <div class="admin-section" id="picturesSection">
+                <h2><i class="fas fa-images"></i> Manage Pictures</h2>
+                
+                <div class="action-buttons">
+                    <button class="admin-btn primary" id="uploadPictureBtn">
+                        <i class="fas fa-upload"></i> Upload Picture
+                    </button>
+                    <button class="admin-btn" id="organizePicturesBtn">
+                        <i class="fas fa-folder"></i> Organize Folders
+                    </button>
+                </div>
+                
+                <div class="picture-categories">
+                    <select id="pictureCategory">
+                        <option value="all">All Pictures</option>
+                        <option value="scenery">Scenery</option>
+                        <option value="hotel">Hotels</option>
+                        <option value="wildlife">Wildlife</option>
+                        <option value="transport">Transport</option>
+                    </select>
+                </div>
+                
+                <div class="picture-grid" id="pictureGrid">
+                    <!-- Pictures will be loaded here dynamically -->
+                </div>
+                
+                <!-- Upload Picture Modal -->
+                <div id="uploadModal" class="admin-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Upload New Picture</h3>
+                            <button class="close-modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="uploadPictureForm">
+                                <div class="form-group">
+                                    <label for="pictureFile">Select Image</label>
+                                    <input type="file" id="pictureFile" accept="image/*" required>
+                                    <div class="file-preview" id="filePreview"></div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="pictureName">Image Name</label>
+                                    <input type="text" id="pictureName" placeholder="Enter image name" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="pictureCategory">Category</label>
+                                    <select id="uploadCategory">
+                                        <option value="scenery">Scenery</option>
+                                        <option value="hotel">Hotels</option>
+                                        <option value="wildlife">Wildlife</option>
+                                        <option value="transport">Transport</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="pictureDescription">Description (optional)</label>
+                                    <textarea id="pictureDescription" rows="3"></textarea>
+                                </div>
+                                
+                                <button type="submit" class="admin-btn primary">Upload Image</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Carousel Management Section -->
+            <div class="admin-section" id="carouselSection">
+                <h2><i class="fas fa-sliders-h"></i> Image Carousel</h2>
+                
+                <div class="action-buttons">
+                    <button class="admin-btn primary" id="addToCarouselBtn">
+                        <i class="fas fa-plus"></i> Add Image to Carousel
+                    </button>
+                    <button class="admin-btn" id="saveCarouselOrderBtn">
+                        <i class="fas fa-save"></i> Save Order
+                    </button>
+                </div>
+                
+                <div class="carousel-preview">
+                    <h3>Current Carousel Images</h3>
+                    <p>Drag to reorder images in the carousel</p>
+                    
+                    <div class="carousel-images-container">
+                        <div class="carousel-images" id="carouselImagesList">
+                            <!-- Carousel images will be loaded here dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Add to Carousel Modal -->
+                <div id="carouselModal" class="admin-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Select Image for Carousel</h3>
+                            <button class="close-modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="select-picture-grid" id="selectPictureGrid">
+                                <!-- Pictures will be loaded here dynamically -->
+                            </div>
+                            
+                            <div class="modal-actions">
+                                <button class="admin-btn secondary" id="cancelSelectBtn">Cancel</button>
+                                <button class="admin-btn primary" id="confirmSelectBtn">Add Selected</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hotel Recommendations Section -->
+            <div class="admin-section" id="hotelsSection">
+                <h2><i class="fas fa-hotel"></i> Hotel Recommendations</h2>
+                
+                <div class="action-buttons">
+                    <button class="admin-btn primary" id="addHotelBtn">
+                        <i class="fas fa-plus"></i> Add New Hotel
+                    </button>
+                </div>
+                
+                <div class="hotels-grid" id="hotelsGrid">
+                    <!-- Hotels will be loaded here dynamically -->
+                </div>
+                
+                <!-- Add/Edit Hotel Modal -->
+                <div id="hotelModal" class="admin-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 id="hotelModalTitle">Add New Hotel</h3>
+                            <button class="close-modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="hotelForm">
+                                <input type="hidden" id="hotelId">
+                                
+                                <div class="form-group">
+                                    <label for="hotelName">Hotel Name</label>
+                                    <input type="text" id="hotelName" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="hotelLocation">Location</label>
+                                    <input type="text" id="hotelLocation" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="hotelPrice">Price Range</label>
+                                    <input type="text" id="hotelPrice" placeholder="e.g. $100-200/night" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="hotelRating">Rating</label>
+                                    <select id="hotelRating">
+                                        <option value="5">5 Stars</option>
+                                        <option value="4">4 Stars</option>
+                                        <option value="3">3 Stars</option>
+                                        <option value="2">2 Stars</option>
+                                        <option value="1">1 Star</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="hotelDescription">Description</label>
+                                    <textarea id="hotelDescription" rows="4" required></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="hotelImage">Hotel Image</label>
+                                    <input type="file" id="hotelImage" accept="image/*">
+                                    <div class="file-preview" id="hotelImagePreview"></div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="hotelAmenities">Amenities (comma-separated)</label>
+                                    <input type="text" id="hotelAmenities" placeholder="WiFi, Pool, Restaurant" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="hotelWebsite">Website URL (optional)</label>
+                                    <input type="url" id="hotelWebsite" placeholder="https://hotelwebsite.com">
+                                </div>
+                                
+                                <button type="submit" class="admin-btn primary" id="saveHotelBtn">Save Hotel</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Section -->
+            <div class="admin-section" id="settingsSection">
+                <h2><i class="fas fa-cog"></i> Settings</h2>
+                
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label for="adminUsername">Admin Username</label>
+                        <input type="text" id="adminUsername" value="admin">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="adminPassword">Change Password</label>
+                        <input type="password" id="adminPassword" placeholder="Enter new password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                    </div>
+                    
+                    <button type="button" class="admin-btn primary" id="saveSettingsBtn">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+</html> 
