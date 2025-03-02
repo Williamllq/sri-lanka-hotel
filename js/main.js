@@ -73,13 +73,15 @@ function initCarousel() {
         prevButton.disabled = currentIndex === 0;
         prevButton.style.opacity = currentIndex === 0 ? '0.5' : '1';
         
-        nextButton.disabled = currentIndex >= slides.length - updateSlidesToShow();
-        nextButton.style.opacity = currentIndex >= slides.length - updateSlidesToShow() ? '0.5' : '1';
+        const maxIndex = Math.max(0, slides.length - updateSlidesToShow());
+        nextButton.disabled = currentIndex >= maxIndex;
+        nextButton.style.opacity = currentIndex >= maxIndex ? '0.5' : '1';
     }
     
     // 监听按钮点击
     nextButton.addEventListener('click', () => {
-        if (currentIndex < slides.length - updateSlidesToShow()) {
+        const maxIndex = Math.max(0, slides.length - updateSlidesToShow());
+        if (currentIndex < maxIndex) {
             moveToSlide(currentIndex + 1);
         }
     });
