@@ -35,7 +35,11 @@ function setupMapEventListeners() {
     const closeButtons = document.getElementsByClassName('close-modal');
     for (let i = 0; i < closeButtons.length; i++) {
         closeButtons[i].addEventListener('click', function() {
-            this.closest('.modal').style.display = 'none';
+            const modal = this.closest('.map-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+            }
         });
     }
     
@@ -53,6 +57,17 @@ function setupMapEventListeners() {
     const confirmBtn = document.querySelector('.map-modal button.btn');
     if (confirmBtn) {
         confirmBtn.addEventListener('click', confirmLocation);
+    }
+    
+    // Allow clicking outside the modal content to close it
+    const mapModal = document.getElementById('mapModal');
+    if (mapModal) {
+        mapModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+                this.classList.remove('active');
+            }
+        });
     }
 }
 
@@ -207,7 +222,8 @@ function openMap(field) {
     }
     
     // Show modal
-    mapModal.style.display = 'block';
+    mapModal.style.display = 'flex';
+    mapModal.classList.add('active');
     
     // Initialize map after modal is visible
     setTimeout(() => {
@@ -255,6 +271,7 @@ function confirmLocation() {
             const mapModal = document.getElementById('mapModal');
             if (mapModal) {
                 mapModal.style.display = 'none';
+                mapModal.classList.remove('active');
             }
         })
         .catch(error => {

@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 </head>
 <body>
     <div class="admin-layout">
@@ -551,4 +552,21 @@
         </div>
     </div>
 </body>
+<!-- Add Map Modal for Location Selection -->
+<div id="mapModal" class="map-modal">
+    <div class="map-modal-content">
+        <span class="close-modal">&times;</span>
+        <h3>Select Location</h3>
+        <div class="map-search">
+            <input type="text" id="searchLocation" placeholder="Search for a location">
+            <button id="searchLocationBtn"><i class="fas fa-search"></i></button>
+        </div>
+        <div id="map"></div>
+        <button id="confirmLocationBtn" class="admin-btn primary">Confirm Location</button>
+    </div>
+</div>
+
+<!-- Include necessary map scripts -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="js/map.js"></script>
 </html> 
