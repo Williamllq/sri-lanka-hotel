@@ -3,6 +3,7 @@ let marker = null;
 let currentField = null;
 let pickupMarker = null;
 let destinationMarker = null;
+let routeLayer = null;
 
 // Initialize map
 document.addEventListener('DOMContentLoaded', function() {
@@ -262,19 +263,68 @@ function confirmLocation() {
         });
 }
 
-// Calculate distance between pickup and destination
+// Calculate distance between two markers and make it available globally
 function calculateDistance() {
     if (pickupMarker && destinationMarker) {
-        const distance = pickupMarker.getLatLng().distanceTo(destinationMarker.getLatLng()) / 1000;
+        // Use the Haversine formula to calculate distance between two points
+        const lat1 = pickupMarker.getLatLng().lat;
+        const lon1 = pickupMarker.getLatLng().lng;
+        const lat2 = destinationMarker.getLatLng().lat;
+        const lon2 = destinationMarker.getLatLng().lng;
+        
+        // Haversine formula
+        const R = 6371; // Radius of the Earth in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c; // Distance in km
+        
         console.log(`Distance: ${distance.toFixed(2)} km`);
         
-        // Update price estimate if available
-        const priceElement = document.querySelector('.price-estimate');
-        if (priceElement) {
-            const baseFare = 30;
-            const ratePerKm = 0.5;
-            const estimatedPrice = baseFare + (distance * ratePerKm);
-            priceElement.textContent = `Estimated Price: $${estimatedPrice.toFixed(2)}`;
+        // Set global variable for transport calculator
+        window.calculatedDistance = parseFloat(distance.toFixed(2));
+        
+        return distance;
+    }
+    return 0;
+}
+
+// Add route between markers
+function addRoute() {
+    if (pickupMarker && destinationMarker) {
+        // Remove existing route if any
+        if (routeLayer) {
+            map.removeLayer(routeLayer);
+        }
+        
+        // Create a polyline between the two markers
+        const latlngs = [
+            pickupMarker.getLatLng(),
+            destinationMarker.getLatLng()
+        ];
+        
+        routeLayer = L.polyline(latlngs, {color: 'blue'}).addTo(map);
+        
+        // Fit bounds to see both markers
+        map.fitBounds(routeLayer.getBounds().pad(0.1));
+        
+        // Calculate and display distance
+        const distance = calculateDistance();
+        
+        // Update distance display if the element exists
+        const distanceDisplay = document.getElementById('distance');
+        if (distanceDisplay) {
+            distanceDisplay.textContent = `Distance: ${distance.toFixed(2)} km`;
+            distanceDisplay.style.display = 'block';
+        }
+        
+        // If on the booking page, update the cost calculation
+        if (typeof calculatePrice === 'function') {
+            calculatePrice();
         }
     }
 } 

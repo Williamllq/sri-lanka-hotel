@@ -355,4 +355,342 @@ function initCarousel() {
     // 初始化
     setupCarousel();
     console.log("Carousel initialization complete");
-} 
+}
+
+// Function to initialize the Discover More section
+function initDiscoverMore() {
+    console.log('Initializing Discover More section...');
+    
+    // Initialize the tabs
+    const discoverTabs = document.querySelectorAll('.discover-tab');
+    const discoverContents = document.querySelectorAll('.discover-content');
+    
+    discoverTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active class from all tabs and content
+            discoverTabs.forEach(t => t.classList.remove('active'));
+            discoverContents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Show corresponding content
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+    
+    // Load content from localStorage
+    loadArticles();
+    loadVideos();
+    loadLinks();
+}
+
+// Load articles from localStorage
+function loadArticles() {
+    const articlesGrid = document.getElementById('articlesGrid');
+    if (!articlesGrid) return;
+    
+    const articles = JSON.parse(localStorage.getItem('siteArticles') || '[]');
+    
+    if (articles.length === 0) {
+        articlesGrid.innerHTML = '<p class="no-content">No articles available yet. Check back soon!</p>';
+        return;
+    }
+    
+    articlesGrid.innerHTML = '';
+    
+    // Get the 6 most recent articles
+    articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const displayArticles = articles.slice(0, 6);
+    
+    displayArticles.forEach(article => {
+        const articleCard = document.createElement('div');
+        articleCard.className = 'discover-card article-card';
+        
+        const articleUrl = article.externalLink || '#';
+        const targetAttr = article.externalLink ? ' target="_blank"' : '';
+        
+        articleCard.innerHTML = `
+            <a href="${articleUrl}"${targetAttr}>
+                <div class="discover-card-img">
+                    <img src="${article.imageUrl || 'images/placeholder-article.jpg'}" alt="${article.title}">
+                </div>
+                <div class="discover-card-content">
+                    <h3>${article.title}</h3>
+                    <p>${article.description.substring(0, 120)}${article.description.length > 120 ? '...' : ''}</p>
+                    <span class="read-more">Read More</span>
+                </div>
+            </a>
+        `;
+        
+        articlesGrid.appendChild(articleCard);
+    });
+    
+    // Add "Load More" button if we have more articles
+    if (articles.length > 6) {
+        const loadMoreBtn = document.createElement('button');
+        loadMoreBtn.className = 'load-more-btn';
+        loadMoreBtn.textContent = 'Load More Articles';
+        loadMoreBtn.addEventListener('click', function() {
+            // In a real application, you would load more articles here
+            alert('Load more functionality would be implemented here in a full application');
+        });
+        articlesGrid.parentElement.appendChild(loadMoreBtn);
+    }
+}
+
+// Load videos from localStorage
+function loadVideos() {
+    const videosGrid = document.getElementById('videosGrid');
+    if (!videosGrid) return;
+    
+    const videos = JSON.parse(localStorage.getItem('siteVideos') || '[]');
+    
+    if (videos.length === 0) {
+        videosGrid.innerHTML = '<p class="no-content">No videos available yet. Check back soon!</p>';
+        return;
+    }
+    
+    videosGrid.innerHTML = '';
+    
+    // Get the 6 most recent videos
+    videos.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const displayVideos = videos.slice(0, 6);
+    
+    displayVideos.forEach(video => {
+        const videoCard = document.createElement('div');
+        videoCard.className = 'discover-card video-card';
+        
+        // Create a YouTube thumbnail URL if it's a YouTube video
+        let thumbnailUrl = video.thumbnailUrl;
+        if (!thumbnailUrl && video.videoUrl.includes('youtube.com')) {
+            const videoId = video.videoUrl.split('v=')[1]?.split('&')[0];
+            if (videoId) {
+                thumbnailUrl = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+            }
+        }
+        
+        videoCard.innerHTML = `
+            <div class="discover-card-img" data-video-url="${video.videoUrl}">
+                <img src="${thumbnailUrl || 'images/placeholder-video.jpg'}" alt="${video.title}">
+                <div class="play-button">
+                    <i class="fas fa-play-circle"></i>
+                </div>
+            </div>
+            <div class="discover-card-content">
+                <h3>${video.title}</h3>
+                <p>${video.description.substring(0, 120)}${video.description.length > 120 ? '...' : ''}</p>
+            </div>
+        `;
+        
+        // Add click handler to play the video
+        const videoImg = videoCard.querySelector('.discover-card-img');
+        videoImg.addEventListener('click', function() {
+            const videoUrl = this.getAttribute('data-video-url');
+            
+            // Simple modal for playing the video
+            const videoModal = document.createElement('div');
+            videoModal.className = 'video-modal';
+            
+            let videoEmbed;
+            if (videoUrl.includes('youtube.com')) {
+                const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+                if (videoId) {
+                    videoEmbed = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                }
+            } else if (videoUrl.includes('vimeo.com')) {
+                const videoId = videoUrl.split('vimeo.com/')[1];
+                if (videoId) {
+                    videoEmbed = `<iframe src="https://player.vimeo.com/video/${videoId}?autoplay=1" width="560" height="315" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+                }
+            } else {
+                videoEmbed = `<video controls autoplay><source src="${videoUrl}" type="video/mp4">Your browser does not support the video tag.</video>`;
+            }
+            
+            videoModal.innerHTML = `
+                <div class="video-modal-content">
+                    <span class="close-video">&times;</span>
+                    <div class="video-container">
+                        ${videoEmbed}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(videoModal);
+            
+            // Close modal functionality
+            const closeBtn = videoModal.querySelector('.close-video');
+            closeBtn.addEventListener('click', function() {
+                document.body.removeChild(videoModal);
+            });
+            
+            // Close by clicking outside
+            videoModal.addEventListener('click', function(e) {
+                if (e.target === videoModal) {
+                    document.body.removeChild(videoModal);
+                }
+            });
+        });
+        
+        videosGrid.appendChild(videoCard);
+    });
+    
+    // Add "Load More" button if we have more videos
+    if (videos.length > 6) {
+        const loadMoreBtn = document.createElement('button');
+        loadMoreBtn.className = 'load-more-btn';
+        loadMoreBtn.textContent = 'Load More Videos';
+        loadMoreBtn.addEventListener('click', function() {
+            // In a real application, you would load more videos here
+            alert('Load more functionality would be implemented here in a full application');
+        });
+        videosGrid.parentElement.appendChild(loadMoreBtn);
+    }
+}
+
+// Load links from localStorage
+function loadLinks() {
+    const linksGrid = document.getElementById('linksGrid');
+    if (!linksGrid) return;
+    
+    const links = JSON.parse(localStorage.getItem('siteLinks') || '[]');
+    
+    if (links.length === 0) {
+        linksGrid.innerHTML = '<p class="no-content">No links available yet. Check back soon!</p>';
+        return;
+    }
+    
+    linksGrid.innerHTML = '';
+    
+    // Sort by date, newest first
+    links.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    links.forEach(link => {
+        const linkCard = document.createElement('div');
+        linkCard.className = 'link-card';
+        
+        linkCard.innerHTML = `
+            <a href="${link.url}" target="_blank" rel="noopener noreferrer">
+                <i class="${link.icon || 'fas fa-link'}"></i>
+                <div class="link-content">
+                    <h3>${link.title}</h3>
+                    <p>${link.description}</p>
+                </div>
+                <i class="fas fa-external-link-alt external-icon"></i>
+            </a>
+        `;
+        
+        linksGrid.appendChild(linkCard);
+    });
+}
+
+// Initialize transport price calculation functionality
+function initTransportCalculation() {
+    console.log('Initializing transport calculation...');
+    
+    const calculateButton = document.getElementById('calculateFareBtn');
+    if (!calculateButton) return;
+    
+    calculateButton.addEventListener('click', calculatePrice);
+}
+
+// Function to calculate the transportation price
+function calculatePrice() {
+    // Get the inputs
+    const pickupLocation = document.getElementById('pickupLocation').value;
+    const destinationLocation = document.getElementById('destinationLocation').value;
+    const tripDate = document.getElementById('tripDate').value;
+    const tripTime = document.getElementById('tripTime').value;
+    const vehicleType = document.querySelector('input[name="vehicleType"]:checked')?.value || 'sedan';
+    
+    if (!pickupLocation || !destinationLocation) {
+        alert('Please enter both pickup and destination locations');
+        return;
+    }
+    
+    // Get distance (in a real app, this would come from the Maps API)
+    // For demo purposes, we'll use the distance from the map.js or a fallback value
+    let distance = window.calculatedDistance || 10; // km
+    
+    // Get transport settings from localStorage
+    const defaultSettings = {
+        baseFare: 30,
+        ratePerKm: 0.5,
+        rushHourMultiplier: 1.5,
+        nightMultiplier: 1.3,
+        weekendMultiplier: 1.2,
+        vehicleRates: {
+            sedan: 1.0,
+            suv: 1.5,
+            van: 1.8,
+            luxury: 2.2
+        }
+    };
+    
+    const settings = JSON.parse(localStorage.getItem('transportSettings') || JSON.stringify(defaultSettings));
+    
+    // Calculate base price
+    let price = settings.baseFare + (distance * settings.ratePerKm);
+    
+    // Apply vehicle type multiplier
+    price *= settings.vehicleRates[vehicleType];
+    
+    // Check if rush hour, night time, or weekend
+    if (tripDate && tripTime) {
+        const tripDateTime = new Date(`${tripDate}T${tripTime}`);
+        const hour = tripDateTime.getHours();
+        const day = tripDateTime.getDay();
+        
+        // Rush hour: 7-9 AM or 4-6 PM on weekdays
+        if ((hour >= 7 && hour <= 9) || (hour >= 16 && hour <= 18)) {
+            if (day >= 1 && day <= 5) {
+                price *= settings.rushHourMultiplier;
+            }
+        }
+        
+        // Night time: 10 PM - 6 AM
+        if (hour >= 22 || hour <= 6) {
+            price *= settings.nightMultiplier;
+        }
+        
+        // Weekend: Saturday and Sunday
+        if (day === 0 || day === 6) {
+            price *= settings.weekendMultiplier;
+        }
+    }
+    
+    // Display the result
+    const resultElement = document.getElementById('fareResult');
+    if (resultElement) {
+        resultElement.textContent = `Estimated fare: $${price.toFixed(2)}`;
+        resultElement.style.display = 'block';
+    }
+    
+    return price;
+}
+
+// Call initialization functions when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the navigation menu
+    initNavigation();
+    
+    // Initialize the image showcase carousel
+    initImageCarousel();
+    
+    // Initialize gallery images from localStorage
+    displayAdminImages();
+    
+    // Initialize the discover more tabs and content
+    initDiscoverMore();
+    
+    // Initialize transport price calculation
+    initTransportCalculation();
+    
+    // Initialize the animation on scroll
+    AOS.init({
+        duration: 800,
+        easing: 'ease-in-out',
+        once: true
+    });
+}); 

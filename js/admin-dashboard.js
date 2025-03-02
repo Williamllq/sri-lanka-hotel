@@ -48,33 +48,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Initial call and window resize event
+    // Initially handle responsive design
     handleResponsive();
     window.addEventListener('resize', handleResponsive);
     
-    // Navigation functionality
+    // Handle sidebar navigation
     sidebarMenuItems.forEach(item => {
-        item.addEventListener('click', function(e) {
+        item.addEventListener('click', function(event) {
             if (this.classList.contains('logout')) return;
             
-            e.preventDefault();
+            event.preventDefault();
             
-            // Remove active class from all items
-            sidebarMenuItems.forEach(menuItem => {
-                menuItem.classList.remove('active');
-            });
+            // Remove active class from all menu items and sections
+            sidebarMenuItems.forEach(menuItem => menuItem.classList.remove('active'));
+            adminSections.forEach(section => section.classList.remove('active'));
             
             // Add active class to clicked item
             this.classList.add('active');
             
-            // Show the corresponding section
-            const sectionId = this.getAttribute('data-section') + 'Section';
-            
-            adminSections.forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            document.getElementById(sectionId).classList.add('active');
+            // Show corresponding section
+            const sectionId = this.getAttribute('data-section');
+            document.getElementById(sectionId + 'Section').classList.add('active');
             
             // On mobile, collapse sidebar after selection
             if (window.innerWidth < 992) {
@@ -103,8 +97,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize carousel management
     initCarouselManagement();
     
+    // Initialize content management
+    initContentManagement();
+    
     // Initialize hotel management
     initHotelManagement();
+    
+    // Initialize transport settings
+    initTransportSettings();
     
     // Initialize settings
     initSettings();
@@ -167,35 +167,68 @@ function initPictureManagement() {
     
     // Get pictures from localStorage or use mock data if none exists
     let storedPictures = localStorage.getItem('sitePictures');
-    let mockPictures = storedPictures ? JSON.parse(storedPictures) : [
-        { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
-        { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg' },
-        { id: 3, name: 'Cinnamon Grand Hotel', category: 'hotel', url: 'images/cinnamon-grand.jpg' },
-        { id: 4, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/elephant.jpg' },
-        { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
-    ];
+    let mockPictures = [];
     
-    console.log("Loaded pictures from localStorage:", mockPictures.length);
+    try {
+        mockPictures = storedPictures ? JSON.parse(storedPictures) : [
+            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
+            { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg' },
+            { id: 3, name: 'Cinnamon Grand Hotel', category: 'hotel', url: 'images/cinnamon-grand.jpg' },
+            { id: 4, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/elephant.jpg' },
+            { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
+        ];
+        console.log("Loaded pictures from localStorage:", mockPictures.length);
+        console.log("First picture URL length: ", mockPictures[0]?.url?.length || 0);
+    } catch (error) {
+        console.error("Error loading pictures from localStorage:", error);
+        mockPictures = [
+            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
+            { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg' },
+            { id: 3, name: 'Cinnamon Grand Hotel', category: 'hotel', url: 'images/cinnamon-grand.jpg' },
+            { id: 4, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/elephant.jpg' },
+            { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
+        ];
+    }
     
     // Save pictures to localStorage whenever they change
     function savePictures() {
-        localStorage.setItem('sitePictures', JSON.stringify(mockPictures));
-        console.log("Saved pictures to localStorage:", mockPictures.length);
+        try {
+            const jsonString = JSON.stringify(mockPictures);
+            console.log("Saving pictures to localStorage. Size:", jsonString.length / 1024, "KB");
+            
+            // Check if we're approaching localStorage limits (usually around 5MB)
+            if (jsonString.length > 4 * 1024 * 1024) {
+                console.warn("WARNING: localStorage size is getting large:", jsonString.length / (1024 * 1024), "MB");
+                alert("Warning: Your image storage is getting full. Consider removing some older images.");
+            }
+            
+            localStorage.setItem('sitePictures', jsonString);
+            console.log("Saved pictures to localStorage:", mockPictures.length);
+            return true;
+        } catch (error) {
+            console.error("Error saving pictures to localStorage:", error);
+            alert("Failed to save images. Your browser storage might be full. Try removing some existing images first.");
+            return false;
+        }
     }
     
     // Compress image to reduce storage size
-    function compressImage(dataURL, maxWidth = 1200, quality = 0.7) {
+    function compressImage(dataURL, maxWidth = 800, quality = 0.6) {
         return new Promise((resolve, reject) => {
+            console.log("Starting image compression...");
             const img = new Image();
             img.onload = function() {
                 // Calculate new dimensions
                 let width = img.width;
                 let height = img.height;
                 
+                console.log("Original image dimensions:", width, "x", height);
+                
                 if (width > maxWidth) {
                     const ratio = maxWidth / width;
                     width = maxWidth;
                     height = height * ratio;
+                    console.log("Resizing to:", width, "x", height);
                 }
                 
                 // Create canvas and resize image
@@ -209,9 +242,11 @@ function initPictureManagement() {
                 
                 // Get compressed data URL
                 const compressedDataURL = canvas.toDataURL('image/jpeg', quality);
+                console.log("Compression complete. Original size:", dataURL.length / 1024, "KB, New size:", compressedDataURL.length / 1024, "KB");
                 resolve(compressedDataURL);
             };
-            img.onerror = function() {
+            img.onerror = function(err) {
+                console.error("Failed to load image for compression:", err);
                 reject(new Error('Failed to load image for compression'));
             };
             img.src = dataURL;
@@ -237,6 +272,12 @@ function initPictureManagement() {
             
             reader.onload = function(e) {
                 filePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                console.log("Image preview loaded. File size:", e.target.result.length / 1024, "KB");
+                
+                // Warn if the image is very large
+                if (e.target.result.length > 1024 * 1024) {
+                    filePreview.innerHTML += `<p class="warning">Warning: This image is large (${(e.target.result.length / (1024 * 1024)).toFixed(2)} MB) and will be compressed.</p>`;
+                }
             };
             
             reader.readAsDataURL(this.files[0]);
@@ -258,14 +299,28 @@ function initPictureManagement() {
         
         try {
             // Show loading message
-            filePreview.innerHTML += '<p>Processing image...</p>';
+            filePreview.innerHTML += '<p>Processing image... This may take a moment for large images.</p>';
             
             const reader = new FileReader();
             
             reader.onload = async function(event) {
                 try {
-                    // Compress the image
-                    const compressedImage = await compressImage(event.target.result);
+                    console.log("Image read complete. Starting compression...");
+                    
+                    // Compress the image - use stronger compression for large images
+                    const originalSize = event.target.result.length;
+                    let quality = 0.6; // Default quality
+                    let maxWidth = 800; // Default max width
+                    
+                    // For larger images, use stronger compression
+                    if (originalSize > 1024 * 1024 * 2) { // If > 2MB
+                        quality = 0.4;
+                        maxWidth = 600;
+                        console.log("Large image detected. Using stronger compression settings.");
+                    }
+                    
+                    const compressedImage = await compressImage(event.target.result, maxWidth, quality);
+                    console.log("Compression ratio:", compressedImage.length / originalSize);
                     
                     // Generate a unique ID using timestamp and random number
                     const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
@@ -284,7 +339,7 @@ function initPictureManagement() {
                     mockPictures.push(newPicture);
                     
                     // Save to localStorage
-                    savePictures();
+                    const saveSuccess = savePictures();
                     
                     // Reset form
                     uploadPictureForm.reset();
@@ -297,21 +352,24 @@ function initPictureManagement() {
                     displayPictures();
                     
                     // Show success message
-                    alert('Picture uploaded successfully!');
+                    if (saveSuccess) {
+                        alert('Picture uploaded successfully!');
+                    }
                 } catch (error) {
                     console.error('Error processing image:', error);
-                    alert('Failed to process image. Please try again with a smaller image.');
+                    alert('Failed to process image: ' + (error.message || 'Please try again with a smaller image.'));
                 }
             };
             
-            reader.onerror = function() {
-                alert('Error reading the image file. Please try again.');
+            reader.onerror = function(event) {
+                console.error("File reader error:", event);
+                alert('Error reading the image file. Please try again with a different image.');
             };
             
             reader.readAsDataURL(pictureFile.files[0]);
         } catch (error) {
             console.error('Error uploading image:', error);
-            alert('An error occurred while uploading the image.');
+            alert('An error occurred while uploading the image: ' + error.message);
         }
     });
     
@@ -323,6 +381,7 @@ function initPictureManagement() {
     // Display pictures function
     function displayPictures() {
         const category = pictureCategory.value;
+        console.log("Displaying pictures for category:", category);
         
         // Clear current grid
         pictureGrid.innerHTML = '';
@@ -331,6 +390,8 @@ function initPictureManagement() {
         const filteredPictures = category === 'all' 
             ? mockPictures 
             : mockPictures.filter(pic => pic.category === category);
+        
+        console.log("Filtered pictures count:", filteredPictures.length);
         
         if (filteredPictures.length === 0) {
             pictureGrid.innerHTML = '<p class="no-images-message">No images found in this category. Upload images to see them here.</p>';
@@ -342,7 +403,7 @@ function initPictureManagement() {
             const pictureCard = document.createElement('div');
             pictureCard.classList.add('picture-card');
             pictureCard.innerHTML = `
-                <img src="${picture.url}" alt="${picture.name}">
+                <img src="${picture.url}" alt="${picture.name}" onerror="this.src='images/image-error.jpg'; this.alt='Error loading image';">
                 <div class="picture-info">
                     <h4>${picture.name}</h4>
                     <span>${picture.category}</span>
@@ -426,9 +487,13 @@ function initPictureManagement() {
                     carouselImages.push(picture);
                     
                     // Save to localStorage
-                    localStorage.setItem('siteCarouselImages', JSON.stringify(carouselImages));
-                    
-                    alert('Image added to carousel successfully!');
+                    try {
+                        localStorage.setItem('siteCarouselImages', JSON.stringify(carouselImages));
+                        alert('Image added to carousel successfully!');
+                    } catch (error) {
+                        console.error('Error saving to carousel:', error);
+                        alert('Failed to add image to carousel. Storage may be full.');
+                    }
                 }
             });
         });
@@ -889,4 +954,656 @@ function initSettings() {
         adminPassword.value = '';
         confirmPassword.value = '';
     });
+}
+
+// Content Management functionality
+function initContentManagement() {
+    console.log('Initializing content management...');
+    
+    // Tab functionality
+    const contentTabs = document.querySelectorAll('.admin-tab');
+    const contentTabContents = document.querySelectorAll('.admin-tab-content');
+    
+    contentTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active class from all tabs and content
+            contentTabs.forEach(t => t.classList.remove('active'));
+            contentTabContents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Show corresponding content
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(tabId + 'Content').classList.add('active');
+        });
+    });
+    
+    // Initialize Articles section
+    initArticlesManagement();
+    
+    // Initialize Videos section
+    initVideosManagement();
+    
+    // Initialize Links section
+    initLinksManagement();
+}
+
+// Articles Management
+function initArticlesManagement() {
+    const articlesList = document.getElementById('articlesList');
+    const addArticleBtn = document.getElementById('addArticleBtn');
+    const articleModal = document.getElementById('articleModal');
+    const articleForm = document.getElementById('articleForm');
+    const closeModalBtns = articleModal.querySelectorAll('.close-modal, #cancelArticleBtn');
+    const saveArticleBtn = document.getElementById('saveArticleBtn');
+    const articleImage = document.getElementById('articleImage');
+    const articleImagePreview = document.getElementById('articleImagePreview');
+    
+    // Load existing articles
+    loadArticles();
+    
+    // Show article modal for adding new article
+    addArticleBtn.addEventListener('click', function() {
+        document.getElementById('articleModalTitle').textContent = 'Add New Article';
+        articleForm.reset();
+        articleImagePreview.style.display = 'none';
+        document.getElementById('articleId').value = '';
+        articleModal.style.display = 'block';
+    });
+    
+    // Close modal
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            articleModal.style.display = 'none';
+        });
+    });
+    
+    // Handle image preview
+    articleImage.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                articleImagePreview.src = e.target.result;
+                articleImagePreview.style.display = 'block';
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+    
+    // Save article
+    articleForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const articleId = document.getElementById('articleId').value;
+        const title = document.getElementById('articleTitle').value;
+        const description = document.getElementById('articleDescription').value;
+        const content = document.getElementById('articleContent').value;
+        const externalLink = document.getElementById('articleExternalLink').value;
+        let imageUrl = '';
+        
+        // Check if we have a new image
+        if (articleImage.files && articleImage.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imageUrl = e.target.result;
+                saveArticleData(articleId, title, description, content, imageUrl, externalLink);
+            }
+            reader.readAsDataURL(articleImage.files[0]);
+        } else if (articleImagePreview.style.display !== 'none') {
+            // Keep existing image
+            imageUrl = articleImagePreview.src;
+            saveArticleData(articleId, title, description, content, imageUrl, externalLink);
+        } else {
+            // No image
+            saveArticleData(articleId, title, description, content, '', externalLink);
+        }
+    });
+    
+    // Function to save article data
+    function saveArticleData(id, title, description, content, imageUrl, externalLink) {
+        // Get existing articles
+        let articles = JSON.parse(localStorage.getItem('siteArticles') || '[]');
+        
+        if (id) {
+            // Update existing article
+            const index = articles.findIndex(a => a.id === id);
+            if (index !== -1) {
+                articles[index] = {
+                    id,
+                    title,
+                    description,
+                    content,
+                    imageUrl,
+                    externalLink,
+                    date: articles[index].date
+                };
+            }
+        } else {
+            // Add new article
+            const newId = 'art_' + Date.now();
+            articles.push({
+                id: newId,
+                title,
+                description,
+                content,
+                imageUrl,
+                externalLink,
+                date: new Date().toISOString()
+            });
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('siteArticles', JSON.stringify(articles));
+        
+        // Reload articles list
+        loadArticles();
+        
+        // Close modal
+        articleModal.style.display = 'none';
+    }
+    
+    // Load articles from localStorage
+    function loadArticles() {
+        const articles = JSON.parse(localStorage.getItem('siteArticles') || '[]');
+        
+        if (articles.length === 0) {
+            articlesList.innerHTML = '<div class="empty-message">No articles added yet. Click "Add New Article" to create one.</div>';
+            return;
+        }
+        
+        articlesList.innerHTML = '';
+        
+        // Sort by date, newest first
+        articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        articles.forEach(article => {
+            const item = document.createElement('div');
+            item.className = 'content-item';
+            item.innerHTML = `
+                <div class="content-item-details">
+                    <div class="content-item-title">${article.title}</div>
+                    <div class="content-item-desc">${article.description.substring(0, 100)}${article.description.length > 100 ? '...' : ''}</div>
+                </div>
+                <div class="content-item-actions">
+                    <button class="admin-btn small edit-article" data-id="${article.id}">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="admin-btn small danger delete-article" data-id="${article.id}">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            `;
+            articlesList.appendChild(item);
+        });
+        
+        // Add edit functionality
+        document.querySelectorAll('.edit-article').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                editArticle(id);
+            });
+        });
+        
+        // Add delete functionality
+        document.querySelectorAll('.delete-article').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                if (confirm('Are you sure you want to delete this article?')) {
+                    deleteArticle(id);
+                }
+            });
+        });
+    }
+    
+    // Edit article
+    function editArticle(id) {
+        const articles = JSON.parse(localStorage.getItem('siteArticles') || '[]');
+        const article = articles.find(a => a.id === id);
+        
+        if (article) {
+            document.getElementById('articleModalTitle').textContent = 'Edit Article';
+            document.getElementById('articleId').value = article.id;
+            document.getElementById('articleTitle').value = article.title;
+            document.getElementById('articleDescription').value = article.description;
+            document.getElementById('articleContent').value = article.content || '';
+            document.getElementById('articleExternalLink').value = article.externalLink || '';
+            
+            if (article.imageUrl) {
+                articleImagePreview.src = article.imageUrl;
+                articleImagePreview.style.display = 'block';
+            } else {
+                articleImagePreview.style.display = 'none';
+            }
+            
+            articleModal.style.display = 'block';
+        }
+    }
+    
+    // Delete article
+    function deleteArticle(id) {
+        let articles = JSON.parse(localStorage.getItem('siteArticles') || '[]');
+        articles = articles.filter(a => a.id !== id);
+        localStorage.setItem('siteArticles', JSON.stringify(articles));
+        loadArticles();
+    }
+}
+
+// Videos Management
+function initVideosManagement() {
+    const videosList = document.getElementById('videosList');
+    const addVideoBtn = document.getElementById('addVideoBtn');
+    const videoModal = document.getElementById('videoModal');
+    const videoForm = document.getElementById('videoForm');
+    const closeModalBtns = videoModal.querySelectorAll('.close-modal, #cancelVideoBtn');
+    const saveVideoBtn = document.getElementById('saveVideoBtn');
+    const videoThumbnail = document.getElementById('videoThumbnail');
+    const videoThumbnailPreview = document.getElementById('videoThumbnailPreview');
+    
+    // Load existing videos
+    loadVideos();
+    
+    // Show video modal for adding new video
+    addVideoBtn.addEventListener('click', function() {
+        document.getElementById('videoModalTitle').textContent = 'Add New Video';
+        videoForm.reset();
+        videoThumbnailPreview.style.display = 'none';
+        document.getElementById('videoId').value = '';
+        videoModal.style.display = 'block';
+    });
+    
+    // Close modal
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            videoModal.style.display = 'none';
+        });
+    });
+    
+    // Handle thumbnail preview
+    videoThumbnail.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                videoThumbnailPreview.src = e.target.result;
+                videoThumbnailPreview.style.display = 'block';
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+    
+    // Save video
+    videoForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const videoId = document.getElementById('videoId').value;
+        const title = document.getElementById('videoTitle').value;
+        const description = document.getElementById('videoDescription').value;
+        const videoUrl = document.getElementById('videoUrl').value;
+        let thumbnailUrl = '';
+        
+        // Check if we have a new thumbnail
+        if (videoThumbnail.files && videoThumbnail.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                thumbnailUrl = e.target.result;
+                saveVideoData(videoId, title, description, videoUrl, thumbnailUrl);
+            }
+            reader.readAsDataURL(videoThumbnail.files[0]);
+        } else if (videoThumbnailPreview.style.display !== 'none') {
+            // Keep existing thumbnail
+            thumbnailUrl = videoThumbnailPreview.src;
+            saveVideoData(videoId, title, description, videoUrl, thumbnailUrl);
+        } else {
+            // No thumbnail, try to get one from the video URL (in a real app, you might want to implement this)
+            saveVideoData(videoId, title, description, videoUrl, '');
+        }
+    });
+    
+    // Function to save video data
+    function saveVideoData(id, title, description, videoUrl, thumbnailUrl) {
+        // Get existing videos
+        let videos = JSON.parse(localStorage.getItem('siteVideos') || '[]');
+        
+        if (id) {
+            // Update existing video
+            const index = videos.findIndex(v => v.id === id);
+            if (index !== -1) {
+                videos[index] = {
+                    id,
+                    title,
+                    description,
+                    videoUrl,
+                    thumbnailUrl,
+                    date: videos[index].date
+                };
+            }
+        } else {
+            // Add new video
+            const newId = 'vid_' + Date.now();
+            videos.push({
+                id: newId,
+                title,
+                description,
+                videoUrl,
+                thumbnailUrl,
+                date: new Date().toISOString()
+            });
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('siteVideos', JSON.stringify(videos));
+        
+        // Reload videos list
+        loadVideos();
+        
+        // Close modal
+        videoModal.style.display = 'none';
+    }
+    
+    // Load videos from localStorage
+    function loadVideos() {
+        const videos = JSON.parse(localStorage.getItem('siteVideos') || '[]');
+        
+        if (videos.length === 0) {
+            videosList.innerHTML = '<div class="empty-message">No videos added yet. Click "Add New Video" to create one.</div>';
+            return;
+        }
+        
+        videosList.innerHTML = '';
+        
+        // Sort by date, newest first
+        videos.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        videos.forEach(video => {
+            const item = document.createElement('div');
+            item.className = 'content-item';
+            item.innerHTML = `
+                <div class="content-item-details">
+                    <div class="content-item-title">${video.title}</div>
+                    <div class="content-item-desc">${video.description.substring(0, 100)}${video.description.length > 100 ? '...' : ''}</div>
+                </div>
+                <div class="content-item-actions">
+                    <button class="admin-btn small edit-video" data-id="${video.id}">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="admin-btn small danger delete-video" data-id="${video.id}">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            `;
+            videosList.appendChild(item);
+        });
+        
+        // Add edit functionality
+        document.querySelectorAll('.edit-video').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                editVideo(id);
+            });
+        });
+        
+        // Add delete functionality
+        document.querySelectorAll('.delete-video').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                if (confirm('Are you sure you want to delete this video?')) {
+                    deleteVideo(id);
+                }
+            });
+        });
+    }
+    
+    // Edit video
+    function editVideo(id) {
+        const videos = JSON.parse(localStorage.getItem('siteVideos') || '[]');
+        const video = videos.find(v => v.id === id);
+        
+        if (video) {
+            document.getElementById('videoModalTitle').textContent = 'Edit Video';
+            document.getElementById('videoId').value = video.id;
+            document.getElementById('videoTitle').value = video.title;
+            document.getElementById('videoDescription').value = video.description;
+            document.getElementById('videoUrl').value = video.videoUrl;
+            
+            if (video.thumbnailUrl) {
+                videoThumbnailPreview.src = video.thumbnailUrl;
+                videoThumbnailPreview.style.display = 'block';
+            } else {
+                videoThumbnailPreview.style.display = 'none';
+            }
+            
+            videoModal.style.display = 'block';
+        }
+    }
+    
+    // Delete video
+    function deleteVideo(id) {
+        let videos = JSON.parse(localStorage.getItem('siteVideos') || '[]');
+        videos = videos.filter(v => v.id !== id);
+        localStorage.setItem('siteVideos', JSON.stringify(videos));
+        loadVideos();
+    }
+}
+
+// Links Management
+function initLinksManagement() {
+    const linksList = document.getElementById('linksList');
+    const addLinkBtn = document.getElementById('addLinkBtn');
+    const linkModal = document.getElementById('linkModal');
+    const linkForm = document.getElementById('linkForm');
+    const closeModalBtns = linkModal.querySelectorAll('.close-modal, #cancelLinkBtn');
+    const saveLinkBtn = document.getElementById('saveLinkBtn');
+    
+    // Load existing links
+    loadLinks();
+    
+    // Show link modal for adding new link
+    addLinkBtn.addEventListener('click', function() {
+        document.getElementById('linkModalTitle').textContent = 'Add New Link';
+        linkForm.reset();
+        document.getElementById('linkId').value = '';
+        document.getElementById('linkIcon').value = 'fas fa-globe';
+        linkModal.style.display = 'block';
+    });
+    
+    // Close modal
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            linkModal.style.display = 'none';
+        });
+    });
+    
+    // Save link
+    linkForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const linkId = document.getElementById('linkId').value;
+        const title = document.getElementById('linkTitle').value;
+        const description = document.getElementById('linkDescription').value;
+        const url = document.getElementById('linkUrl').value;
+        const icon = document.getElementById('linkIcon').value;
+        
+        // Get existing links
+        let links = JSON.parse(localStorage.getItem('siteLinks') || '[]');
+        
+        if (linkId) {
+            // Update existing link
+            const index = links.findIndex(l => l.id === linkId);
+            if (index !== -1) {
+                links[index] = {
+                    id: linkId,
+                    title,
+                    description,
+                    url,
+                    icon,
+                    date: links[index].date
+                };
+            }
+        } else {
+            // Add new link
+            const newId = 'link_' + Date.now();
+            links.push({
+                id: newId,
+                title,
+                description,
+                url,
+                icon,
+                date: new Date().toISOString()
+            });
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('siteLinks', JSON.stringify(links));
+        
+        // Reload links list
+        loadLinks();
+        
+        // Close modal
+        linkModal.style.display = 'none';
+    });
+    
+    // Load links from localStorage
+    function loadLinks() {
+        const links = JSON.parse(localStorage.getItem('siteLinks') || '[]');
+        
+        if (links.length === 0) {
+            linksList.innerHTML = '<div class="empty-message">No links added yet. Click "Add New Link" to create one.</div>';
+            return;
+        }
+        
+        linksList.innerHTML = '';
+        
+        // Sort by date, newest first
+        links.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        links.forEach(link => {
+            const item = document.createElement('div');
+            item.className = 'content-item';
+            item.innerHTML = `
+                <div class="content-item-details">
+                    <div class="content-item-title">
+                        <i class="${link.icon}"></i> ${link.title}
+                    </div>
+                    <div class="content-item-desc">
+                        ${link.description.substring(0, 100)}${link.description.length > 100 ? '...' : ''}
+                        <br><small>${link.url}</small>
+                    </div>
+                </div>
+                <div class="content-item-actions">
+                    <button class="admin-btn small edit-link" data-id="${link.id}">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="admin-btn small danger delete-link" data-id="${link.id}">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            `;
+            linksList.appendChild(item);
+        });
+        
+        // Add edit functionality
+        document.querySelectorAll('.edit-link').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                editLink(id);
+            });
+        });
+        
+        // Add delete functionality
+        document.querySelectorAll('.delete-link').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                if (confirm('Are you sure you want to delete this link?')) {
+                    deleteLink(id);
+                }
+            });
+        });
+    }
+    
+    // Edit link
+    function editLink(id) {
+        const links = JSON.parse(localStorage.getItem('siteLinks') || '[]');
+        const link = links.find(l => l.id === id);
+        
+        if (link) {
+            document.getElementById('linkModalTitle').textContent = 'Edit Link';
+            document.getElementById('linkId').value = link.id;
+            document.getElementById('linkTitle').value = link.title;
+            document.getElementById('linkDescription').value = link.description;
+            document.getElementById('linkUrl').value = link.url;
+            document.getElementById('linkIcon').value = link.icon;
+            
+            linkModal.style.display = 'block';
+        }
+    }
+    
+    // Delete link
+    function deleteLink(id) {
+        let links = JSON.parse(localStorage.getItem('siteLinks') || '[]');
+        links = links.filter(l => l.id !== id);
+        localStorage.setItem('siteLinks', JSON.stringify(links));
+        loadLinks();
+    }
+}
+
+// Transport Settings functionality
+function initTransportSettings() {
+    console.log('Initializing transport settings...');
+    
+    const saveTransportSettingsBtn = document.getElementById('saveTransportSettingsBtn');
+    
+    // Load existing settings
+    loadTransportSettings();
+    
+    // Save settings
+    saveTransportSettingsBtn.addEventListener('click', function() {
+        const transportSettings = {
+            baseFare: parseFloat(document.getElementById('baseFare').value),
+            ratePerKm: parseFloat(document.getElementById('ratePerKm').value),
+            rushHourMultiplier: parseFloat(document.getElementById('rushHourMultiplier').value),
+            nightMultiplier: parseFloat(document.getElementById('nightMultiplier').value),
+            weekendMultiplier: parseFloat(document.getElementById('weekendMultiplier').value),
+            vehicleRates: {
+                sedan: parseFloat(document.getElementById('sedanRate').value),
+                suv: parseFloat(document.getElementById('suvRate').value),
+                van: parseFloat(document.getElementById('vanRate').value),
+                luxury: parseFloat(document.getElementById('luxuryRate').value)
+            }
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('transportSettings', JSON.stringify(transportSettings));
+        
+        alert('Transport settings saved successfully');
+    });
+    
+    // Load transport settings from localStorage
+    function loadTransportSettings() {
+        const defaultSettings = {
+            baseFare: 30,
+            ratePerKm: 0.5,
+            rushHourMultiplier: 1.5,
+            nightMultiplier: 1.3,
+            weekendMultiplier: 1.2,
+            vehicleRates: {
+                sedan: 1.0,
+                suv: 1.5,
+                van: 1.8,
+                luxury: 2.2
+            }
+        };
+        
+        const transportSettings = JSON.parse(localStorage.getItem('transportSettings') || JSON.stringify(defaultSettings));
+        
+        // Populate form fields
+        document.getElementById('baseFare').value = transportSettings.baseFare;
+        document.getElementById('ratePerKm').value = transportSettings.ratePerKm;
+        document.getElementById('rushHourMultiplier').value = transportSettings.rushHourMultiplier;
+        document.getElementById('nightMultiplier').value = transportSettings.nightMultiplier;
+        document.getElementById('weekendMultiplier').value = transportSettings.weekendMultiplier;
+        document.getElementById('sedanRate').value = transportSettings.vehicleRates.sedan;
+        document.getElementById('suvRate').value = transportSettings.vehicleRates.suv;
+        document.getElementById('vanRate').value = transportSettings.vehicleRates.van;
+        document.getElementById('luxuryRate').value = transportSettings.vehicleRates.luxury;
+    }
 } 

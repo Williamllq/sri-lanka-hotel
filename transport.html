@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transport Services - Sri Lanka Stay & Explore</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="logo">
+            <img src="images/logo.png" alt="Sri Lanka Stay & Explore Logo">
+            <h1>Sri Lanka Stay & Explore</h1>
+        </div>
+        <nav class="nav">
+            <ul class="nav-list">
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#services">Services</a></li>
+                <li><a href="index.html#explore">Explore</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="hotels.html">Hotels</a></li>
+                <li class="active"><a href="transport.html">Transport</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+            </ul>
+            <div class="mobile-nav-toggle" id="mobileNavToggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Transport Banner -->
+    <section class="page-banner" style="background-image: url('images/transport-banner.jpg');">
+        <div class="banner-content">
+            <h1>Transport Services</h1>
+            <p>Safe, reliable, and comfortable transportation throughout Sri Lanka</p>
+        </div>
+    </section>
+
+    <!-- Transport Services -->
+    <section class="section transport-services">
+        <div class="container">
+            <h2>Our Transport Options</h2>
+            <p class="section-intro">Whether you're exploring the island or need an airport pickup, we have the perfect transport solution for you.</p>
+
+            <div class="transport-options">
+                <div class="transport-card" data-aos="fade-up">
+                    <div class="transport-img">
+                        <img src="images/sedan.jpg" alt="Sedan">
+                    </div>
+                    <div class="transport-details">
+                        <h3>Sedan</h3>
+                        <p>Comfortable cars for up to 4 passengers. Perfect for airport transfers and city tours.</p>
+                        <ul>
+                            <li><i class="fas fa-users"></i> Up to 4 passengers</li>
+                            <li><i class="fas fa-suitcase"></i> 2 large suitcases</li>
+                            <li><i class="fas fa-snowflake"></i> Air conditioned</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="transport-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="transport-img">
+                        <img src="images/suv.jpg" alt="SUV">
+                    </div>
+                    <div class="transport-details">
+                        <h3>SUV</h3>
+                        <p>Spacious SUVs for up to 6 passengers. Ideal for families and small groups exploring the countryside.</p>
+                        <ul>
+                            <li><i class="fas fa-users"></i> Up to 6 passengers</li>
+                            <li><i class="fas fa-suitcase"></i> 4 large suitcases</li>
+                            <li><i class="fas fa-snowflake"></i> Air conditioned</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="transport-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="transport-img">
+                        <img src="images/van.jpg" alt="Van">
+                    </div>
+                    <div class="transport-details">
+                        <h3>Van</h3>
+                        <p>Comfortable vans for up to at 8 passengers. Perfect for larger groups and extended tours.</p>
+                        <ul>
+                            <li><i class="fas fa-users"></i> Up to 8 passengers</li>
+                            <li><i class="fas fa-suitcase"></i> 8 large suitcases</li>
+                            <li><i class="fas fa-snowflake"></i> Air conditioned</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="transport-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="transport-img">
+                        <img src="images/luxury.jpg" alt="Luxury Car">
+                    </div>
+                    <div class="transport-details">
+                        <h3>Luxury Car</h3>
+                        <p>Premium vehicles for those seeking the ultimate comfort and style during their travels in Sri Lanka.</p>
+                        <ul>
+                            <li><i class="fas fa-users"></i> Up to 4 passengers</li>
+                            <li><i class="fas fa-suitcase"></i> 3 large suitcases</li>
+                            <li><i class="fas fa-snowflake"></i> Climate control</li>
+                            <li><i class="fas fa-wifi"></i> Free WiFi</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Routes -->
+    <section class="section popular-routes">
+        <div class="container">
+            <h2>Popular Routes</h2>
+            <p class="section-intro">Discover our most requested transportation routes across Sri Lanka</p>
+
+            <div class="routes-grid">
+                <div class="route-card" data-aos="fade-up">
+                    <div class="route-header">
+                        <i class="fas fa-plane-arrival"></i>
+                        <h3>Colombo Airport to Colombo City</h3>
+                    </div>
+                    <div class="route-details">
+                        <p><i class="fas fa-road"></i> Distance: ~35 km</p>
+                        <p><i class="fas fa-clock"></i> Duration: ~1 hour</p>
+                        <p><i class="fas fa-dollar-sign"></i> From $30</p>
+                    </div>
+                </div>
+
+                <div class="route-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="route-header">
+                        <i class="fas fa-road"></i>
+                        <h3>Colombo to Kandy</h3>
+                    </div>
+                    <div class="route-details">
+                        <p><i class="fas fa-road"></i> Distance: ~115 km</p>
+                        <p><i class="fas fa-clock"></i> Duration: ~3-4 hours</p>
+                        <p><i class="fas fa-dollar-sign"></i> From $80</p>
+                    </div>
+                </div>
+
+                <div class="route-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="route-header">
+                        <i class="fas fa-mountain"></i>
+                        <h3>Kandy to Nuwara Eliya</h3>
+                    </div>
+                    <div class="route-details">
+                        <p><i class="fas fa-road"></i> Distance: ~80 km</p>
+                        <p><i class="fas fa-clock"></i> Duration: ~2.5-3 hours</p>
+                        <p><i class="fas fa-dollar-sign"></i> From $70</p>
+                    </div>
+                </div>
+
+                <div class="route-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="route-header">
+                        <i class="fas fa-umbrella-beach"></i>
+                        <h3>Colombo to Galle</h3>
+                    </div>
+                    <div class="route-details">
+                        <p><i class="fas fa-road"></i> Distance: ~125 km</p>
+                        <p><i class="fas fa-clock"></i> Duration: ~2-3 hours</p>
+                        <p><i class="fas fa-dollar-sign"></i> From $90</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fare Calculator -->
+    <section class="section fare-calculator">
+        <div class="container">
+            <h2>Transport Fare Calculator</h2>
+            <p class="section-intro">Get an estimate for your journey within Sri Lanka</p>
+
+            <div class="calculator-wrapper">
+                <div class="calculator-form">
+                    <div class="form-group">
+                        <label for="pickupLocation">Pickup Location</label>
+                        <input type="text" id="pickupLocation" class="map-input" placeholder="Enter pickup location">
+                        <button class="map-select-btn" id="pickupMapBtn"><i class="fas fa-map-marker-alt"></i> Select on Map</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="destinationLocation">Destination</label>
+                        <input type="text" id="destinationLocation" class="map-input" placeholder="Enter destination">
+                        <button class="map-select-btn" id="destinationMapBtn"><i class="fas fa-map-marker-alt"></i> Select on Map</button>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="tripDate">Date</label>
+                            <input type="date" id="tripDate">
+                        </div>
+                        <div class="form-group half">
+                            <label for="tripTime">Time</label>
+                            <input type="time" id="tripTime">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vehicle Type</label>
+                        <div class="vehicle-options">
+                            <label class="vehicle-option">
+                                <input type="radio" name="vehicleType" value="sedan" checked>
+                                <span class="vehicle-label">
+                                    <i class="fas fa-car"></i> Sedan
+                                </span>
+                            </label>
+                            <label class="vehicle-option">
+                                <input type="radio" name="vehicleType" value="suv">
+                                <span class="vehicle-label">
+                                    <i class="fas fa-car-side"></i> SUV
+                                </span>
+                            </label>
+                            <label class="vehicle-option">
+                                <input type="radio" name="vehicleType" value="van">
+                                <span class="vehicle-label">
+                                    <i class="fas fa-shuttle-van"></i> Van
+                                </span>
+                            </label>
+                            <label class="vehicle-option">
+                                <input type="radio" name="vehicleType" value="luxury">
+                                <span class="vehicle-label">
+                                    <i class="fas fa-car-alt"></i> Luxury
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button id="calculateFareBtn" class="main-btn">Calculate Fare</button>
+                    
+                    <div id="fareResult" class="fare-result">
+                        <!-- Result will appear here -->
+                    </div>
+                    
+                    <div id="distance" class="distance-display">
+                        <!-- Distance will appear here -->
+                    </div>
+                </div>
+
+                <!-- Map section for the fare calculator -->
+                <div class="map-container">
+                    <div id="map"></div>
+                </div>
+            </div>
+
+            <!-- Map modal for selecting locations -->
+            <div id="mapModal" class="map-modal">
+                <div class="map-modal-content">
+                    <span class="close-modal" id="closeMapModal">&times;</span>
+                    <h3 id="mapModalTitle">Select Location</h3>
+                    <div class="map-search">
+                        <input type="text" id="mapSearchInput" placeholder="Search for a location">
+                        <button id="mapSearchBtn"><i class="fas fa-search"></i></button>
+                    </div>
+                    <div id="modalMap" class="modal-map"></div>
+                    <button id="confirmLocationBtn" class="main-btn">Confirm Location</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Process -->
+    <section class="section booking-process">
+        <div class="container">
+            <h2>How to Book</h2>
+            <div class="process-steps">
+                <div class="process-step" data-aos="fade-up">
+                    <div class="step-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h3>1. Calculate Fare</h3>
+                    <p>Use our fare calculator to get an estimate for your journey.</p>
+                </div>
+                
+                <div class="process-step" data-aos="fade-up" data-aos-delay="100">
+                    <div class="step-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>2. Request Booking</h3>
+                    <p>Fill out our booking form with your journey details.</p>
+                </div>
+                
+                <div class="process-step" data-aos="fade-up" data-aos-delay="200">
+                    <div class="step-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>3. Confirmation</h3>
+                    <p>Receive your booking confirmation via email.</p>
+                </div>
+                
+                <div class="process-step" data-aos="fade-up" data-aos-delay="300">
+                    <div class="step-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <h3>4. Enjoy Your Ride</h3>
+                    <p>Your driver will pick you up at the scheduled time.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section contact" id="contact">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <p class="section-intro">Have questions about our transport services? Get in touch with us.</p>
+            
+            <div class="contact-wrapper">
+                <div class="contact-info" data-aos="fade-up">
+                    <div class="contact-method">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h3>Email</h3>
+                            <p>transport@srilankastay.com</p>
+                        </div>
+                    </div>
+                    <div class="contact-method">
+                        <i class="fas fa-phone-alt"></i>
+                        <div>
+                            <h3>Phone</h3>
+                            <p>+94 77 123 4567</p>
+                        </div>
+                    </div>
+                    <div class="contact-method">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h3>Office</h3>
+                            <p>123 Galle Road, Colombo 03, Sri Lanka</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form class="contact-form" data-aos="fade-up">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" id="subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="main-btn">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/logo.png" alt="Sri Lanka Stay & Explore Logo">
+                    <h2>Sri Lanka Stay & Explore</h2>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#about">About</a></li>
+                        <li><a href="index.html#services">Services</a></li>
+                        <li><a href="hotels.html">Hotels</a></li>
+                        <li><a href="transport.html">Transport</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-social">
+                    <h3>Follow Us</h3>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-tripadvisor"></i></a>
+                    </div>
+                </div>
+                <div class="footer-newsletter">
+                    <h3>Newsletter</h3>
+                    <p>Subscribe to our newsletter for the latest updates and offers.</p>
+                    <form>
+                        <input type="email" placeholder="Your Email">
+                        <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Sri Lanka Stay & Explore. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to top button -->
+    <a href="#" class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/map.js"></script>
+</body>
+</html> 
