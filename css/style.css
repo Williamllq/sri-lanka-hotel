@@ -1316,7 +1316,7 @@ select:focus {
 }
 
 .map-modal.active {
-    display: flex;
+    display: flex !important;
 }
 
 .map-modal-content {

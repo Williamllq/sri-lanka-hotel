@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Transport.js loaded');
     const transportForm = document.getElementById('transportForm');
     const serviceType = document.getElementById('serviceType');
     const airportFields = document.querySelectorAll('.airport-field');
@@ -193,32 +194,52 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Calculate price based on service type
     function calculatePrice() {
-        console.log('Calculating price');
+        console.log('Calculating price in transport.js');
         
-        // Get the distance
-        const distanceDisplay = document.getElementById('distance');
-        if (!distanceDisplay || distanceDisplay.style.display === 'none') {
-            showFareResult('Please select both pickup and destination locations to calculate fare.', 'error');
+        // 检查是否有地图脚本并且地图功能可用
+        if (typeof window.markers === 'undefined') {
+            console.error('Map markers not found, map.js might not be loaded correctly');
+            showFareResult('System error: Cannot access map data. Please refresh the page and try again.', 'error');
             return;
         }
         
-        // Extract distance value from text
-        const distanceText = distanceDisplay.textContent;
-        const distanceMatch = distanceText.match(/Distance: (\d+\.?\d*) km/);
-        
-        if (!distanceMatch) {
-            showFareResult('Unable to determine distance. Please try again.', 'error');
+        // 检查是否设置了地点标记
+        if (!window.markers.pickup || !window.markers.destination) {
+            console.log('Missing pickup or destination markers');
+            showFareResult('Please select both pickup and destination locations on the map first.', 'error');
             return;
         }
         
-        const distance = parseFloat(distanceMatch[1]);
-        if (isNaN(distance)) {
-            showFareResult('Invalid distance value. Please try again.', 'error');
+        // 手动调用计算距离
+        let distance;
+        try {
+            distance = calculateDistance();
+        } catch (error) {
+            console.error('Error calculating distance:', error);
+            showFareResult('Error calculating distance. Please try again.', 'error');
             return;
         }
+        
+        if (!distance || isNaN(distance)) {
+            console.error('Invalid distance value');
+            showFareResult('Unable to calculate distance. Please select both locations again.', 'error');
+            return;
+        }
+        
+        console.log('Distance for price calculation:', distance);
         
         // Get selected vehicle type
-        const vehicleType = document.querySelector('input[name="vehicleType"]:checked').value;
+        const vehicleTypeElements = document.querySelectorAll('input[name="vehicleType"]');
+        let vehicleType = 'sedan'; // 默认值
+        
+        for (const element of vehicleTypeElements) {
+            if (element.checked) {
+                vehicleType = element.value;
+                break;
+            }
+        }
+        
+        console.log('Selected vehicle type:', vehicleType);
         
         // Base price per km for different vehicle types
         const pricePerKm = {
@@ -236,6 +257,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Round to 2 decimal places
         const roundedFare = Math.round(fare * 100) / 100;
+        
+        console.log('Calculated fare:', roundedFare);
         
         // Display result
         showFareResult(`Estimated fare: $${roundedFare.toFixed(2)}`, 'success');
@@ -330,6 +353,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showFareResult(message, type) {
+        console.log('Showing fare result:', message, type);
+        
         const fareResult = document.getElementById('fareResult');
         if (fareResult) {
             fareResult.textContent = message;
@@ -342,6 +367,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (type) {
                 fareResult.classList.add(type);
             }
+        } else {
+            console.error('Fare result element not found');
         }
     }
 }); 
