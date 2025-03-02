@@ -1,7 +1,31 @@
 // Website Configuration
 const config = {
+    // Google Maps API Key
+    googleMapsApiKey: "AIzaSyDcU6-4g0cU8o67iRz1H5HQs9sxwGJsjX0",
+    
+    // Base location for fare calculations
+    baseLocation: {
+        lat: 6.927079,
+        lng: 79.861244,
+        name: "Colombo"
+    },
+    
+    // Fare calculation settings
+    fareSettings: {
+        baseFare: 500, // Base fare in LKR
+        perKm: 150,    // Price per km in LKR
+        currency: "LKR" // Sri Lankan Rupee
+    },
+    
     // API Keys
     apiKeys: {
+        // DeepSeek V3 API (优先使用)
+        deepseekV3: {
+            name: 'DeepSeek-V3',
+            url: 'https://platform.deepseek.com/v1/chat/completions',
+            key: 'sk-1f52de6f9ed24ad2b4a01ad811a4265e',
+            model: 'deepseek-chat'
+        },
         deepseek: {
             name: 'DeepSeek-R1',
             url: 'https://platform.deepseek.com/v1/chat/completions',

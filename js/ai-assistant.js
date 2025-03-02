@@ -86,6 +86,12 @@ class AIAssistant {
             // Fallback if config is not available
             console.warn('Config not found, using fallback API configuration');
             this.apis = {
+                deepseekV3: {
+                    name: 'DeepSeek-V3',
+                    url: 'https://platform.deepseek.com/v1/chat/completions',
+                    key: 'sk-1f52de6f9ed24ad2b4a01ad811a4265e',
+                    model: 'deepseek-chat'
+                },
                 deepseek: {
                     name: 'DeepSeek-R1',
                     url: 'https://platform.deepseek.com/v1/chat/completions',
@@ -101,9 +107,10 @@ class AIAssistant {
             };
         }
         
-        // Set primary and fallback API order
-        this.primaryAPI = 'deepseek';
-        this.fallbackAPI = 'aliyun';
+        // Set primary and fallback API order - prioritize V3 for faster responses
+        this.primaryAPI = 'deepseekV3';
+        this.fallbackAPI = 'deepseek';
+        this.tertiaryAPI = 'aliyun';
         this.activeAPI = null;
         
         // System prompt for travel assistant
@@ -117,24 +124,35 @@ class AIAssistant {
         const testPrompt = "Respond with just the word 'Connected' if you can receive this message.";
         
         try {
-            // Test primary API
+            // Test primary API (DeepSeek V3)
             console.log(`Testing primary API: ${this.apis[this.primaryAPI].name}`);
             let response = await this.callAPI(this.primaryAPI, testPrompt);
             
             if (!response || response.includes('error')) {
-                // If primary fails, try fallback
-                console.log(`Primary API failed, testing fallback API: ${this.apis[this.fallbackAPI].name}`);
+                // If primary fails, try secondary
+                console.log(`Primary API failed, testing secondary API: ${this.apis[this.fallbackAPI].name}`);
                 response = await this.callAPI(this.fallbackAPI, testPrompt);
                 
                 if (!response || response.includes('error')) {
-                    // Both APIs failed
-                    this.updateStatus('error', 'Unable to connect to AI service');
-                    console.error('Both APIs failed connection test');
+                    // If secondary fails, try tertiary
+                    console.log(`Secondary API failed, testing tertiary API: ${this.apis[this.tertiaryAPI].name}`);
+                    response = await this.callAPI(this.tertiaryAPI, testPrompt);
+                    
+                    if (!response || response.includes('error')) {
+                        // All APIs failed
+                        this.updateStatus('error', 'Unable to connect to AI service');
+                        console.error('All APIs failed connection test');
+                    } else {
+                        // Tertiary API succeeded
+                        this.activeAPI = this.tertiaryAPI;
+                        this.updateStatus('connected', `Connected to ${this.apis[this.tertiaryAPI].name}`);
+                        console.log(`Connected to tertiary API: ${this.apis[this.tertiaryAPI].name}`);
+                    }
                 } else {
-                    // Fallback API succeeded
+                    // Secondary API succeeded
                     this.activeAPI = this.fallbackAPI;
                     this.updateStatus('connected', `Connected to ${this.apis[this.fallbackAPI].name}`);
-                    console.log(`Connected to fallback API: ${this.apis[this.fallbackAPI].name}`);
+                    console.log(`Connected to secondary API: ${this.apis[this.fallbackAPI].name}`);
                 }
             } else {
                 // Primary API succeeded
@@ -219,42 +237,58 @@ class AIAssistant {
             // If we already know which API works, use it directly
             if (this.activeAPI) {
                 console.log(`Using known working API: ${this.apis[this.activeAPI].name}`);
+                const startTime = Date.now();
                 response = await this.callAPI(this.activeAPI, message);
+                const responseTime = Date.now() - startTime;
+                console.log(`Response received in ${responseTime}ms`);
                 
-                // If it fails, try the other API
+                // If it fails, try other APIs in priority order
                 if (!response || response.includes('error')) {
-                    const otherAPI = this.activeAPI === this.primaryAPI ? this.fallbackAPI : this.primaryAPI;
-                    console.log(`Active API failed, trying other API: ${this.apis[otherAPI].name}`);
-                    response = await this.callAPI(otherAPI, message);
+                    // Try remaining APIs in priority order
+                    const apiOrder = [this.primaryAPI, this.fallbackAPI, this.tertiaryAPI].filter(api => api !== this.activeAPI);
                     
+                    for (const api of apiOrder) {
+                        console.log(`Trying alternative API: ${this.apis[api].name}`);
+                        response = await this.callAPI(api, message);
+                        
+                        if (!response || response.includes('error')) {
+                            continue; // Try next API if available
+                        } else {
+                            // API succeeded
+                            this.activeAPI = api;
+                            this.updateStatus('connected', `Connected to ${this.apis[api].name}`);
+                            break;
+                        }
+                    }
+                    
+                    // If all APIs failed
                     if (!response || response.includes('error')) {
                         response = "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later or contact our team directly for assistance.";
-                        this.updateStatus('error', 'API connection failed');
-                    } else {
-                        // Update active API
-                        this.activeAPI = otherAPI;
-                        this.updateStatus('connected', `Connected to ${this.apis[otherAPI].name}`);
+                        this.updateStatus('error', 'All API connections failed');
                     }
                 }
             } else {
-                // Try primary first if no API is known to work
-                console.log(`No known working API, trying primary: ${this.apis[this.primaryAPI].name}`);
-                response = await this.callAPI(this.primaryAPI, message);
+                // Try APIs in priority order if no API is known to work
+                const apiOrder = [this.primaryAPI, this.fallbackAPI, this.tertiaryAPI];
                 
-                if (!response || response.includes('error')) {
-                    console.log(`Primary API failed, trying fallback: ${this.apis[this.fallbackAPI].name}`);
-                    response = await this.callAPI(this.fallbackAPI, message);
+                for (const api of apiOrder) {
+                    console.log(`Trying API: ${this.apis[api].name}`);
+                    response = await this.callAPI(api, message);
                     
                     if (!response || response.includes('error')) {
-                        response = "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later or contact our team directly for assistance.";
-                        this.updateStatus('error', 'Both APIs failed');
+                        continue; // Try next API if available
                     } else {
-                        this.activeAPI = this.fallbackAPI;
-                        this.updateStatus('connected', `Connected to ${this.apis[this.fallbackAPI].name}`);
+                        // API succeeded
+                        this.activeAPI = api;
+                        this.updateStatus('connected', `Connected to ${this.apis[api].name}`);
+                        break;
                     }
-                } else {
-                    this.activeAPI = this.primaryAPI;
-                    this.updateStatus('connected', `Connected to ${this.apis[this.primaryAPI].name}`);
+                }
+                
+                // If all APIs failed
+                if (!response || response.includes('error')) {
+                    response = "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later or contact our team directly for assistance.";
+                    this.updateStatus('error', 'All API connections failed');
                 }
             }
             
