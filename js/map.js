@@ -9,7 +9,7 @@ let markers = {
 
 // 当DOM加载完成时执行
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded - 初始化地图功能');
+    console.log('[DEBUG] DOM loaded - 初始化地图功能');
     
     // 初始化地图按钮事件
     initMapButtons();
@@ -20,10 +20,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // 确保地图元素存在
     const mapContainer = document.getElementById('modalMap');
     if (!mapContainer) {
-        console.error('找不到地图容器元素 #modalMap');
+        console.error('[DEBUG] 找不到地图容器元素 #modalMap');
     } else {
-        console.log('找到地图容器元素');
+        console.log('[DEBUG] 找到地图容器元素');
+        const rect = mapContainer.getBoundingClientRect();
+        console.log('[DEBUG] 地图容器位置和尺寸:', rect.top, rect.left, rect.width, rect.height);
     }
+    
+    // 测试模态窗口 - 在页面加载后1秒尝试打开地图模态窗口
+    setTimeout(function() {
+        console.log('[DEBUG] 自动测试打开地图模态窗口');
+        openMapModal('pickup');
+    }, 5000);
 });
 
 // 初始化地图按钮事件
@@ -147,7 +155,7 @@ function initMapModal() {
 
 // 打开地图模态窗口
 function openMapModal(field) {
-    console.log('打开地图模态窗口，字段:', field);
+    console.log('[DEBUG] 打开地图模态窗口，字段:', field);
     
     // 保存当前活动字段
     activeField = field;
@@ -155,9 +163,11 @@ function openMapModal(field) {
     // 获取模态窗口元素
     const mapModal = document.getElementById('mapModal');
     if (!mapModal) {
-        console.error('找不到地图模态窗口元素 #mapModal');
+        console.error('[DEBUG] 找不到地图模态窗口元素 #mapModal');
         return;
     }
+    
+    console.log('[DEBUG] 找到模态窗口元素，当前display值:', getComputedStyle(mapModal).display);
     
     // 设置标题
     const modalTitle = document.getElementById('mapModalTitle');
@@ -165,12 +175,24 @@ function openMapModal(field) {
         modalTitle.textContent = field === 'pickup' ? '选择接送地点' : '选择目的地';
     }
     
-    // 显示模态窗口
-    mapModal.style.display = 'flex';
+    // 显示模态窗口 - 确保样式正确应用
+    try {
+        mapModal.style.display = 'flex';
+        console.log('[DEBUG] 已设置模态窗口display为flex');
+        
+        // 强制页面回流，确保样式已应用
+        void mapModal.offsetHeight;
+        
+        console.log('[DEBUG] 应用后的实际display值:', getComputedStyle(mapModal).display);
+    } catch (error) {
+        console.error('[DEBUG] 设置模态窗口display时出错:', error);
+    }
+    
     mapModalActive = true;
     
     // 在短暂延迟后初始化地图，确保模态窗口已显示
     setTimeout(function() {
+        console.log('[DEBUG] 模态窗口应该已显示，开始初始化地图');
         initializeMap();
     }, 300);
 }
@@ -191,11 +213,21 @@ function closeMapModal() {
 
 // 初始化地图
 function initializeMap() {
-    console.log('初始化地图');
+    console.log('[DEBUG] 初始化地图');
+    
+    // 确保地图容器元素存在
+    const mapContainer = document.getElementById('modalMap');
+    if (!mapContainer) {
+        console.error('[DEBUG] 找不到地图容器元素 #modalMap');
+        return;
+    }
+    
+    const rect = mapContainer.getBoundingClientRect();
+    console.log('[DEBUG] 初始化前地图容器位置和尺寸:', rect.top, rect.left, rect.width, rect.height);
     
     // 如果地图已存在，刷新大小后返回
     if (map) {
-        console.log('地图已存在，更新大小');
+        console.log('[DEBUG] 地图已存在，更新大小');
         map.invalidateSize();
         
         // 如果有标记，则居中到标记位置
@@ -206,15 +238,14 @@ function initializeMap() {
         return;
     }
     
-    // 确保地图容器元素存在
-    const mapContainer = document.getElementById('modalMap');
-    if (!mapContainer) {
-        console.error('找不到地图容器元素 #modalMap');
-        return;
-    }
-    
     try {
-        console.log('创建新地图');
+        console.log('[DEBUG] 创建新地图');
+        
+        // 确保Leaflet库已加载
+        if (typeof L === 'undefined') {
+            console.error('[DEBUG] Leaflet库未加载！');
+            return;
+        }
         
         // 创建地图并设置视图中心点（斯里兰卡中心）
         map = L.map('modalMap').setView([7.8731, 80.7718], 8);
@@ -226,25 +257,20 @@ function initializeMap() {
         
         // 添加地图点击事件，用于设置标记
         map.on('click', function(e) {
-            console.log('地图被点击，位置:', e.latlng);
+            console.log('[DEBUG] 地图被点击，位置:', e.latlng);
             setMarker(e.latlng);
         });
         
-        console.log('地图创建成功');
-        
-        // 如果有标记，则居中到标记位置
-        if (activeField && markers[activeField]) {
-            map.setView(markers[activeField].getLatLng(), 13);
-        }
+        console.log('[DEBUG] 地图创建成功');
         
     } catch (error) {
-        console.error('创建地图时出错:', error);
+        console.error('[DEBUG] 创建地图时出错:', error);
     }
     
     // 强制更新地图大小，确保在模态窗口中正确显示
     setTimeout(function() {
         if (map) {
-            console.log('强制更新地图大小');
+            console.log('[DEBUG] 强制更新地图大小');
             map.invalidateSize();
         }
     }, 500);

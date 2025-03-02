@@ -1952,7 +1952,7 @@ img {
 }
 
 /* 地图模态窗口样式 */
-#mapModal {
+#mapModal, .map-modal {
     display: none;
     position: fixed;
     top: 0;
@@ -2095,4 +2095,35 @@ img {
     .map-modal-header h3 {
         font-size: 16px;
     }
+}
+
+/* 确保地图显示正确 */
+#modalMap {
+    height: 400px !important;
+    min-height: 400px !important;
+    width: 100% !important;
+    z-index: 1 !important;
+    display: block !important;
+}
+
+/* 地图常见问题修复 */
+.leaflet-container {
+    height: 100% !important;
+    width: 100% !important;
+    z-index: 1 !important;
+}
+
+/* 确保控件正确显示 */
+.leaflet-control-container {
+    z-index: 800 !important;
+}
+
+/* 调整模态窗口显示动画 */
+#mapModal, .map-modal {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 } 
