@@ -1853,8 +1853,8 @@ img {
 /* Feedback Button */
 .feedback-btn {
     position: fixed;
-    bottom: 80px;
-    right: 20px;
+    bottom: 2rem;
+    right: 150px;
     background-color: var(--primary-color);
     color: white;
     border: none;
