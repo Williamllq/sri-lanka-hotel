@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const journeyTime = document.getElementById('journeyTime');
     const passengerCount = document.getElementById('passengerCount');
     const pickupLocation = document.getElementById('pickupLocation');
-    const destination = document.getElementById('destination');
+    const destinationLocation = document.getElementById('destinationLocation');
     const specialRequirements = document.getElementById('specialRequirements');
     const getQuoteBtn = document.querySelector('.btn.secondary');
     const bookNowBtn = document.querySelector('.btn.primary');
@@ -144,15 +144,33 @@ document.addEventListener('DOMContentLoaded', function() {
         journeyDate.min = today;
     }
     
-    // Add map integration for pickup and destination
+    // 添加地图集成的逻辑
     if (pickupLocation) {
         pickupLocation.addEventListener('click', function() {
             openMap('pickup');
         });
     }
     
-    if (destination) {
-        destination.addEventListener('click', function() {
+    // 修正这里的变量名
+    if (destinationLocation) {
+        destinationLocation.addEventListener('click', function() {
+            openMap('destination');
+        });
+    }
+    
+    // 添加地图按钮的事件监听器
+    const pickupMapBtn = document.getElementById('pickupMapBtn');
+    if (pickupMapBtn) {
+        pickupMapBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // 防止表单提交
+            openMap('pickup');
+        });
+    }
+    
+    const destinationMapBtn = document.getElementById('destinationMapBtn');
+    if (destinationMapBtn) {
+        destinationMapBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // 防止表单提交
             openMap('destination');
         });
     }
@@ -221,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        if (!destination || !destination.value) {
+        if (!destinationLocation || !destinationLocation.value) {
             showNotification('Please enter a destination', 'error');
             return false;
         }
@@ -238,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
             time: journeyTime.value,
             passengers: passengerCount.value,
             pickupLocation: pickupLocation.value,
-            destination: destination.value,
+            destination: destinationLocation ? destinationLocation.value : '',
             specialRequirements: specialRequirements ? specialRequirements.value : ''
         };
         
@@ -259,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (journeyTime) journeyTime.value = '';
         if (passengerCount) passengerCount.value = '1';
         if (pickupLocation) pickupLocation.value = '';
-        if (destination) destination.value = '';
+        if (destinationLocation) destinationLocation.value = '';
         if (specialRequirements) specialRequirements.value = '';
     }
     

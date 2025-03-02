@@ -1329,12 +1329,9 @@ select:focus {
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-}
-
-#map {
-    width: 100%;
-    height: calc(100% - 120px);
-    z-index: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 .close-modal {
@@ -1345,15 +1342,22 @@ select:focus {
     cursor: pointer;
     color: #888;
     transition: color 0.3s ease;
+    z-index: 1000;
 }
 
 .close-modal:hover {
     color: #333;
 }
 
+#mapModalTitle {
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
 .map-search {
     display: flex;
-    margin: 15px 0;
+    margin: 0 0 15px 0;
 }
 
 .map-search input {
@@ -1366,7 +1370,7 @@ select:focus {
 
 .map-search button {
     padding: 10px 15px;
-    background-color: #4CAF50;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: 0 5px 5px 0;
@@ -1375,13 +1379,43 @@ select:focus {
 }
 
 .map-search button:hover {
-    background-color: #3d8b40;
+    background-color: var(--accent-color);
 }
 
 .modal-map {
-    height: 400px;
+    flex: 1;
+    width: 100%;
     border-radius: 5px;
     margin-bottom: 15px;
+    min-height: 300px;
+}
+
+#confirmLocationBtn {
+    align-self: center;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#confirmLocationBtn:hover {
+    background-color: var(--accent-color);
+}
+
+/* 确保响应式样式适用于地图模态窗口 */
+@media (max-width: 768px) {
+    .map-modal-content {
+        width: 95%;
+        height: 90%;
+    }
+    
+    .modal-map {
+        min-height: 250px;
+    }
 }
 
 /* Booking Process */

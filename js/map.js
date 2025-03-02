@@ -29,19 +29,46 @@ function setupMapEventListeners() {
         });
     }
     
+    // 地图按钮的点击事件
+    const pickupMapBtn = document.getElementById('pickupMapBtn');
+    if (pickupMapBtn) {
+        pickupMapBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openMap('pickup');
+        });
+    }
+    
+    const destinationMapBtn = document.getElementById('destinationMapBtn');
+    if (destinationMapBtn) {
+        destinationMapBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openMap('destination');
+        });
+    }
+    
     // Close button for map modal
-    const closeButtons = document.querySelectorAll('.close-map-modal');
-    closeButtons.forEach(button => {
-        button.addEventListener('click', closeMap);
-    });
+    const closeButton = document.getElementById('closeMapModal');
+    if (closeButton) {
+        closeButton.addEventListener('click', closeMap);
+    }
     
     // Location search
-    const searchInput = document.getElementById('locationSearch');
+    const searchInput = document.getElementById('mapSearchInput');
+    const searchBtn = document.getElementById('mapSearchBtn');
+    
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 searchLocation(e.target.value);
             }
+        });
+    }
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            const query = document.getElementById('mapSearchInput').value;
+            searchLocation(query);
         });
     }
     
@@ -68,7 +95,7 @@ function initMap() {
     if (map) return;
     
     // Create map centered on Sri Lanka
-    map = L.map('map').setView([7.8731, 80.7718], 8);
+    map = L.map('modalMap').setView([7.8731, 80.7718], 8);
     
     // Add tile layer (OpenStreetMap)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -91,6 +118,12 @@ function openMap(field) {
     activeField = field;
     const mapModal = document.getElementById('mapModal');
     if (!mapModal) return;
+    
+    // 设置标题
+    const mapTitle = document.getElementById('mapModalTitle');
+    if (mapTitle) {
+        mapTitle.textContent = field === 'pickup' ? 'Select Pickup Location' : 'Select Destination';
+    }
     
     mapModal.classList.add('active');
     
@@ -171,7 +204,7 @@ function confirmLocation() {
     
     // Update input field with reverse geocoded address or coordinates
     reverseGeocode(latlng, function(address) {
-        const inputField = document.getElementById(activeField + 'Location');
+        const inputField = document.getElementById(activeField === 'pickup' ? 'pickupLocation' : 'destinationLocation');
         if (inputField) {
             inputField.value = address || `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
         }
@@ -220,6 +253,13 @@ function calculateDistance() {
     }
     
     console.log(`Distance: ${distance.toFixed(2)} km`);
+    
+    // Display distance in the UI
+    const distanceDisplay = document.getElementById('distance');
+    if (distanceDisplay) {
+        distanceDisplay.textContent = `Distance: ${distance.toFixed(2)} km`;
+        distanceDisplay.style.display = 'block';
+    }
     
     // Trigger price calculation if available
     if (typeof calculatePrice === 'function') {
