@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const mapModal = document.getElementById('mapModal');
     const pickupInput = document.getElementById('pickupLocation');
     const destinationInput = document.getElementById('destinationLocation');
+    // 兼容两种可能的ID
+    const destinationInputAlt = document.getElementById('destination');
     const pickupBtn = document.getElementById('pickupMapBtn');
     const destinationBtn = document.getElementById('destinationMapBtn');
     const closeBtn = document.getElementById('closeMapModal');
@@ -36,6 +38,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (destinationInput) {
         destinationInput.addEventListener('click', function() {
+            openMapModal('destination');
+        });
+    } else if (destinationInputAlt) { // 支持备用ID
+        destinationInputAlt.addEventListener('click', function() {
             openMapModal('destination');
         });
     }
@@ -385,8 +391,16 @@ function confirmLocation() {
             // Update the appropriate input field
             if (activeField === 'pickup' && pickupInput) {
                 pickupInput.value = address;
-            } else if (activeField === 'destination' && destinationInput) {
-                destinationInput.value = address;
+            } else if (activeField === 'destination') {
+                // 适配两种可能的输入框ID
+                if (destinationInput) {
+                    destinationInput.value = address;
+                } else {
+                    const destAlt = document.getElementById('destination');
+                    if (destAlt) {
+                        destAlt.value = address;
+                    }
+                }
             }
             
             // Close the modal
@@ -406,8 +420,16 @@ function confirmLocation() {
             // Update the appropriate input field
             if (activeField === 'pickup' && pickupInput) {
                 pickupInput.value = coordsText;
-            } else if (activeField === 'destination' && destinationInput) {
-                destinationInput.value = coordsText;
+            } else if (activeField === 'destination') {
+                // 适配两种可能的输入框ID
+                if (destinationInput) {
+                    destinationInput.value = coordsText;
+                } else {
+                    const destAlt = document.getElementById('destination');
+                    if (destAlt) {
+                        destAlt.value = coordsText;
+                    }
+                }
             }
             
             // Close the modal

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sri Lanka Stay & Explore</title>
+    <meta name="description" content="Discover the best accommodations and experiences in Sri Lanka with our curated selection of hotels, villas, and local adventures.">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
@@ -16,6 +17,9 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <!-- Leaflet CSS for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     
     <!-- JavaScript -->
     <script src="js/translations.js"></script>
@@ -151,14 +155,24 @@
                             <div class="form-row">
                                 <div class="form-group full-width">
                                     <label data-i18n="pickup-location">Pickup Location</label>
-                                    <input type="text" id="pickupLocation" data-i18n-placeholder="enter-pickup" placeholder="Enter pickup location">
+                                    <div class="location-input-container" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                        <input type="text" id="pickupLocation" class="map-input" data-i18n-placeholder="enter-pickup" placeholder="Enter pickup location" style="flex: 1;">
+                                        <button class="map-select-btn" id="pickupMapBtn" style="background-color: #4CAF50; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-weight: bold;">
+                                            <i class="fas fa-map-marker-alt"></i> Select on Map
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             
                             <div class="form-row">
                                 <div class="form-group full-width">
                                     <label data-i18n="destination">Destination</label>
-                                    <input type="text" id="destination" data-i18n-placeholder="enter-destination" placeholder="Enter destination">
+                                    <div class="location-input-container" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                        <input type="text" id="destinationLocation" class="map-input" data-i18n-placeholder="enter-destination" placeholder="Enter destination" style="flex: 1;">
+                                        <button class="map-select-btn" id="destinationMapBtn" style="background-color: #4CAF50; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-weight: bold;">
+                                            <i class="fas fa-map-marker-alt"></i> Select on Map
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -555,25 +569,46 @@
         </div>
     </footer>
 
-    <!-- 地图模态框 -->
-    <div id="mapModal" class="modal">
-        <div class="modal-content map-modal">
-            <span class="close-modal">&times;</span>
-            <h3>Select Location</h3>
-            <div id="map"></div>
-            <div class="map-search">
-                <input type="text" id="searchLocation" placeholder="Search location...">
-                <button type="button" class="btn" onclick="confirmLocation()">Confirm Location</button>
+    <!-- Map modal for selecting locations -->
+    <div id="mapModal" class="map-modal">
+        <div class="map-modal-content">
+            <div class="map-modal-header">
+                <h3 id="mapModalTitle">Select Location on Map</h3>
+                <button id="closeMapModal" class="close-map-btn">&times;</button>
+            </div>
+            <div class="map-modal-body">
+                <div class="map-search-container">
+                    <input type="text" id="mapSearchInput" placeholder="Search for a location in Sri Lanka">
+                    <button id="mapSearchBtn"><i class="fas fa-search"></i></button>
+                </div>
+                <div id="modalMap"></div>
+                <p style="margin: 0 0 10px; font-size: 14px; color: #666;">
+                    <i class="fas fa-info-circle"></i> Click on the map to select a location or use the search box above to find a specific place in Sri Lanka.
+                </p>
+            </div>
+            <div class="map-modal-footer">
+                <button id="confirmLocationBtn" class="confirm-location-btn">
+                    <i class="fas fa-check"></i> Confirm Location
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Leaflet JavaScript -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-    <script src="js/config.js"></script>
+    <!-- Scripts -->
+    <script src="js/script.js"></script>
     <script src="js/ai-assistant.js"></script>
-    <script src="js/transport.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Custom Map JS -->
     <script src="js/map.js"></script>
+    <!-- AOS Animations -->
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            offset: 120,
+            once: true
+        });
+    </script>
 </body>
 </html> 
