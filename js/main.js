@@ -19,39 +19,80 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 图片轮播功能
-    const track = document.querySelector('.carousel-track');
-    if (track) {
-        const slides = Array.from(track.children);
-        const nextButton = document.querySelector('.carousel-button.next');
-        const prevButton = document.querySelector('.carousel-button.prev');
+    initCarousel();
+});
+
+// 初始化轮播功能
+function initCarousel() {
+    const carousel = document.querySelector('.image-carousel');
+    if (!carousel) return;
+    
+    const track = carousel.querySelector('.carousel-track');
+    const slides = Array.from(track.children);
+    const nextButton = carousel.querySelector('.carousel-button.next');
+    const prevButton = carousel.querySelector('.carousel-button.prev');
+    
+    if (!slides.length) return;
+    
+    let currentIndex = 0;
+    const slidesToShow = window.innerWidth < 768 ? 1 : 3;
+    
+    // 根据视窗宽度调整可见幻灯片数量
+    function updateSlidesToShow() {
+        return window.innerWidth < 768 ? 1 : 
+               window.innerWidth < 1024 ? 2 : 3;
+    }
+    
+    // 设置初始状态
+    function setupCarousel() {
+        // 计算每个幻灯片宽度
+        const carouselWidth = carousel.clientWidth - parseInt(window.getComputedStyle(carousel).paddingLeft) - parseInt(window.getComputedStyle(carousel).paddingRight);
+        const slideWidth = carouselWidth / updateSlidesToShow();
         
-        let currentIndex = 0;
-        const slideWidth = slides[0].getBoundingClientRect().width;
-        
-        // 设置幻灯片位置
-        slides.forEach((slide, index) => {
-            slide.style.left = slideWidth * index + 'px';
+        // 设置每个幻灯片宽度
+        slides.forEach(slide => {
+            slide.style.width = `${slideWidth}px`;
         });
         
-        // 移动幻灯片
-        const moveToSlide = (track, currentIndex) => {
-            track.style.transform = 'translateX(-' + currentIndex * slideWidth + 'px)';
-        };
-        
-        // 下一张
-        if (nextButton) {
-            nextButton.addEventListener('click', () => {
-                currentIndex = (currentIndex + 1) % slides.length;
-                moveToSlide(track, currentIndex);
-            });
-        }
-        
-        // 上一张
-        if (prevButton) {
-            prevButton.addEventListener('click', () => {
-                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-                moveToSlide(track, currentIndex);
-            });
-        }
+        // 移动到起始位置
+        moveToSlide(currentIndex);
     }
-}); 
+    
+    // 移动幻灯片
+    function moveToSlide(index) {
+        const slideWidth = slides[0].getBoundingClientRect().width;
+        track.style.transform = `translateX(-${index * slideWidth}px)`;
+        currentIndex = index;
+        
+        // 更新按钮状态
+        updateButtonsState();
+    }
+    
+    // 更新按钮状态
+    function updateButtonsState() {
+        prevButton.disabled = currentIndex === 0;
+        prevButton.style.opacity = currentIndex === 0 ? '0.5' : '1';
+        
+        nextButton.disabled = currentIndex >= slides.length - updateSlidesToShow();
+        nextButton.style.opacity = currentIndex >= slides.length - updateSlidesToShow() ? '0.5' : '1';
+    }
+    
+    // 监听按钮点击
+    nextButton.addEventListener('click', () => {
+        if (currentIndex < slides.length - updateSlidesToShow()) {
+            moveToSlide(currentIndex + 1);
+        }
+    });
+    
+    prevButton.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            moveToSlide(currentIndex - 1);
+        }
+    });
+    
+    // 监听窗口大小改变
+    window.addEventListener('resize', setupCarousel);
+    
+    // 初始化
+    setupCarousel();
+} 
