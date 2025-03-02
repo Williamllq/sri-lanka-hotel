@@ -71,6 +71,8 @@ body {
     height: 60px;
     width: auto;
     transition: all 0.3s ease;
+    mix-blend-mode: multiply; /* This helps with white backgrounds */
+    filter: contrast(1.1); /* Slightly enhance the contrast */
 }
 
 .main-nav.scrolled #site-logo {
