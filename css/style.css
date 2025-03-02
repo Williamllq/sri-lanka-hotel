@@ -59,20 +59,21 @@ body {
     align-items: center;
     margin-left: auto;
     background: transparent;
+    background-color: transparent !important;
 }
 
 .logo a {
     display: block;
     text-decoration: none;
     background: transparent;
+    background-color: transparent !important;
 }
 
 #site-logo {
     height: 60px;
     width: auto;
     transition: all 0.3s ease;
-    mix-blend-mode: multiply; /* This helps with white backgrounds */
-    filter: contrast(1.1); /* Slightly enhance the contrast */
+    background: transparent !important;
 }
 
 .main-nav.scrolled #site-logo {
