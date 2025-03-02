@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="margin: 0; padding: 0; height: 100%;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -11,10 +11,18 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow-x: hidden;
+        }
+    </style>
 </head>
-<body>
+<body style="margin: 0; padding: 0; height: 100%; display: flex; flex-direction: column;">
     <div class="admin-layout">
         <!-- Sidebar -->
         <div class="admin-sidebar">
@@ -551,22 +559,43 @@
             </form>
         </div>
     </div>
-</body>
-<!-- Add Map Modal for Location Selection -->
-<div id="mapModal" class="map-modal">
-    <div class="map-modal-content">
-        <span class="close-modal">&times;</span>
-        <h3>Select Location</h3>
-        <div class="map-search">
-            <input type="text" id="searchLocation" placeholder="Search for a location">
-            <button id="searchLocationBtn"><i class="fas fa-search"></i></button>
-        </div>
-        <div id="map"></div>
-        <button id="confirmLocationBtn" class="admin-btn primary">Confirm Location</button>
-    </div>
-</div>
 
-<!-- Include necessary map scripts -->
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-<script src="js/map.js"></script>
+    <!-- Map Modal -->
+    <div id="mapModal" class="map-modal">
+        <div class="map-modal-content">
+            <button class="close-map-modal"><i class="fas fa-times"></i></button>
+            <div class="map-search">
+                <input type="text" id="locationSearch" placeholder="Search for a location...">
+            </div>
+            <div id="map"></div>
+            <button id="confirmLocationBtn" class="admin-btn primary">Confirm Location</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="js/map.js"></script>
+
+    <script>
+    // Fix layout issues after page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Force redraw to fix any layout issues
+        setTimeout(function() {
+            document.body.style.display = 'none';
+            document.body.offsetHeight; // Force reflow
+            document.body.style.display = '';
+            
+            // Ensure admin layout fills viewport
+            const adminLayout = document.querySelector('.admin-layout');
+            if (adminLayout) {
+                adminLayout.style.minHeight = window.innerHeight + 'px';
+            }
+            
+            // Update map container size if map is visible
+            if (typeof map !== 'undefined' && map) {
+                map.invalidateSize();
+            }
+        }, 100);
+    });
+    </script>
+</body>
 </html> 

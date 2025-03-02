@@ -1,347 +1,228 @@
-let map = null;
-let marker = null;
-let currentField = null;
-let pickupMarker = null;
-let destinationMarker = null;
-let routeLayer = null;
+let map;
+let markers = {
+    pickup: null,
+    destination: null
+};
+let activeField = null;
 
-// Initialize map
+// Wait for DOM to load
 document.addEventListener('DOMContentLoaded', function() {
-    // Set up event listeners for map-related UI elements
+    // Initialize map event listeners
     setupMapEventListeners();
 });
 
-// Set up event listeners
+// Setup map and related event listeners
 function setupMapEventListeners() {
-    console.log('Setting up map event listeners');
+    // Form field clicks to open map
+    const pickupField = document.getElementById('pickupLocation');
+    const destinationField = document.getElementById('destinationLocation');
     
-    // Add click events to form fields to open map
-    const pickupLocation = document.getElementById('pickupLocation');
-    const destination = document.getElementById('destination');
-    
-    if (pickupLocation) {
-        pickupLocation.addEventListener('click', function() {
+    if (pickupField) {
+        pickupField.addEventListener('click', function() {
             openMap('pickup');
         });
     }
     
-    if (destination) {
-        destination.addEventListener('click', function() {
+    if (destinationField) {
+        destinationField.addEventListener('click', function() {
             openMap('destination');
         });
     }
     
-    // Initialize close buttons for modals
-    const closeButtons = document.getElementsByClassName('close-modal');
-    for (let i = 0; i < closeButtons.length; i++) {
-        closeButtons[i].addEventListener('click', function() {
-            const modal = this.closest('.map-modal');
-            if (modal) {
-                modal.style.display = 'none';
-                modal.classList.remove('active');
-            }
-        });
-    }
+    // Close button for map modal
+    const closeButtons = document.querySelectorAll('.close-map-modal');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', closeMap);
+    });
     
-    // Initialize search input
-    const searchInput = document.getElementById('searchLocation');
+    // Location search
+    const searchInput = document.getElementById('locationSearch');
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                searchLocation(this.value);
+                searchLocation(e.target.value);
             }
         });
     }
     
     // Confirm location button
-    const confirmBtn = document.querySelector('.map-modal button.btn');
+    const confirmBtn = document.getElementById('confirmLocationBtn');
     if (confirmBtn) {
         confirmBtn.addEventListener('click', confirmLocation);
     }
     
-    // Allow clicking outside the modal content to close it
+    // Close map when clicking outside the modal content
     const mapModal = document.getElementById('mapModal');
     if (mapModal) {
         mapModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.style.display = 'none';
-                this.classList.remove('active');
+            if (e.target === mapModal) {
+                closeMap();
             }
         });
     }
 }
 
-// Initialize map
+// Initialize the map
 function initMap() {
-    console.log('Initializing map');
+    // If map already initialized, return
+    if (map) return;
     
-    // Check if map container exists
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer) {
-        console.error('Map container not found');
-        return;
+    // Create map centered on Sri Lanka
+    map = L.map('map').setView([7.8731, 80.7718], 8);
+    
+    // Add tile layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    // Add click event to map for setting markers
+    map.on('click', function(e) {
+        setMarker(e.latlng);
+    });
+    
+    // Force map to update its size after it becomes visible
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 100);
+}
+
+// Open the map modal
+function openMap(field) {
+    activeField = field;
+    const mapModal = document.getElementById('mapModal');
+    if (!mapModal) return;
+    
+    mapModal.classList.add('active');
+    
+    // Initialize map if not already done
+    setTimeout(function() {
+        initMap();
+        
+        // If there's already a marker for this field, center on it
+        if (markers[field]) {
+            map.setView(markers[field].getLatLng(), 13);
+        }
+    }, 100);
+}
+
+// Close the map modal
+function closeMap() {
+    const mapModal = document.getElementById('mapModal');
+    if (!mapModal) return;
+    
+    mapModal.classList.remove('active');
+    activeField = null;
+}
+
+// Set a marker on the map
+function setMarker(latlng) {
+    if (!activeField || !map) return;
+    
+    // Remove existing marker for this field if it exists
+    if (markers[activeField]) {
+        map.removeLayer(markers[activeField]);
     }
     
-    // Remove existing map if any
-    if (map !== null) {
-        map.remove();
-        map = null;
-    }
+    // Create new marker
+    markers[activeField] = L.marker(latlng).addTo(map);
     
-    try {
-        // Initialize map centered on Sri Lanka
-        map = L.map('map').setView([7.8731, 80.7718], 8);
-        
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-        }).addTo(map);
-        
-        // Add major cities as markers
-        addMajorCityMarkers();
-        
-        // Add click event to map
-        map.on('click', function(e) {
-            setMarker([e.latlng.lat, e.latlng.lng]);
-        });
-        
-        console.log('Map initialized successfully');
-    } catch (error) {
-        console.error('Error initializing map:', error);
+    // Update coordinates in hidden field if it exists
+    const coordField = document.getElementById(activeField + 'Coordinates');
+    if (coordField) {
+        coordField.value = latlng.lat + ',' + latlng.lng;
     }
 }
 
-// Add major city markers
-function addMajorCityMarkers() {
-    const cities = {
-        'Colombo': [6.9271, 79.8612],
-        'Kandy': [7.2906, 80.6337],
-        'Galle': [6.0535, 80.2210],
-        'Jaffna': [9.6615, 80.0255],
-        'Trincomalee': [8.5874, 81.2152],
-        'Sigiriya': [7.9570, 80.7603],
-        'Ella': [6.8667, 81.0466],
-        'Nuwara Eliya': [6.9497, 80.7891],
-        'Matara': [5.9485, 80.5353]
-    };
-    
-    for (let city in cities) {
-        L.marker(cities[city])
-            .addTo(map)
-            .bindPopup(city)
-            .on('click', function() {
-                setMarker(cities[city]);
-            });
-    }
-}
-
-// Search location
+// Search for a location
 function searchLocation(query) {
-    if (!query.trim()) return;
+    if (!query) return;
     
-    // Add "Sri Lanka" to query if not already present
-    if (!query.toLowerCase().includes('sri lanka')) {
-        query += ' Sri Lanka';
-    }
-    
-    // Show loading indicator
-    const searchInput = document.getElementById('searchLocation');
-    if (searchInput) {
-        searchInput.classList.add('loading');
-    }
-    
-    // Use Nominatim API to search for location
+    // Use Nominatim search API
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
         .then(response => response.json())
         .then(data => {
-            if (searchInput) {
-                searchInput.classList.remove('loading');
-            }
-            
-            if (data.length > 0) {
-                const location = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-                setMarker(location);
-                map.setView(location, 13);
+            if (data && data.length > 0) {
+                const location = data[0];
+                const latlng = L.latLng(location.lat, location.lon);
+                
+                // Center map on search result
+                map.setView(latlng, 13);
+                
+                // Set marker at found location
+                setMarker(latlng);
             } else {
                 alert('Location not found. Please try a different search term.');
             }
         })
         .catch(error => {
             console.error('Error searching for location:', error);
-            if (searchInput) {
-                searchInput.classList.remove('loading');
-            }
             alert('Error searching for location. Please try again.');
         });
 }
 
-// Set marker
-function setMarker(latlng) {
-    if (marker) {
-        map.removeLayer(marker);
-    }
-    
-    // Create draggable marker
-    marker = L.marker(latlng, {draggable: true}).addTo(map);
-    
-    // Add drag end event
-    marker.on('dragend', function() {
-        const newPos = marker.getLatLng();
-        getAddressFromCoordinates(newPos.lat, newPos.lng);
-    });
-    
-    // Get address from coordinates
-    getAddressFromCoordinates(latlng[0], latlng[1]);
-}
-
-// Get address from coordinates
-function getAddressFromCoordinates(lat, lng) {
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.display_name) {
-                marker.bindPopup(data.display_name).openPopup();
-            }
-        })
-        .catch(error => {
-            console.error('Error getting address:', error);
-        });
-}
-
-// Open map
-function openMap(field) {
-    console.log('Opening map for field:', field);
-    currentField = field;
-    
-    // Get map modal
-    const mapModal = document.getElementById('mapModal');
-    if (!mapModal) {
-        console.error('Map modal not found');
-        return;
-    }
-    
-    // Show modal
-    mapModal.style.display = 'flex';
-    mapModal.classList.add('active');
-    
-    // Initialize map after modal is visible
-    setTimeout(() => {
-        if (!map) {
-            initMap();
-        } else {
-            map.invalidateSize();
-        }
-    }, 100);
-}
-
-// Confirm location
+// Confirm selected location
 function confirmLocation() {
-    if (!marker) {
+    if (!activeField || !markers[activeField]) {
         alert('Please select a location on the map first.');
         return;
     }
     
-    const latlng = marker.getLatLng();
+    const latlng = markers[activeField].getLatLng();
     
-    // Get address from coordinates
+    // Update input field with reverse geocoded address or coordinates
+    reverseGeocode(latlng, function(address) {
+        const inputField = document.getElementById(activeField + 'Location');
+        if (inputField) {
+            inputField.value = address || `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+        }
+        
+        // If both pickup and destination are set, calculate distance
+        if (markers.pickup && markers.destination) {
+            calculateDistance();
+        }
+        
+        // Close the map modal
+        closeMap();
+    });
+}
+
+// Reverse geocode coordinates to address
+function reverseGeocode(latlng, callback) {
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`)
         .then(response => response.json())
         .then(data => {
-            const address = data.display_name || `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
-            
-            // Update form field
-            const fieldId = currentField === 'pickup' ? 'pickupLocation' : 'destination';
-            const field = document.getElementById(fieldId);
-            if (field) {
-                field.value = address;
-            }
-            
-            // Store marker
-            if (currentField === 'pickup') {
-                pickupMarker = marker;
+            if (data && data.display_name) {
+                callback(data.display_name);
             } else {
-                destinationMarker = marker;
-            }
-            
-            // Calculate distance if both markers are set
-            calculateDistance();
-            
-            // Close modal
-            const mapModal = document.getElementById('mapModal');
-            if (mapModal) {
-                mapModal.style.display = 'none';
-                mapModal.classList.remove('active');
+                callback(null);
             }
         })
         .catch(error => {
-            console.error('Error confirming location:', error);
-            alert('Error confirming location. Please try again.');
+            console.error('Error reverse geocoding:', error);
+            callback(null);
         });
 }
 
-// Calculate distance between two markers and make it available globally
+// Calculate distance between pickup and destination
 function calculateDistance() {
-    if (pickupMarker && destinationMarker) {
-        // Use the Haversine formula to calculate distance between two points
-        const lat1 = pickupMarker.getLatLng().lat;
-        const lon1 = pickupMarker.getLatLng().lng;
-        const lat2 = destinationMarker.getLatLng().lat;
-        const lon2 = destinationMarker.getLatLng().lng;
-        
-        // Haversine formula
-        const R = 6371; // Radius of the Earth in km
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = 
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        const distance = R * c; // Distance in km
-        
-        console.log(`Distance: ${distance.toFixed(2)} km`);
-        
-        // Set global variable for transport calculator
-        window.calculatedDistance = parseFloat(distance.toFixed(2));
-        
-        return distance;
+    if (!markers.pickup || !markers.destination) return;
+    
+    const pickup = markers.pickup.getLatLng();
+    const destination = markers.destination.getLatLng();
+    
+    // Calculate distance in kilometers
+    const distance = pickup.distanceTo(destination) / 1000;
+    
+    // Update distance field if it exists
+    const distanceField = document.getElementById('distance');
+    if (distanceField) {
+        distanceField.value = distance.toFixed(2);
     }
-    return 0;
-}
-
-// Add route between markers
-function addRoute() {
-    if (pickupMarker && destinationMarker) {
-        // Remove existing route if any
-        if (routeLayer) {
-            map.removeLayer(routeLayer);
-        }
-        
-        // Create a polyline between the two markers
-        const latlngs = [
-            pickupMarker.getLatLng(),
-            destinationMarker.getLatLng()
-        ];
-        
-        routeLayer = L.polyline(latlngs, {color: 'blue'}).addTo(map);
-        
-        // Fit bounds to see both markers
-        map.fitBounds(routeLayer.getBounds().pad(0.1));
-        
-        // Calculate and display distance
-        const distance = calculateDistance();
-        
-        // Update distance display if the element exists
-        const distanceDisplay = document.getElementById('distance');
-        if (distanceDisplay) {
-            distanceDisplay.textContent = `Distance: ${distance.toFixed(2)} km`;
-            distanceDisplay.style.display = 'block';
-        }
-        
-        // If on the booking page, update the cost calculation
-        if (typeof calculatePrice === 'function') {
-            calculatePrice();
-        }
+    
+    console.log(`Distance: ${distance.toFixed(2)} km`);
+    
+    // Trigger price calculation if available
+    if (typeof calculatePrice === 'function') {
+        calculatePrice();
     }
 } 
