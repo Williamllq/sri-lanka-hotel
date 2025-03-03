@@ -1900,25 +1900,28 @@ select:focus {
 /* Feedback Button */
 .feedback-btn {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background-color: #4CAF50;
-    color: white;
+    bottom: 2rem;
+    left: 2rem;
+    background: var(--primary-color);
+    color: var(--light-text);
     border: none;
     border-radius: 50px;
-    padding: 10px 20px;
-    font-size: 14px;
-    cursor: pointer;
+    padding: 1rem 2rem;
     display: flex;
     align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 100;
+    gap: 0.8rem;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 166, 166, 0.2);
     transition: all 0.3s ease;
+    z-index: 999;
 }
 
 .feedback-btn:hover {
-    background-color: #45a049;
+    background: var(--accent-color);
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.feedback-btn i {
+    font-size: 1.2rem;
 } 
