@@ -213,7 +213,7 @@ function initPictureManagement() {
     }
     
     // Compress image to reduce storage size
-    function compressImage(dataURL, maxWidth = 800, quality = 0.6) {
+    function compressImage(dataURL, maxWidth = 1200, quality = 0.8) {
         return new Promise((resolve, reject) => {
             console.log("Starting image compression...");
             const img = new Image();
@@ -275,7 +275,7 @@ function initPictureManagement() {
                 console.log("Image preview loaded. File size:", e.target.result.length / 1024, "KB");
                 
                 // Warn if the image is very large
-                if (e.target.result.length > 1024 * 1024) {
+                if (e.target.result.length > 5 * 1024 * 1024) {
                     filePreview.innerHTML += `<p class="warning">Warning: This image is large (${(e.target.result.length / (1024 * 1024)).toFixed(2)} MB) and will be compressed.</p>`;
                 }
             };
@@ -309,14 +309,14 @@ function initPictureManagement() {
                     
                     // Compress the image - use stronger compression for large images
                     const originalSize = event.target.result.length;
-                    let quality = 0.6; // Default quality
-                    let maxWidth = 800; // Default max width
+                    let quality = 0.8; // 提高默认质量
+                    let maxWidth = 1200; // 增加默认最大宽度
                     
                     // For larger images, use stronger compression
-                    if (originalSize > 1024 * 1024 * 2) { // If > 2MB
-                        quality = 0.4;
-                        maxWidth = 600;
-                        console.log("Large image detected. Using stronger compression settings.");
+                    if (originalSize > 5 * 1024 * 1024) { // 增加到5MB
+                        quality = 0.7; // 提高大图片的质量
+                        maxWidth = 1000; // 增加大图片的最大宽度
+                        console.log("Large image detected. Using compression settings with quality:", quality);
                     }
                     
                     const compressedImage = await compressImage(event.target.result, maxWidth, quality);
