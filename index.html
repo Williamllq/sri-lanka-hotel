@@ -430,33 +430,53 @@
 
         <!-- 在 Contact Section 后面添加 -->
         <div id="feedbackModal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h3>Share Your Experience</h3>
+            <div class="modal-content feedback-modal-content">
+                <div class="feedback-header">
+                    <h3>Share Your Experience</h3>
+                    <button class="close-modal" aria-label="Close">&times;</button>
+                </div>
+                
                 <form id="feedbackForm">
-                    <div class="form-group">
-                        <label>Name</label>
-                        <input type="text" id="feedbackName" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Country</label>
-                        <input type="text" id="feedbackCountry" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Rating</label>
-                        <div class="rating">
-                            <input type="radio" name="rating" value="5" id="star5"><label for="star5">★</label>
-                            <input type="radio" name="rating" value="4" id="star4"><label for="star4">★</label>
-                            <input type="radio" name="rating" value="3" id="star3"><label for="star3">★</label>
-                            <input type="radio" name="rating" value="2" id="star2"><label for="star2">★</label>
-                            <input type="radio" name="rating" value="1" id="star1"><label for="star1">★</label>
+                    <div class="feedback-form-grid">
+                        <div class="form-group">
+                            <label for="feedbackName">Name</label>
+                            <input type="text" id="feedbackName" placeholder="Your name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="feedbackCountry">Country</label>
+                            <input type="text" id="feedbackCountry" placeholder="Your country" required>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Your Feedback</label>
-                        <textarea id="feedbackText" rows="4" required></textarea>
+                    
+                    <div class="form-group rating-group">
+                        <label>How was your experience?</label>
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" checked>
+                            <label for="star5" title="5 stars"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star4" name="rating" value="4">
+                            <label for="star4" title="4 stars"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star3" name="rating" value="3">
+                            <label for="star3" title="3 stars"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star2" name="rating" value="2">
+                            <label for="star2" title="2 stars"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star1" name="rating" value="1">
+                            <label for="star1" title="1 star"><i class="fas fa-star"></i></label>
+                        </div>
                     </div>
-                    <button type="submit" class="btn">Submit Feedback</button>
+                    
+                    <div class="form-group">
+                        <label for="feedbackText">Your Feedback</label>
+                        <textarea id="feedbackText" rows="4" placeholder="Tell us about your experience..." required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary feedback-submit">
+                        <i class="fas fa-paper-plane"></i> Submit Feedback
+                    </button>
                 </form>
             </div>
         </div>
