@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const pickupMapBtn = document.getElementById('pickupMapBtn');
     const destinationMapBtn = document.getElementById('destinationMapBtn');
     const closeMapBtn = document.getElementById('closeMapModal');
-    const debugMapBtn = document.getElementById('debugMapBtn');
     
     if (pickupMapBtn) {
         pickupMapBtn.addEventListener('click', function() {
@@ -53,13 +52,6 @@ document.addEventListener('DOMContentLoaded', function() {
         closeMapBtn.addEventListener('click', function() {
             console.log('Close map button clicked');
             closeMapModal();
-        });
-    }
-    
-    if (debugMapBtn) {
-        debugMapBtn.addEventListener('click', function() {
-            console.log('Debug map button clicked');
-            debugMap();
         });
     }
     
@@ -529,17 +521,4 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 function deg2rad(deg) {
     return deg * (Math.PI/180);
-}
-
-// Debug function
-function debugMap() {
-    console.log('Debug map info:');
-    console.log('Map initialized:', map ? 'Yes' : 'No');
-    console.log('Map container exists:', mapContainer ? 'Yes' : 'No');
-    console.log('Map modal exists:', mapModal ? 'Yes' : 'No');
-    console.log('Active input:', activeLocationInput ? activeLocationInput.id : 'None');
-    console.log('Selected location:', selectedLocation);
-    console.log('Leaflet loaded:', typeof L !== 'undefined' ? 'Yes' : 'No');
-    
-    alert('Debug info logged to console. Press F12 to view.');
 } 
