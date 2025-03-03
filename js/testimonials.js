@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Pause rotation when hovering over testimonials
-    const testimonialContainer = document.querySelector('.testimonials-slider');
+    const testimonialContainer = document.querySelector('.testimonials-compact');
     if (testimonialContainer) {
         testimonialContainer.addEventListener('mouseenter', function() {
             clearInterval(slideInterval);
