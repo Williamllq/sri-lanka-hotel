@@ -539,7 +539,7 @@ footer {
 .transport-info {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
 }
 
 /* 修改 transport-card 样式 */
@@ -553,27 +553,28 @@ footer {
 
 .transport-card img {
     width: 100%;
-    height: 300px;
+    height: 250px;
     object-fit: cover;
 }
 
 .transport-card h3 {
-    padding: 1.5rem 1.5rem 0.5rem;
+    padding: 1rem 1.5rem 0.5rem;
     font-size: 1.5rem;
     font-weight: 300;
 }
 
 .transport-card p {
-    padding: 0 1.5rem;
+    padding: 0 1.5rem 0.5rem;
     opacity: 0.8;
+    margin-bottom: 0;
 }
 
 .vehicle-features {
     list-style: none;
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 0.8rem;
 }
 
 .vehicle-features li {
@@ -592,19 +593,19 @@ footer {
 .service-features {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    gap: 1rem;
     margin-top: auto;
 }
 
 .feature-card {
     background: var(--bg-light);
-    padding: 1.5rem;
+    padding: 1.2rem;
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0, 166, 166, 0.1);
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.3rem;
 }
 
 .feature-card:hover {
@@ -612,21 +613,22 @@ footer {
 }
 
 .feature-card i {
-    font-size: 2rem;
+    font-size: 1.8rem;
     color: var(--primary-color);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
 }
 
 .feature-card h3 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 300;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
 }
 
 .feature-card p {
     opacity: 0.8;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     line-height: 1.4;
+    margin-bottom: 0;
 }
 
 @media (max-width: 768px) {
@@ -639,7 +641,7 @@ footer {
     }
     
     .feature-card {
-        padding: 1.5rem;
+        padding: 1.2rem;
     }
 }
 
@@ -1931,7 +1933,7 @@ select:focus {
     background-color: var(--light-bg);
     position: relative;
     overflow: hidden;
-    padding: 3rem 0;
+    padding: 2rem 0;
 }
 
 #testimonials::before {
@@ -1950,17 +1952,17 @@ select:focus {
 .testimonials-compact {
     position: relative;
     max-width: 900px;
-    margin: 2rem auto;
+    margin: 1.5rem auto;
     z-index: 1;
     background-color: white;
     border-radius: 10px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-    padding: 2rem;
+    padding: 1.5rem;
 }
 
 .testimonial-slides {
     position: relative;
-    min-height: 200px;
+    min-height: 150px;
 }
 
 .testimonial-slide {
@@ -1980,50 +1982,50 @@ select:focus {
 
 .testimonial-quote-icon {
     color: var(--primary-color);
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
     opacity: 0.7;
 }
 
 .testimonial-text {
-    font-size: 1.1rem;
-    line-height: 1.6;
+    font-size: 1rem;
+    line-height: 1.5;
     color: var(--dark-text);
     font-style: italic;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .testimonial-author-compact {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
 }
 
 .testimonial-author-compact img {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--primary-color);
 }
 
 .testimonial-author-compact h4 {
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin: 0 0 0.2rem 0;
     color: var(--dark-text);
 }
 
 .testimonial-author-compact p {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: var(--muted-text);
-    margin: 0 0 0.3rem 0;
+    margin: 0 0 0.2rem 0;
 }
 
 .testimonial-author-compact .rating {
     color: #FFD700;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     letter-spacing: 1px;
 }
 
@@ -2031,16 +2033,16 @@ select:focus {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
+    gap: 1.2rem;
+    margin-top: 1rem;
 }
 
 .testimonial-nav {
     background-color: transparent;
     border: 1px solid var(--primary-color);
     color: var(--primary-color);
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -2056,12 +2058,12 @@ select:focus {
 
 .testimonial-dots {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background-color: #ddd;
     cursor: pointer;
@@ -2076,15 +2078,15 @@ select:focus {
 /* Media Queries for Testimonials */
 @media (max-width: 768px) {
     .testimonials-compact {
-        padding: 1.5rem;
+        padding: 1.2rem;
     }
     
     .testimonial-text {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
     
     .testimonial-author-compact img {
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: 40px;
     }
 } 
