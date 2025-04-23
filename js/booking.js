@@ -190,6 +190,7 @@ function displayQuote(distance, fare, deposit) {
                 <span>$${formattedDeposit}</span>
             </div>
             <p class="quote-note">The full amount is payable on the day of travel.</p>
+            <div id="routeMap" style="height: 300px; width: 100%; margin-top: 20px; border-radius: 8px;"></div>
         </div>
     `;
     
@@ -242,6 +243,25 @@ function displayQuote(distance, fare, deposit) {
     // Show with animation
     priceEstimate.style.display = 'block';
     priceEstimate.classList.add('fade-in');
+    
+    // Initialize route map after a short delay to ensure the container is visible
+    setTimeout(() => {
+        // Get coordinates for map display
+        const pickupInput = document.getElementById('pickupLocation');
+        const destinationInput = document.getElementById('destinationLocation');
+        
+        if (pickupInput && destinationInput && 
+            pickupInput.dataset.lat && pickupInput.dataset.lng && 
+            destinationInput.dataset.lat && destinationInput.dataset.lng) {
+            
+            const pickupLat = parseFloat(pickupInput.dataset.lat);
+            const pickupLng = parseFloat(pickupInput.dataset.lng);
+            const destLat = parseFloat(destinationInput.dataset.lat);
+            const destLng = parseFloat(destinationInput.dataset.lng);
+            
+            initRouteMap(pickupLat, pickupLng, destLat, destLng);
+        }
+    }, 500);
 }
 
 // Process booking
@@ -365,5 +385,118 @@ function showMessage(message, type = 'info') {
         setTimeout(() => {
             messageContainer.style.display = 'none';
         }, 10000);
+    }
+}
+
+// Initialize route map to show journey path
+function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
+    console.log('Initializing route map');
+    
+    const mapContainer = document.getElementById('routeMap');
+    if (!mapContainer) {
+        console.error('Route map container not found');
+        return;
+    }
+    
+    // Check if Leaflet is loaded
+    if (typeof L === 'undefined') {
+        console.error('Leaflet library not loaded');
+        mapContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Map loading failed. Please try again later.</div>';
+        return;
+    }
+    
+    try {
+        // Create map with both points visible
+        const routeMap = L.map('routeMap');
+        
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(routeMap);
+        
+        // Create markers for pickup and destination
+        const pickupMarker = L.marker([pickupLat, pickupLng], {
+            icon: L.divIcon({
+                className: 'journey-marker pickup-marker',
+                html: '<div class="marker-inner">Pickup</div>',
+                iconSize: [80, 30],
+                iconAnchor: [40, 15]
+            })
+        }).addTo(routeMap);
+        
+        const destMarker = L.marker([destLat, destLng], {
+            icon: L.divIcon({
+                className: 'journey-marker dest-marker',
+                html: '<div class="marker-inner">Destination</div>',
+                iconSize: [100, 30],
+                iconAnchor: [50, 15]
+            })
+        }).addTo(routeMap);
+        
+        // Create a line connecting the two points
+        const journeyLine = L.polyline([
+            [pickupLat, pickupLng],
+            [destLat, destLng]
+        ], {
+            color: '#4CAF50',
+            weight: 5,
+            opacity: 0.7,
+            dashArray: '10, 10',
+            lineJoin: 'round'
+        }).addTo(routeMap);
+        
+        // Add CSS for custom markers if not exists
+        if (!document.getElementById('route-map-styles')) {
+            const style = document.createElement('style');
+            style.id = 'route-map-styles';
+            style.textContent = `
+                .journey-marker .marker-inner {
+                    padding: 5px 10px;
+                    border-radius: 15px;
+                    font-weight: bold;
+                    font-size: 12px;
+                    text-align: center;
+                    color: white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                }
+                .pickup-marker .marker-inner {
+                    background-color: #4285F4;
+                }
+                .dest-marker .marker-inner {
+                    background-color: #DB4437;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Fit bounds to show both markers with padding
+        routeMap.fitBounds([
+            [pickupLat, pickupLng],
+            [destLat, destLng]
+        ], {
+            padding: [50, 50]
+        });
+        
+        // Add distance information popup on the line
+        const midPoint = {
+            lat: (pickupLat + destLat) / 2,
+            lng: (pickupLng + destLng) / 2
+        };
+        
+        const distance = calculateDistance(pickupLat, pickupLng, destLat, destLng);
+        
+        L.popup({
+            closeButton: false,
+            className: 'distance-popup',
+            offset: [0, -10]
+        })
+        .setLatLng([midPoint.lat, midPoint.lng])
+        .setContent(`<div style="text-align: center;"><strong>${distance.toFixed(2)} km</strong></div>`)
+        .openOn(routeMap);
+        
+        console.log('Route map initialized successfully');
+    } catch (error) {
+        console.error('Error initializing route map:', error);
+        mapContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #721c24;">Failed to display the route map. Please try again later.</div>';
     }
 } 
