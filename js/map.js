@@ -495,6 +495,10 @@ function confirmLocation() {
     // Set the location value
     activeLocationInput.value = locationString;
     
+    // Store latitude and longitude in dataset for easy access
+    activeLocationInput.dataset.lat = selectedLocation.lat.toFixed(6);
+    activeLocationInput.dataset.lng = selectedLocation.lng.toFixed(6);
+    
     // Close the modal
     closeMapModal();
     
@@ -503,6 +507,9 @@ function confirmLocation() {
     setTimeout(() => {
         activeLocationInput.style.backgroundColor = '';
     }, 1500);
+    
+    // Check if both pickup and destination are set
+    checkLocationsAndEnableQuote();
 }
 
 // Calculate distance between two coordinates using Haversine formula
@@ -521,4 +528,39 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 function deg2rad(deg) {
     return deg * (Math.PI/180);
+}
+
+// Check if both pickup and destination locations are set
+function checkLocationsAndEnableQuote() {
+    const pickupInput = document.getElementById('pickupLocation');
+    const destinationInput = document.getElementById('destinationLocation');
+    const quoteBtn = document.querySelector('.btn.secondary'); // Get Quote button
+    const bookBtn = document.querySelector('.btn.primary'); // Book Now button
+    
+    if (!pickupInput || !destinationInput) {
+        console.error('Pickup or destination input not found');
+        return;
+    }
+    
+    // Check if both pickup and destination have latitude and longitude data
+    const hasPickupCoords = pickupInput.dataset.lat && pickupInput.dataset.lng;
+    const hasDestinationCoords = destinationInput.dataset.lat && destinationInput.dataset.lng;
+    
+    if (hasPickupCoords && hasDestinationCoords) {
+        console.log('Both pickup and destination coordinates are set');
+        if (quoteBtn) {
+            quoteBtn.classList.add('active');
+            quoteBtn.disabled = false;
+        }
+    } else {
+        console.log('Pickup or destination coordinates are not set');
+        if (quoteBtn) {
+            quoteBtn.classList.remove('active');
+            quoteBtn.disabled = true;
+        }
+        if (bookBtn) {
+            bookBtn.classList.remove('active');
+            bookBtn.disabled = true;
+        }
+    }
 } 
