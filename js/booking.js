@@ -6,23 +6,38 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Booking script loaded');
     
     // Initialize the Get Quote button
-    const quoteBtn = document.querySelector('.btn.secondary');
+    const quoteBtn = document.getElementById('getQuoteBtn');
     if (quoteBtn) {
         quoteBtn.addEventListener('click', calculateQuote);
+        console.log('Get Quote button event listener added');
+    } else {
+        console.error('Get Quote button not found');
     }
     
     // Initialize the Book Now button
-    const bookBtn = document.querySelector('.btn.primary');
+    const bookBtn = document.getElementById('bookNowBtn');
     if (bookBtn) {
         bookBtn.addEventListener('click', processBooking);
         // Initially disable Book Now button
         bookBtn.disabled = true;
+        console.log('Book Now button initialized');
+    } else {
+        console.error('Book Now button not found');
+    }
+    
+    // 确保在页面加载时Journey Quote部分是隐藏的
+    const quoteContainer = document.getElementById('quoteContainer');
+    if (quoteContainer) {
+        quoteContainer.style.display = 'none';
+        console.log('Quote container initially hidden');
+    } else {
+        console.error('Quote container not found');
     }
 });
 
 // Calculate the quote based on selected locations
 function calculateQuote() {
-    console.log('Calculating quote');
+    console.log('Calculating quote function called');
     
     // Get inputs
     const pickupInput = document.getElementById('pickupLocation');
@@ -32,11 +47,25 @@ function calculateQuote() {
     const journeyTime = document.getElementById('journeyTime');
     const passengerCount = document.getElementById('passengerCount');
     
+    console.log('Form inputs:', {
+        pickupInput: pickupInput ? 'found' : 'not found',
+        destinationInput: destinationInput ? 'found' : 'not found',
+        serviceType: serviceType ? serviceType.value : 'not found',
+        journeyDate: journeyDate ? journeyDate.value : 'not found',
+        journeyTime: journeyTime ? journeyTime.value : 'not found',
+        passengerCount: passengerCount ? passengerCount.value : 'not found'
+    });
+    
     // Validation
     if (!pickupInput || !destinationInput) {
         showMessage('Pickup or destination input not found', 'error');
         return;
     }
+    
+    console.log('Pickup value:', pickupInput.value);
+    console.log('Destination value:', destinationInput.value);
+    console.log('Pickup coordinates:', pickupInput.dataset.lat, pickupInput.dataset.lng);
+    console.log('Destination coordinates:', destinationInput.dataset.lat, destinationInput.dataset.lng);
     
     if (!pickupInput.value || !destinationInput.value) {
         showMessage('Please select both pickup and destination locations', 'error');
@@ -74,26 +103,26 @@ function calculateQuote() {
     console.log('Calculated distance:', distance, 'km');
     
     // Calculate fare
-    const fare = calculateFare(distance, getSelectedVehicleType());
+    const vehicleType = getSelectedVehicleType() || 'sedan';
+    console.log('Selected vehicle type:', vehicleType);
+    
+    const fare = calculateFare(distance, vehicleType);
     console.log('Calculated fare:', fare);
     
     // Calculate deposit (30% of fare)
-    const deposit = fare * 0.3;
+    const deposit = Math.round(fare * 0.3 * 100) / 100;
+    console.log('Deposit amount:', deposit);
     
     // Display the quote
-    displayQuote({
+    const quoteData = {
         distance: distance,
         totalFare: fare,
         depositAmount: deposit,
-        vehicleType: getSelectedVehicleType()
-    });
+        vehicleType: vehicleType
+    };
+    console.log('Quote data to display:', quoteData);
     
-    // Enable the Book Now button
-    const bookBtn = document.querySelector('.btn.primary');
-    if (bookBtn) {
-        bookBtn.disabled = false;
-        bookBtn.classList.add('active');
-    }
+    displayQuote(quoteData);
 }
 
 // Calculate distance between two points using Haversine formula
@@ -155,11 +184,35 @@ function calculateFare(distance, vehicleType) {
 }
 
 // Display the calculated quote
-function displayQuote(fare, distance, duration, pickupLocation, destLocation) {
-    console.log('Displaying quote with fare:', fare, 'distance:', distance, 'duration:', duration);
+function displayQuote(quoteData) {
+    console.log('Displaying quote with data:', quoteData);
 
     // 显示报价容器
-    document.getElementById('quoteContainer').style.display = 'block';
+    const quoteContainer = document.getElementById('quoteContainer');
+    if (quoteContainer) {
+        quoteContainer.style.display = 'block';
+    }
+    
+    // 更新报价信息
+    const distanceElement = document.getElementById('quotedDistance');
+    if (distanceElement) {
+        distanceElement.textContent = quoteData.distance.toFixed(2) + ' km';
+    }
+    
+    const vehicleElement = document.getElementById('quotedVehicle');
+    if (vehicleElement) {
+        vehicleElement.textContent = quoteData.vehicleType.charAt(0).toUpperCase() + quoteData.vehicleType.slice(1);
+    }
+    
+    const fareElement = document.getElementById('quotedFare');
+    if (fareElement) {
+        fareElement.textContent = 'LKR ' + quoteData.totalFare.toLocaleString();
+    }
+    
+    const depositElement = document.getElementById('quotedDeposit');
+    if (depositElement) {
+        depositElement.textContent = 'LKR ' + quoteData.depositAmount.toLocaleString();
+    }
     
     // 确保地图容器显示并滚动到视图中
     const mapContainer = document.getElementById('routeMap');
@@ -171,111 +224,43 @@ function displayQuote(fare, distance, duration, pickupLocation, destLocation) {
         }, 300);
     }
     
-    // 处理价格显示
-    // 获取报价文本元素并更新内容
-    const fareElement = document.getElementById('fareAmount');
-    if (fareElement) {
-        fareElement.textContent = '₨ ' + fare.toLocaleString();
-    }
+    // 获取坐标
+    const pickupInput = document.getElementById('pickupLocation');
+    const destinationInput = document.getElementById('destinationLocation');
     
-    // 更新距离和时间信息
-    const distanceElement = document.getElementById('journeyDistance');
-    if (distanceElement) {
-        distanceElement.textContent = distance.toFixed(2) + ' km';
-    }
-    
-    const durationElement = document.getElementById('journeyDuration');
-    if (durationElement) {
-        // 转换分钟到小时和分钟格式
-        const hours = Math.floor(duration / 60);
-        const minutes = Math.round(duration % 60);
+    if (pickupInput && destinationInput && 
+        pickupInput.dataset.lat && pickupInput.dataset.lng &&
+        destinationInput.dataset.lat && destinationInput.dataset.lng) {
         
-        let durationText = '';
-        if (hours > 0) {
-            durationText += hours + ' hour' + (hours > 1 ? 's' : '') + ' ';
-        }
-        if (minutes > 0 || hours === 0) {
-            durationText += minutes + ' minute' + (minutes !== 1 ? 's' : '');
+        const pickupLat = parseFloat(pickupInput.dataset.lat);
+        const pickupLng = parseFloat(pickupInput.dataset.lng);
+        const destLat = parseFloat(destinationInput.dataset.lat);
+        const destLng = parseFloat(destinationInput.dataset.lng);
+        
+        // 如果起点和终点坐标完全相同，稍微偏移终点位置以避免地图上的覆盖
+        let adjustedDestLat = destLat;
+        let adjustedDestLng = destLng;
+        if (pickupLat === destLat && pickupLng === destLng) {
+            adjustedDestLat += 0.0005; // 稍微向北偏移
+            adjustedDestLng += 0.0005; // 稍微向东偏移
+            console.log('Adjusted destination coordinates to avoid overlap');
         }
         
-        durationElement.textContent = durationText;
+        // 使用延迟初始化地图，确保容器完全可见
+        setTimeout(() => {
+            // 初始化路线地图
+            initRouteMap(pickupLat, pickupLng, adjustedDestLat, adjustedDestLng);
+        }, 500);
     }
     
-    // 更新旅程详细信息
-    const pickupLocationElement = document.getElementById('pickupLocationDetail');
-    if (pickupLocationElement) {
-        pickupLocationElement.textContent = pickupLocation;
-    }
+    // 滚动到报价容器
+    quoteContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     
-    const destLocationElement = document.getElementById('destLocationDetail');
-    if (destLocationElement) {
-        destLocationElement.textContent = destLocation;
-    }
-    
-    // 提取位置坐标
-    let pickupCoords = extractCoordinates(pickupLocation);
-    let destCoords = extractCoordinates(destLocation);
-    
-    console.log('Extracted coordinates - Pickup:', pickupCoords, 'Destination:', destCoords);
-    
-    // 验证坐标是否有效
-    if (!pickupCoords || !destCoords) {
-        console.error('Failed to extract valid coordinates from locations');
-        // 尝试从inputs获取值
-        const pickupInput = document.getElementById('pickupInput');
-        const destInput = document.getElementById('destinationInput');
-        
-        if (pickupInput && pickupInput.dataset.lat && pickupInput.dataset.lng) {
-            pickupCoords = {
-                lat: parseFloat(pickupInput.dataset.lat),
-                lng: parseFloat(pickupInput.dataset.lng)
-            };
-        }
-        
-        if (destInput && destInput.dataset.lat && destInput.dataset.lng) {
-            destCoords = {
-                lat: parseFloat(destInput.dataset.lat),
-                lng: parseFloat(destInput.dataset.lng)
-            };
-        }
-    }
-    
-    // 再次验证坐标
-    if (!pickupCoords || !destCoords || 
-        isNaN(pickupCoords.lat) || isNaN(pickupCoords.lng) || 
-        isNaN(destCoords.lat) || isNaN(destCoords.lng)) {
-        console.error('Could not determine valid coordinates for the journey');
-        if (mapContainer) {
-            mapContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #721c24;">Unable to display map: Invalid location coordinates</div>';
-        }
-        return;
-    }
-    
-    // 如果起点和终点坐标完全相同，稍微偏移终点位置以避免地图上的覆盖
-    if (pickupCoords.lat === destCoords.lat && pickupCoords.lng === destCoords.lng) {
-        destCoords.lat += 0.0005; // 稍微向北偏移
-        destCoords.lng += 0.0005; // 稍微向东偏移
-        console.log('Adjusted destination coordinates to avoid overlap');
-    }
-    
-    // 使用延迟初始化地图，确保容器完全可见
-    setTimeout(() => {
-        // 初始化路线地图
-        initRouteMap(
-            pickupCoords.lat, 
-            pickupCoords.lng, 
-            destCoords.lat, 
-            destCoords.lng
-        );
-    }, 500);
-    
-    // 显示用车费用的明细，如果存在
-    populateFareBreakdown(fare, distance);
-    
-    // 显示车辆选择区域
-    const vehicleSelectionElement = document.getElementById('vehicleSelection');
-    if (vehicleSelectionElement) {
-        vehicleSelectionElement.style.display = 'block';
+    // 启用Book Now按钮
+    const bookBtn = document.getElementById('bookNowBtn');
+    if (bookBtn) {
+        bookBtn.disabled = false;
+        bookBtn.classList.add('active');
     }
 }
 
