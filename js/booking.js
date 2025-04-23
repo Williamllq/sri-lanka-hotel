@@ -349,8 +349,16 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
             routeMapInstance = null;
         }
         
+        // Sometimes the map container might still have Leaflet-related elements
+        // Completely clear the container to avoid "already initialized" errors
+        mapContainer.innerHTML = '';
+        
+        // Generate a unique ID for the map container to avoid Leaflet initialization issues
+        const uniqueMapId = 'routeMap_' + Date.now();
+        mapContainer.id = uniqueMapId;
+        
         // Create map with both points visible
-        const routeMap = L.map('routeMap');
+        const routeMap = L.map(uniqueMapId);
         // Store the map instance globally
         routeMapInstance = routeMap;
         
@@ -438,6 +446,11 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         .setLatLng([midPoint.lat, midPoint.lng])
         .setContent(`<div style="text-align: center;"><strong>${distance.toFixed(2)} km</strong></div>`)
         .openOn(routeMap);
+        
+        // Reset the map ID back to the original after initialization
+        setTimeout(() => {
+            mapContainer.id = 'routeMap';
+        }, 1000);
         
         console.log('Route map initialized successfully');
     } catch (error) {
