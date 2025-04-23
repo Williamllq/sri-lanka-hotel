@@ -164,6 +164,10 @@ function displayQuote(quote) {
     document.getElementById('quotedFare').textContent = 'LKR ' + quote.totalFare.toLocaleString();
     document.getElementById('quotedDeposit').textContent = 'LKR ' + quote.depositAmount.toLocaleString();
     
+    // Make sure quote container is fully visible
+    const quoteContainer = document.getElementById('quoteContainer');
+    quoteContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
     // Initialize the map after a short delay to ensure the container is fully visible
     setTimeout(() => {
         try {
@@ -186,7 +190,15 @@ function displayQuote(quote) {
                 return;
             }
             
-            initRouteMap(pickupLat, pickupLng, destLat, destLng);
+            // Check if coordinates are identical and apply a small offset if they are
+            if (pickupLat === destLat && pickupLng === destLng) {
+                console.log('Identical coordinates detected, applying offset to destination');
+                // Add a small offset to destination so the points aren't identical
+                const offset = 0.01; // Approximately 1km
+                initRouteMap(pickupLat, pickupLng, destLat + offset, destLng + offset);
+            } else {
+                initRouteMap(pickupLat, pickupLng, destLat, destLng);
+            }
         } catch (error) {
             console.error('Error initializing route map:', error);
         }
@@ -319,7 +331,9 @@ function showMessage(message, type = 'info') {
 
 // Initialize route map to show journey path
 function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
-    console.log('Initializing route map');
+    console.log('Initializing route map with coordinates:', 
+                'Pickup:', pickupLat, pickupLng, 
+                'Destination:', destLat, destLng);
     
     const mapContainer = document.getElementById('routeMap');
     if (!mapContainer) {
@@ -327,17 +341,25 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         return;
     }
     
-    // Force set the height and style of the map container
-    mapContainer.style.height = '300px';
-    mapContainer.style.width = '100%';
-    mapContainer.style.marginTop = '20px';
-    mapContainer.style.borderRadius = '8px';
-    mapContainer.style.position = 'relative';
+    // Force set the height and style of the map container - use important to override any conflicting styles
+    mapContainer.style.cssText = `
+        height: 300px !important;
+        width: 100% !important;
+        margin-top: 20px !important;
+        border-radius: 8px !important;
+        position: relative !important;
+        display: block !important;
+        z-index: 1 !important;
+        overflow: hidden !important;
+        border: 1px solid #ddd !important;
+    `;
     
     // Check if Leaflet is loaded
     if (typeof L === 'undefined') {
         console.error('Leaflet library not loaded');
         mapContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Map loading failed. Please try again later.</div>';
+        // Try to load Leaflet again
+        loadLeafletForRoute();
         return;
     }
     
@@ -358,7 +380,11 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         mapContainer.id = uniqueMapId;
         
         // Create map with both points visible
-        const routeMap = L.map(uniqueMapId);
+        const routeMap = L.map(uniqueMapId, {
+            zoomControl: true,
+            scrollWheelZoom: false // Disable zoom on scroll for better UX
+        });
+        
         // Store the map instance globally
         routeMapInstance = routeMap;
         
@@ -367,7 +393,7 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(routeMap);
         
-        // Create markers for pickup and destination
+        // Create markers for pickup and destination with better visibility
         const pickupMarker = L.marker([pickupLat, pickupLng], {
             icon: L.divIcon({
                 className: 'journey-marker pickup-marker',
@@ -386,7 +412,7 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
             })
         }).addTo(routeMap);
         
-        // Create a line connecting the two points
+        // Create a line connecting the two points with better visibility
         const journeyLine = L.polyline([
             [pickupLat, pickupLng],
             [destLat, destLng]
@@ -417,6 +443,11 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
                 }
                 .dest-marker .marker-inner {
                     background-color: #DB4437;
+                }
+                #routeMap {
+                    height: 300px !important;
+                    width: 100% !important;
+                    display: block !important;
                 }
             `;
             document.head.appendChild(style);
@@ -450,11 +481,70 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         // Reset the map ID back to the original after initialization
         setTimeout(() => {
             mapContainer.id = 'routeMap';
+            
+            // Force map to refresh by invalidating size
+            routeMap.invalidateSize(true);
+            
+            // Force the map to be visible
+            mapContainer.style.display = 'block';
         }, 1000);
         
         console.log('Route map initialized successfully');
+        
+        // Force another refresh after 2 seconds to make sure map renders correctly 
+        // even if tabs or containers were initially hidden
+        setTimeout(() => {
+            if (routeMapInstance) {
+                routeMapInstance.invalidateSize(true);
+                console.log('Map size invalidated to force refresh');
+            }
+        }, 2000);
+        
     } catch (error) {
         console.error('Error initializing route map:', error);
         mapContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #721c24;">Failed to display the route map. Please try again later.</div>';
     }
+}
+
+// Helper function to load Leaflet specifically for route map
+function loadLeafletForRoute() {
+    console.log('Attempting to load Leaflet dynamically for route map');
+    
+    // Create script element
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+    script.crossOrigin = '';
+    
+    // Add load event
+    script.onload = function() {
+        console.log('Leaflet loaded successfully for route map');
+        // Get form values again
+        const pickupInput = document.getElementById('pickupLocation');
+        const destinationInput = document.getElementById('destinationLocation');
+        
+        if (pickupInput && destinationInput && 
+            pickupInput.dataset.lat && pickupInput.dataset.lng &&
+            destinationInput.dataset.lat && destinationInput.dataset.lng) {
+            
+            const pickupLat = parseFloat(pickupInput.dataset.lat);
+            const pickupLng = parseFloat(pickupInput.dataset.lng);
+            const destLat = parseFloat(destinationInput.dataset.lat);
+            const destLng = parseFloat(destinationInput.dataset.lng);
+            
+            setTimeout(() => initRouteMap(pickupLat, pickupLng, destLat, destLng), 500);
+        }
+    };
+    
+    // Add error event
+    script.onerror = function() {
+        console.error('Failed to load Leaflet for route map');
+        const mapContainer = document.getElementById('routeMap');
+        if (mapContainer) {
+            mapContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Map loading failed. Please refresh the page and try again.</div>';
+        }
+    };
+    
+    // Add script to document
+    document.head.appendChild(script);
 } 

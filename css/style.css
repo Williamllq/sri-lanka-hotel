@@ -2268,4 +2268,70 @@ select:focus {
 
 .feedback-btn i {
     font-size: 1.2rem;
+}
+
+/* 在文件末尾添加路线地图相关样式 */
+
+/* 确保路线地图容器正确显示 */
+#routeMap,
+[id^="routeMap_"] {
+    height: 300px !important;
+    width: 100% !important;
+    margin-top: 20px !important;
+    border-radius: 8px !important;
+    position: relative !important;
+    display: block !important;
+    z-index: 1 !important;
+    overflow: hidden !important;
+    border: 1px solid #ddd !important;
+    max-width: 100% !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+}
+
+/* 路线标记样式 */
+.journey-marker .marker-inner {
+    padding: 5px 10px !important;
+    border-radius: 15px !important;
+    font-weight: bold !important;
+    font-size: 12px !important;
+    text-align: center !important;
+    color: white !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+}
+
+.pickup-marker .marker-inner {
+    background-color: #4285F4 !important;
+}
+
+.dest-marker .marker-inner {
+    background-color: #DB4437 !important;
+}
+
+/* 确保地图在报价容器中可见 */
+#quoteContainer {
+    display: block !important;
+    background-color: #f8f9fa !important;
+    border-radius: 8px !important;
+    padding: 16px !important;
+    margin-top: 20px !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+}
+
+/* 距离弹出窗口样式 */
+.distance-popup .leaflet-popup-content-wrapper {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 8px !important;
+    font-weight: bold !important;
+}
+
+.distance-popup .leaflet-popup-tip {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 确保地图在各种屏幕尺寸下都能够良好显示 */
+@media (max-width: 767px) {
+    #routeMap,
+    [id^="routeMap_"] {
+        height: 250px !important; /* 小屏幕上稍微减小高度 */
+    }
 } 
