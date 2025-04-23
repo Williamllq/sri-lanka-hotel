@@ -615,22 +615,23 @@
     <div id="mapModal" class="map-modal">
         <div class="map-modal-content">
             <div class="map-modal-header">
-                <h3 id="mapModalTitle">Select Pickup Location</h3>
-                <button id="closeMapModal" class="close-map-btn">&times;</button>
+                <h3 id="mapModalTitle" data-i18n="select-pickup-location">Select Pickup Location</h3>
+                <button id="closeMapModal" class="close-map-btn" aria-label="Close">&times;</button>
             </div>
             <div class="map-modal-body">
                 <div class="map-search-container">
-                    <input type="text" id="mapSearchInput" placeholder="Search for a location in Sri Lanka">
-                    <button id="mapSearchBtn"><i class="fas fa-search"></i></button>
+                    <input type="text" id="mapSearchInput" data-i18n-placeholder="search-location" placeholder="Search for a location in Sri Lanka">
+                    <button id="mapSearchBtn" aria-label="Search"><i class="fas fa-search"></i></button>
                 </div>
                 <div id="modalMap" style="height: 400px; width: 100%; display: block;"></div>
-                <p style="margin: 0 0 10px; font-size: 14px; color: #666;">
-                    <i class="fas fa-info-circle"></i> Click on the map to select a location or use the search box above to find a specific place in Sri Lanka.
+                <p class="map-helper-text">
+                    <i class="fas fa-info-circle"></i> 
+                    <span data-i18n="location-click-tip">Click on the map to select a location or use the search box above to find a specific place in Sri Lanka.</span>
                 </p>
             </div>
             <div class="map-modal-footer">
                 <button id="confirmLocationBtn" class="confirm-location-btn">
-                    <i class="fas fa-check"></i> Confirm Location
+                    <i class="fas fa-check"></i> <span data-i18n="confirm-location">Confirm Location</span>
                 </button>
             </div>
         </div>
@@ -683,6 +684,36 @@
             duration: 800,
             offset: 120,
             once: true
+        });
+    </script>
+
+    <!-- 更新位置输入容器，使移动端更友好 -->
+    <script>
+        // 更新位置输入按钮文字
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加数据属性到按钮
+            const pickupMapBtn = document.getElementById('pickupMapBtn');
+            const destinationMapBtn = document.getElementById('destinationMapBtn');
+            
+            if (pickupMapBtn) {
+                pickupMapBtn.setAttribute('data-i18n', 'select-on-map');
+            }
+            
+            if (destinationMapBtn) {
+                destinationMapBtn.setAttribute('data-i18n', 'select-on-map');
+            }
+            
+            // 为输入框添加提示文本
+            const pickupInput = document.getElementById('pickupLocation');
+            const destinationInput = document.getElementById('destinationLocation');
+            
+            if (pickupInput) {
+                pickupInput.setAttribute('data-i18n-placeholder', 'enter-pickup');
+            }
+            
+            if (destinationInput) {
+                destinationInput.setAttribute('data-i18n-placeholder', 'enter-destination');
+            }
         });
     </script>
 </body>
