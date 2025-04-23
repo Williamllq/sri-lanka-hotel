@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sri Lanka Stay & Explore</title>
     <meta name="description" content="Discover the best accommodations and experiences in Sri Lanka with our curated selection of hotels, villas, and local adventures.">
+    <meta name="keywords" content="Sri Lanka, accommodations, hotels, travel, transport, tours, vacation">
+    <meta name="author" content="Sri Lanka Stay & Explore">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://sri-lanka-stay-explore.netlify.app/">
+    <meta property="og:title" content="Sri Lanka Stay & Explore">
+    <meta property="og:description" content="Discover the best accommodations and experiences in Sri Lanka with our curated selection of hotels, villas, and local adventures.">
+    <meta property="og:image" content="https://sri-lanka-stay-explore.netlify.app/images/og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://sri-lanka-stay-explore.netlify.app/">
+    <meta property="twitter:title" content="Sri Lanka Stay & Explore">
+    <meta property="twitter:description" content="Discover the best accommodations and experiences in Sri Lanka with our curated selection of hotels, villas, and local adventures.">
+    <meta property="twitter:image" content="https://sri-lanka-stay-explore.netlify.app/images/og-image.jpg">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
@@ -25,21 +41,44 @@
     <script src="js/translations.js"></script>
     <script src="js/main.js"></script>
 
+    <!-- 结构化数据用于SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TravelAgency",
+      "name": "Sri Lanka Stay & Explore",
+      "url": "https://sri-lanka-stay-explore.netlify.app/",
+      "logo": "https://sri-lanka-stay-explore.netlify.app/images/ranga_bandara_logo_v2.png",
+      "description": "Your premium travel experience in Sri Lanka. We offer transport services, accommodation booking and guided tours.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "Sri Lanka",
+        "addressLocality": "Colombo"
+      },
+      "telephone": "+94 76 123 4567",
+      "email": "info@srilankastayexplore.com",
+      "sameAs": [
+        "https://www.facebook.com/srilankastayexplore",
+        "https://www.instagram.com/srilankastayexplore"
+      ]
+    }
+    </script>
+
     <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR-GA-ID"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
 
-      gtag('config', 'YOUR-GA-ID');
+      gtag('config', 'G-XXXXXXXXXX');
     </script>
 
     <!-- Cloudflare Web Analytics -->
-    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "YOUR-TOKEN"}'></script>
+    <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "XXXXXXXXXX"}'></script>
 
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- 重复加载，已移除 -->
 </head>
 <body>
     <header>
@@ -413,15 +452,15 @@
                     <div class="contact-details">
                         <div class="contact-item">
                             <i class="fas fa-phone"></i>
-                            <p>+94 XX XXX XXXX</p>
+                            <p>+94 76 123 4567</p>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-envelope"></i>
-                            <p>info@srilankastay.com</p>
+                            <p>info@srilankastayexplore.com</p>
                         </div>
                         <div class="contact-item">
                             <i class="fab fa-whatsapp"></i>
-                            <p>WhatsApp: +94 XX XXX XXXX</p>
+                            <p>WhatsApp: +94 76 123 4567</p>
                         </div>
                     </div>
                 </div>
@@ -522,19 +561,31 @@
         <span>Need Help?</span>
     </button>
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <h3>Sri Lanka Stay & Explore</h3>
-                <p data-i18n="slogan">Best Travel - Best Choice</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="./images/ranga_bandara_logo_v2.png" alt="Sri Lanka Stay & Explore Logo" width="80">
+                    <h3>Sri Lanka Stay & Explore</h3>
                 </div>
+                <div class="footer-social">
+                    <a href="https://facebook.com/" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://instagram.com/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://twitter.com/" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="https://youtube.com/" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; <span id="current-year">2024</span> Sri Lanka Stay & Explore. All rights reserved.</p>
             </div>
         </div>
     </footer>
+    
+    <script>
+        // 自动更新页脚的年份
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
 
     <!-- Map modal for selecting locations -->
     <div id="mapModal" class="map-modal">
