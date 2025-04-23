@@ -155,54 +155,128 @@ function calculateFare(distance, vehicleType) {
 }
 
 // Display the calculated quote
-function displayQuote(quote) {
+function displayQuote(fare, distance, duration, pickupLocation, destLocation) {
+    console.log('Displaying quote with fare:', fare, 'distance:', distance, 'duration:', duration);
+
+    // 显示报价容器
     document.getElementById('quoteContainer').style.display = 'block';
     
-    // Populate the quote details
-    document.getElementById('quotedDistance').textContent = quote.distance.toFixed(2) + ' km';
-    document.getElementById('quotedVehicle').textContent = quote.vehicleType;
-    document.getElementById('quotedFare').textContent = 'LKR ' + quote.totalFare.toLocaleString();
-    document.getElementById('quotedDeposit').textContent = 'LKR ' + quote.depositAmount.toLocaleString();
+    // 确保地图容器显示并滚动到视图中
+    const mapContainer = document.getElementById('routeMap');
+    if (mapContainer) {
+        mapContainer.style.display = 'block';
+        // 滚动到地图视图
+        setTimeout(() => {
+            mapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+    }
     
-    // Make sure quote container is fully visible
-    const quoteContainer = document.getElementById('quoteContainer');
-    quoteContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // 处理价格显示
+    // 获取报价文本元素并更新内容
+    const fareElement = document.getElementById('fareAmount');
+    if (fareElement) {
+        fareElement.textContent = '₨ ' + fare.toLocaleString();
+    }
     
-    // Initialize the map after a short delay to ensure the container is fully visible
-    setTimeout(() => {
-        try {
-            // 从输入字段获取经纬度
-            const pickupInput = document.getElementById('pickupLocation');
-            const destinationInput = document.getElementById('destinationLocation');
-            
-            if (!pickupInput || !destinationInput) {
-                console.error('Location inputs not found');
-                return;
-            }
-            
-            const pickupLat = parseFloat(pickupInput.dataset.lat);
-            const pickupLng = parseFloat(pickupInput.dataset.lng);
-            const destLat = parseFloat(destinationInput.dataset.lat);
-            const destLng = parseFloat(destinationInput.dataset.lng);
-            
-            if (isNaN(pickupLat) || isNaN(pickupLng) || isNaN(destLat) || isNaN(destLng)) {
-                console.error('Invalid coordinates for map');
-                return;
-            }
-            
-            // Check if coordinates are identical and apply a small offset if they are
-            if (pickupLat === destLat && pickupLng === destLng) {
-                console.log('Identical coordinates detected, applying offset to destination');
-                // Add a small offset to destination so the points aren't identical
-                const offset = 0.01; // Approximately 1km
-                initRouteMap(pickupLat, pickupLng, destLat + offset, destLng + offset);
-            } else {
-                initRouteMap(pickupLat, pickupLng, destLat, destLng);
-            }
-        } catch (error) {
-            console.error('Error initializing route map:', error);
+    // 更新距离和时间信息
+    const distanceElement = document.getElementById('journeyDistance');
+    if (distanceElement) {
+        distanceElement.textContent = distance.toFixed(2) + ' km';
+    }
+    
+    const durationElement = document.getElementById('journeyDuration');
+    if (durationElement) {
+        // 转换分钟到小时和分钟格式
+        const hours = Math.floor(duration / 60);
+        const minutes = Math.round(duration % 60);
+        
+        let durationText = '';
+        if (hours > 0) {
+            durationText += hours + ' hour' + (hours > 1 ? 's' : '') + ' ';
         }
-    }, 500); // 500ms延迟确保DOM准备好
+        if (minutes > 0 || hours === 0) {
+            durationText += minutes + ' minute' + (minutes !== 1 ? 's' : '');
+        }
+        
+        durationElement.textContent = durationText;
+    }
+    
+    // 更新旅程详细信息
+    const pickupLocationElement = document.getElementById('pickupLocationDetail');
+    if (pickupLocationElement) {
+        pickupLocationElement.textContent = pickupLocation;
+    }
+    
+    const destLocationElement = document.getElementById('destLocationDetail');
+    if (destLocationElement) {
+        destLocationElement.textContent = destLocation;
+    }
+    
+    // 提取位置坐标
+    let pickupCoords = extractCoordinates(pickupLocation);
+    let destCoords = extractCoordinates(destLocation);
+    
+    console.log('Extracted coordinates - Pickup:', pickupCoords, 'Destination:', destCoords);
+    
+    // 验证坐标是否有效
+    if (!pickupCoords || !destCoords) {
+        console.error('Failed to extract valid coordinates from locations');
+        // 尝试从inputs获取值
+        const pickupInput = document.getElementById('pickupInput');
+        const destInput = document.getElementById('destinationInput');
+        
+        if (pickupInput && pickupInput.dataset.lat && pickupInput.dataset.lng) {
+            pickupCoords = {
+                lat: parseFloat(pickupInput.dataset.lat),
+                lng: parseFloat(pickupInput.dataset.lng)
+            };
+        }
+        
+        if (destInput && destInput.dataset.lat && destInput.dataset.lng) {
+            destCoords = {
+                lat: parseFloat(destInput.dataset.lat),
+                lng: parseFloat(destInput.dataset.lng)
+            };
+        }
+    }
+    
+    // 再次验证坐标
+    if (!pickupCoords || !destCoords || 
+        isNaN(pickupCoords.lat) || isNaN(pickupCoords.lng) || 
+        isNaN(destCoords.lat) || isNaN(destCoords.lng)) {
+        console.error('Could not determine valid coordinates for the journey');
+        if (mapContainer) {
+            mapContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #721c24;">Unable to display map: Invalid location coordinates</div>';
+        }
+        return;
+    }
+    
+    // 如果起点和终点坐标完全相同，稍微偏移终点位置以避免地图上的覆盖
+    if (pickupCoords.lat === destCoords.lat && pickupCoords.lng === destCoords.lng) {
+        destCoords.lat += 0.0005; // 稍微向北偏移
+        destCoords.lng += 0.0005; // 稍微向东偏移
+        console.log('Adjusted destination coordinates to avoid overlap');
+    }
+    
+    // 使用延迟初始化地图，确保容器完全可见
+    setTimeout(() => {
+        // 初始化路线地图
+        initRouteMap(
+            pickupCoords.lat, 
+            pickupCoords.lng, 
+            destCoords.lat, 
+            destCoords.lng
+        );
+    }, 500);
+    
+    // 显示用车费用的明细，如果存在
+    populateFareBreakdown(fare, distance);
+    
+    // 显示车辆选择区域
+    const vehicleSelectionElement = document.getElementById('vehicleSelection');
+    if (vehicleSelectionElement) {
+        vehicleSelectionElement.style.display = 'block';
+    }
 }
 
 // Process booking
@@ -343,9 +417,8 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
     
     // Force set the height and style of the map container - use important to override any conflicting styles
     mapContainer.style.cssText = `
-        height: 300px !important;
+        height: 350px !important;
         width: 100% !important;
-        margin-top: 20px !important;
         border-radius: 8px !important;
         position: relative !important;
         display: block !important;
@@ -382,7 +455,9 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         // Create map with both points visible
         const routeMap = L.map(uniqueMapId, {
             zoomControl: true,
-            scrollWheelZoom: false // Disable zoom on scroll for better UX
+            scrollWheelZoom: false, // Disable zoom on scroll for better UX
+            dragging: true, // 允许拖动地图
+            touchZoom: true // 允许手指缩放
         });
         
         // Store the map instance globally
@@ -445,7 +520,7 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
                     background-color: #DB4437;
                 }
                 #routeMap {
-                    height: 300px !important;
+                    height: 350px !important;
                     width: 100% !important;
                     display: block !important;
                 }
