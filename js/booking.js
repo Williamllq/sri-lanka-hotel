@@ -1,4 +1,7 @@
 // Booking and Fare Calculation functionality
+// Global variable to track the route map instance
+let routeMapInstance = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Booking script loaded');
     
@@ -78,7 +81,12 @@ function calculateQuote() {
     const deposit = fare * 0.3;
     
     // Display the quote
-    displayQuote(distance, fare, deposit);
+    displayQuote({
+        distance: distance,
+        totalFare: fare,
+        depositAmount: deposit,
+        vehicleType: getSelectedVehicleType()
+    });
     
     // Enable the Book Now button
     const bookBtn = document.querySelector('.btn.primary');
@@ -147,121 +155,42 @@ function calculateFare(distance, vehicleType) {
 }
 
 // Display the calculated quote
-function displayQuote(distance, fare, deposit) {
-    const priceEstimate = document.querySelector('.price-estimate');
-    if (!priceEstimate) {
-        console.error('Price estimate element not found');
-        return;
-    }
+function displayQuote(quote) {
+    document.getElementById('quoteContainer').style.display = 'block';
     
-    // Format amounts for display
-    const formattedDistance = distance.toFixed(2);
-    const formattedFare = fare.toFixed(2);
-    const formattedDeposit = deposit.toFixed(2);
+    // Populate the quote details
+    document.getElementById('quotedDistance').textContent = quote.distance.toFixed(2) + ' km';
+    document.getElementById('quotedVehicle').textContent = quote.vehicleType;
+    document.getElementById('quotedFare').textContent = 'LKR ' + quote.totalFare.toLocaleString();
+    document.getElementById('quotedDeposit').textContent = 'LKR ' + quote.depositAmount.toLocaleString();
     
-    // Get vehicle display name
-    const vehicleType = getSelectedVehicleType();
-    const vehicleNames = {
-        sedan: 'Sedan',
-        suv: 'SUV',
-        van: 'Van',
-        luxury: 'Luxury Car'
-    };
-    const vehicleName = vehicleNames[vehicleType] || 'Vehicle';
-    
-    // Create HTML for the estimate
-    priceEstimate.innerHTML = `
-        <div class="quote-result">
-            <h3>Journey Quote</h3>
-            <div class="quote-item">
-                <span>Distance:</span>
-                <span>${formattedDistance} km</span>
-            </div>
-            <div class="quote-item">
-                <span>Vehicle Type:</span>
-                <span>${vehicleName}</span>
-            </div>
-            <div class="quote-item total">
-                <span>Estimated Total:</span>
-                <span>$${formattedFare}</span>
-            </div>
-            <div class="quote-item deposit">
-                <span>Required Deposit (30%):</span>
-                <span>$${formattedDeposit}</span>
-            </div>
-            <p class="quote-note">The full amount is payable on the day of travel.</p>
-            <div id="routeMap" style="height: 300px; width: 100%; margin-top: 20px; border-radius: 8px;"></div>
-        </div>
-    `;
-    
-    // Add CSS if there is none
-    if (!document.getElementById('quote-styles')) {
-        const style = document.createElement('style');
-        style.id = 'quote-styles';
-        style.textContent = `
-            .quote-result {
-                background-color: #f8f9fa;
-                border-radius: 8px;
-                padding: 16px;
-                margin-top: 20px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            }
-            .quote-result h3 {
-                margin-top: 0;
-                color: #218838;
-                border-bottom: 1px solid #ddd;
-                padding-bottom: 10px;
-                margin-bottom: 15px;
-            }
-            .quote-item {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 8px;
-            }
-            .quote-item.total {
-                font-weight: bold;
-                font-size: 1.1em;
-                margin-top: 15px;
-                border-top: 1px dashed #ddd;
-                padding-top: 10px;
-            }
-            .quote-item.deposit {
-                color: #d63031;
-                font-weight: bold;
-            }
-            .quote-note {
-                font-size: 0.9em;
-                color: #666;
-                font-style: italic;
-                margin-top: 15px;
-                margin-bottom: 0;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    // Show with animation
-    priceEstimate.style.display = 'block';
-    priceEstimate.classList.add('fade-in');
-    
-    // Initialize route map after a short delay to ensure the container is visible
+    // Initialize the map after a short delay to ensure the container is fully visible
     setTimeout(() => {
-        // Get coordinates for map display
-        const pickupInput = document.getElementById('pickupLocation');
-        const destinationInput = document.getElementById('destinationLocation');
-        
-        if (pickupInput && destinationInput && 
-            pickupInput.dataset.lat && pickupInput.dataset.lng && 
-            destinationInput.dataset.lat && destinationInput.dataset.lng) {
+        try {
+            // 从输入字段获取经纬度
+            const pickupInput = document.getElementById('pickupLocation');
+            const destinationInput = document.getElementById('destinationLocation');
+            
+            if (!pickupInput || !destinationInput) {
+                console.error('Location inputs not found');
+                return;
+            }
             
             const pickupLat = parseFloat(pickupInput.dataset.lat);
             const pickupLng = parseFloat(pickupInput.dataset.lng);
             const destLat = parseFloat(destinationInput.dataset.lat);
             const destLng = parseFloat(destinationInput.dataset.lng);
             
+            if (isNaN(pickupLat) || isNaN(pickupLng) || isNaN(destLat) || isNaN(destLng)) {
+                console.error('Invalid coordinates for map');
+                return;
+            }
+            
             initRouteMap(pickupLat, pickupLng, destLat, destLng);
+        } catch (error) {
+            console.error('Error initializing route map:', error);
         }
-    }, 500);
+    }, 500); // 500ms延迟确保DOM准备好
 }
 
 // Process booking
@@ -398,6 +327,13 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         return;
     }
     
+    // Force set the height and style of the map container
+    mapContainer.style.height = '300px';
+    mapContainer.style.width = '100%';
+    mapContainer.style.marginTop = '20px';
+    mapContainer.style.borderRadius = '8px';
+    mapContainer.style.position = 'relative';
+    
     // Check if Leaflet is loaded
     if (typeof L === 'undefined') {
         console.error('Leaflet library not loaded');
@@ -406,8 +342,17 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
     }
     
     try {
+        // Check if a map instance already exists and remove it
+        if (routeMapInstance) {
+            console.log('Removing existing map instance');
+            routeMapInstance.remove();
+            routeMapInstance = null;
+        }
+        
         // Create map with both points visible
         const routeMap = L.map('routeMap');
+        // Store the map instance globally
+        routeMapInstance = routeMap;
         
         // Add OpenStreetMap tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
