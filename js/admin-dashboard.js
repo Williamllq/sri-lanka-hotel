@@ -236,336 +236,619 @@ function initPictureManagement() {
     
     try {
         mockPictures = storedPictures ? JSON.parse(storedPictures) : [
-            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
-            { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg' },
-            { id: 3, name: 'Cinnamon Grand Hotel', category: 'hotel', url: 'images/cinnamon-grand.jpg' },
-            { id: 4, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/elephant.jpg' },
-            { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
+            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg', description: 'Ancient palace and fortress complex with stunning views' },
+            { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg', description: 'Beautiful lake in the heart of Kandy city' },
+            { id: 3, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/yala-leopard.jpg', description: 'Home to the highest density of leopards in the world' },
+            { id: 4, name: 'Local Cuisine', category: 'food', url: 'images/sri-lankan-food.jpg', description: 'Discover the rich flavors of authentic Sri Lankan dishes' },
+            { id: 5, name: 'Unawatuna Beach', category: 'beach', url: 'images/unawatuna-beach.jpg', description: 'Pristine golden beaches with crystal clear waters' },
+            { id: 6, name: 'Temple of the Sacred Tooth', category: 'culture', url: 'images/temple-tooth.jpg', description: 'Ancient Buddhist temple in Kandy housing Buddha\'s sacred tooth relic' },
+            { id: 7, name: 'Nine Arch Bridge', category: 'scenery', url: 'images/nine-arch-bridge.jpg', description: 'Iconic railway bridge in Ella, surrounded by lush tea plantations' }
         ];
         console.log("Loaded pictures from localStorage:", mockPictures.length);
-        console.log("First picture URL length: ", mockPictures[0]?.url?.length || 0);
     } catch (error) {
         console.error("Error loading pictures from localStorage:", error);
         mockPictures = [
-            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
-            { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg' },
-            { id: 3, name: 'Cinnamon Grand Hotel', category: 'hotel', url: 'images/cinnamon-grand.jpg' },
-            { id: 4, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/elephant.jpg' },
-            { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
+            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg', description: 'Ancient palace and fortress complex with stunning views' },
+            { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg', description: 'Beautiful lake in the heart of Kandy city' },
+            { id: 3, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/yala-leopard.jpg', description: 'Home to the highest density of leopards in the world' },
+            { id: 4, name: 'Local Cuisine', category: 'food', url: 'images/sri-lankan-food.jpg', description: 'Discover the rich flavors of authentic Sri Lankan dishes' },
+            { id: 5, name: 'Unawatuna Beach', category: 'beach', url: 'images/unawatuna-beach.jpg', description: 'Pristine golden beaches with crystal clear waters' },
+            { id: 6, name: 'Temple of the Sacred Tooth', category: 'culture', url: 'images/temple-tooth.jpg', description: 'Ancient Buddhist temple in Kandy housing Buddha\'s sacred tooth relic' },
+            { id: 7, name: 'Nine Arch Bridge', category: 'scenery', url: 'images/nine-arch-bridge.jpg', description: 'Iconic railway bridge in Ella, surrounded by lush tea plantations' }
         ];
     }
     
-    // Save pictures to localStorage whenever they change
+    // Display the pictures
+    displayPictures();
+    
+    // Handle category filter change
+    pictureCategory.addEventListener('change', displayPictures);
+    
+    // Preview image on file select
+    pictureFile.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            filePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    // Handle picture upload form submission
+    uploadPictureForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('pictureName').value;
+        const category = document.getElementById('uploadCategory').value;
+        const description = document.getElementById('pictureDescription').value;
+        const file = pictureFile.files[0];
+        
+        if (!name || !category || !file) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            // Compress image for better performance
+            const compressedImage = await compressImage(e.target.result);
+            
+            // Create a new picture object
+            const newPicture = {
+                id: Date.now(),
+                name: name,
+                category: category,
+                description: description || '',
+                url: compressedImage
+            };
+            
+            // Add to the pictures array
+            mockPictures.push(newPicture);
+            
+            // Save to localStorage
+            savePictures();
+            
+            // Refresh the display
+            displayPictures();
+            
+            // Reset form and close modal
+            uploadPictureForm.reset();
+            filePreview.innerHTML = '';
+            uploadModal.style.display = 'none';
+            
+            // Show success message
+            showNotification('Picture uploaded successfully', 'success');
+            
+            // Update gallery category
+            syncGalleryWithImages();
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    // Save pictures to localStorage
     function savePictures() {
         try {
-            const jsonString = JSON.stringify(mockPictures);
-            console.log("Saving pictures to localStorage. Size:", jsonString.length / 1024, "KB");
-            
-            // Check if we're approaching localStorage limits (usually around 5MB)
-            if (jsonString.length > 4 * 1024 * 1024) {
-                console.warn("WARNING: localStorage size is getting large:", jsonString.length / (1024 * 1024), "MB");
-                alert("Warning: Your image storage is getting full. Consider removing some older images.");
-            }
-            
-            localStorage.setItem('sitePictures', jsonString);
-            console.log("Saved pictures to localStorage:", mockPictures.length);
-            return true;
+            localStorage.setItem('sitePictures', JSON.stringify(mockPictures));
+            console.log("Saved pictures to localStorage, count:", mockPictures.length);
         } catch (error) {
             console.error("Error saving pictures to localStorage:", error);
-            alert("Failed to save images. Your browser storage might be full. Try removing some existing images first.");
-            return false;
+            
+            // If the error is due to localStorage size limit, compress images further
+            if (error.name === 'QuotaExceededError') {
+                console.log("Attempting to compress images further");
+                compressAllImages();
+            }
         }
     }
     
-    // Compress image to reduce storage size
+    // Compress all images in the array
+    async function compressAllImages() {
+        for (let i = 0; i < mockPictures.length; i++) {
+            if (mockPictures[i].url.startsWith('data:')) {
+                mockPictures[i].url = await compressImage(mockPictures[i].url, 800, 0.6);
+            }
+        }
+        
+        // Try saving again
+        try {
+            localStorage.setItem('sitePictures', JSON.stringify(mockPictures));
+            console.log("Saved compressed pictures to localStorage");
+        } catch (error) {
+            console.error("Still unable to save to localStorage after compression:", error);
+        }
+    }
+    
+    // Compress image function
     function compressImage(dataURL, maxWidth = 1200, quality = 0.8) {
-        return new Promise((resolve, reject) => {
-            console.log("Starting image compression...");
+        return new Promise((resolve) => {
             const img = new Image();
             img.onload = function() {
-                // Calculate new dimensions
+                const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
                 
-                console.log("Original image dimensions:", width, "x", height);
-                
+                // Scale down if width is greater than maxWidth
                 if (width > maxWidth) {
-                    const ratio = maxWidth / width;
+                    height = Math.round(height * maxWidth / width);
                     width = maxWidth;
-                    height = height * ratio;
-                    console.log("Resizing to:", width, "x", height);
                 }
                 
-                // Create canvas and resize image
-                const canvas = document.createElement('canvas');
                 canvas.width = width;
                 canvas.height = height;
                 
-                // Draw image
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // Get compressed data URL
-                const compressedDataURL = canvas.toDataURL('image/jpeg', quality);
-                console.log("Compression complete. Original size:", dataURL.length / 1024, "KB, New size:", compressedDataURL.length / 1024, "KB");
-                resolve(compressedDataURL);
-            };
-            img.onerror = function(err) {
-                console.error("Failed to load image for compression:", err);
-                reject(new Error('Failed to load image for compression'));
+                // Convert to data URL with compression
+                resolve(canvas.toDataURL('image/jpeg', quality));
             };
             img.src = dataURL;
         });
     }
     
-    // Open upload modal
-    uploadPictureBtn.addEventListener('click', function() {
-        uploadModal.style.display = 'block';
-    });
-    
-    // Close modals
-    closeModalBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            uploadModal.style.display = 'none';
-        });
-    });
-    
-    // File preview functionality
-    pictureFile.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                filePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-                console.log("Image preview loaded. File size:", e.target.result.length / 1024, "KB");
-                
-                // Warn if the image is very large
-                if (e.target.result.length > 5 * 1024 * 1024) {
-                    filePreview.innerHTML += `<p class="warning">Warning: This image is large (${(e.target.result.length / (1024 * 1024)).toFixed(2)} MB) and will be compressed.</p>`;
-                }
-            };
-            
-            reader.readAsDataURL(this.files[0]);
-        }
-    });
-    
-    // Form submission
-    uploadPictureForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const pictureName = document.getElementById('pictureName').value;
-        const category = document.getElementById('uploadCategory').value;
-        const description = document.getElementById('pictureDescription').value;
-        
-        if (!pictureFile.files || !pictureFile.files[0]) {
-            alert('Please select an image file');
-            return;
-        }
-        
-        try {
-            // Show loading message
-            filePreview.innerHTML += '<p>Processing image... This may take a moment for large images.</p>';
-            
-            const reader = new FileReader();
-            
-            reader.onload = async function(event) {
-                try {
-                    console.log("Image read complete. Starting compression...");
-                    
-                    // Compress the image - use stronger compression for large images
-                    const originalSize = event.target.result.length;
-                    let quality = 0.8; // 提高默认质量
-                    let maxWidth = 1200; // 增加默认最大宽度
-                    
-                    // For larger images, use stronger compression
-                    if (originalSize > 5 * 1024 * 1024) { // 增加到5MB
-                        quality = 0.7; // 提高大图片的质量
-                        maxWidth = 1000; // 增加大图片的最大宽度
-                        console.log("Large image detected. Using compression settings with quality:", quality);
-                    }
-                    
-                    const compressedImage = await compressImage(event.target.result, maxWidth, quality);
-                    console.log("Compression ratio:", compressedImage.length / originalSize);
-                    
-                    // Generate a unique ID using timestamp and random number
-                    const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
-                    
-                    // Create a new picture object with the data URL
-                    const newPicture = {
-                        id: uniqueId,
-                        name: pictureName,
-                        category: category,
-                        url: compressedImage,
-                        description: description,
-                        dateAdded: new Date().toISOString()
-                    };
-                    
-                    // Add to data
-                    mockPictures.push(newPicture);
-                    
-                    // Save to localStorage
-                    const saveSuccess = savePictures();
-                    
-                    // Reset form
-                    uploadPictureForm.reset();
-                    filePreview.innerHTML = '';
-                    
-                    // Close modal
-                    uploadModal.style.display = 'none';
-                    
-                    // Refresh grid
-                    displayPictures();
-                    
-                    // Show success message
-                    if (saveSuccess) {
-                        alert('Picture uploaded successfully!');
-                    }
-                } catch (error) {
-                    console.error('Error processing image:', error);
-                    alert('Failed to process image: ' + (error.message || 'Please try again with a smaller image.'));
-                }
-            };
-            
-            reader.onerror = function(event) {
-                console.error("File reader error:", event);
-                alert('Error reading the image file. Please try again with a different image.');
-            };
-            
-            reader.readAsDataURL(pictureFile.files[0]);
-        } catch (error) {
-            console.error('Error uploading image:', error);
-            alert('An error occurred while uploading the image: ' + error.message);
-        }
-    });
-    
-    // Filter by category
-    pictureCategory.addEventListener('change', function() {
-        displayPictures();
-    });
-    
-    // Display pictures function
+    // Display pictures based on selected category
     function displayPictures() {
-        const category = pictureCategory.value;
-        console.log("Displaying pictures for category:", category);
+        if (!pictureGrid) return;
         
-        // Clear current grid
+        const selectedCategory = pictureCategory.value;
+        
+        // Filter pictures by category
+        const filteredPictures = selectedCategory === 'all' 
+            ? mockPictures 
+            : mockPictures.filter(pic => pic.category === selectedCategory);
+        
+        // Clear the grid
         pictureGrid.innerHTML = '';
         
-        // Filter images by category if not "all"
-        const filteredPictures = category === 'all' 
-            ? mockPictures 
-            : mockPictures.filter(pic => pic.category === category);
-        
-        console.log("Filtered pictures count:", filteredPictures.length);
-        
+        // Display pictures or "no pictures" message
         if (filteredPictures.length === 0) {
-            pictureGrid.innerHTML = '<p class="no-images-message">No images found in this category. Upload images to see them here.</p>';
+            pictureGrid.innerHTML = `
+                <div class="no-pictures">
+                    <i class="fas fa-image"></i>
+                    <p>No pictures found in this category</p>
+                </div>
+            `;
             return;
         }
         
-        // Add pictures to grid
+        // Sort pictures by name
+        filteredPictures.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // Display each picture
         filteredPictures.forEach(picture => {
             const pictureCard = document.createElement('div');
-            pictureCard.classList.add('picture-card');
+            pictureCard.className = 'picture-card';
+            pictureCard.dataset.id = picture.id;
+            
+            const isDataURL = picture.url.startsWith('data:');
+            
             pictureCard.innerHTML = `
-                <img src="${picture.url}" alt="${picture.name}" onerror="this.src='images/image-error.jpg'; this.alt='Error loading image';">
+                <div class="picture-image" style="position: relative;">
+                    <img src="${picture.url}" alt="${picture.name}">
+                    <div class="category-tag">${picture.category}</div>
+                    <div class="image-preview-btn" title="Preview in website">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                </div>
                 <div class="picture-info">
                     <h4>${picture.name}</h4>
-                    <span>${picture.category}</span>
+                    <p>${picture.description || 'No description'}</p>
                 </div>
                 <div class="picture-actions">
-                    <button class="picture-action-btn edit-picture" data-id="${picture.id}">
+                    <button class="picture-action-btn edit-picture" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="picture-action-btn delete-picture" data-id="${picture.id}">
-                        <i class="fas fa-trash"></i>
+                    <button class="picture-action-btn delete-picture" title="Delete">
+                        <i class="fas fa-trash-alt"></i>
                     </button>
-                    <button class="picture-action-btn add-to-carousel" data-id="${picture.id}" title="Add to Carousel">
+                    <button class="picture-action-btn add-to-gallery" title="Set as gallery image">
                         <i class="fas fa-images"></i>
                     </button>
                 </div>
             `;
+            
             pictureGrid.appendChild(pictureCard);
-        });
-        
-        // Event listeners for edit and delete buttons
-        document.querySelectorAll('.edit-picture').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const pictureId = this.getAttribute('data-id');
-                // Edit functionality would be added here
-                alert(`Edit picture ${pictureId}`);
+            
+            // Setup preview button
+            const previewBtn = pictureCard.querySelector('.image-preview-btn');
+            previewBtn.addEventListener('click', function() {
+                showWebsitePreview(picture);
             });
-        });
-        
-        document.querySelectorAll('.delete-picture').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const pictureId = parseInt(this.getAttribute('data-id'));
-                
-                if (confirm('Are you sure you want to delete this picture?')) {
-                    // Remove from data
-                    const index = mockPictures.findIndex(pic => pic.id === pictureId);
-                    if (index !== -1) {
-                        // Check if this image is used in carousel
-                        const storedCarouselImages = localStorage.getItem('siteCarouselImages');
-                        if (storedCarouselImages) {
-                            const carouselImages = JSON.parse(storedCarouselImages);
-                            const inCarousel = carouselImages.some(img => img.id === pictureId);
-                            
-                            if (inCarousel && !confirm('This image is used in the carousel. Deleting it will also remove it from the carousel. Continue?')) {
-                                return;
-                            }
-                            
-                            // Remove from carousel if present
-                            const updatedCarousel = carouselImages.filter(img => img.id !== pictureId);
-                            localStorage.setItem('siteCarouselImages', JSON.stringify(updatedCarousel));
-                        }
-                        
-                        // Remove from pictures
-                        mockPictures.splice(index, 1);
-                        
-                        // Save changes to localStorage
-                        savePictures();
-                        displayPictures(); // Refresh the grid
-                    }
+            
+            // Setup edit button
+            const editBtn = pictureCard.querySelector('.edit-picture');
+            editBtn.addEventListener('click', function() {
+                editPicture(picture);
+            });
+            
+            // Setup delete button
+            const deleteBtn = pictureCard.querySelector('.delete-picture');
+            deleteBtn.addEventListener('click', function() {
+                if (confirm(`Are you sure you want to delete "${picture.name}"?`)) {
+                    deletePicture(picture.id);
                 }
             });
-        });
-        
-        // Add to carousel directly from pictures grid
-        document.querySelectorAll('.add-to-carousel').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const pictureId = parseInt(this.getAttribute('data-id'));
-                const picture = mockPictures.find(pic => pic.id === pictureId);
-                
-                if (picture) {
-                    // Get current carousel images
-                    const storedCarouselImages = localStorage.getItem('siteCarouselImages');
-                    let carouselImages = storedCarouselImages ? JSON.parse(storedCarouselImages) : [];
-                    
-                    // Check if already in carousel
-                    if (carouselImages.some(img => img.id === pictureId)) {
-                        alert('This image is already in the carousel.');
-                        return;
-                    }
-                    
-                    // Add to carousel
-                    carouselImages.push(picture);
-                    
-                    // Save to localStorage
-                    try {
-                        localStorage.setItem('siteCarouselImages', JSON.stringify(carouselImages));
-                        alert('Image added to carousel successfully!');
-                    } catch (error) {
-                        console.error('Error saving to carousel:', error);
-                        alert('Failed to add image to carousel. Storage may be full.');
-                    }
-                }
+            
+            // Setup add to gallery button
+            const galleryBtn = pictureCard.querySelector('.add-to-gallery');
+            galleryBtn.addEventListener('click', function() {
+                addToGallery(picture);
             });
         });
     }
     
-    // Initial display
-    displayPictures();
+    // Edit picture function
+    function editPicture(picture) {
+        // Create edit modal
+        const editModal = document.createElement('div');
+        editModal.className = 'admin-modal';
+        editModal.id = 'editPictureModal';
+        editModal.style.display = 'flex';
+        
+        editModal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Edit Picture</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPictureForm">
+                        <div class="form-group">
+                            <label for="editPictureName">Image Name</label>
+                            <input type="text" id="editPictureName" value="${picture.name}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editPictureCategory">Category</label>
+                            <select id="editPictureCategory">
+                                <option value="scenery" ${picture.category === 'scenery' ? 'selected' : ''}>Scenery</option>
+                                <option value="wildlife" ${picture.category === 'wildlife' ? 'selected' : ''}>Wildlife</option>
+                                <option value="culture" ${picture.category === 'culture' ? 'selected' : ''}>Culture</option>
+                                <option value="food" ${picture.category === 'food' ? 'selected' : ''}>Food</option>
+                                <option value="beach" ${picture.category === 'beach' ? 'selected' : ''}>Beach</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editPictureDescription">Description</label>
+                            <textarea id="editPictureDescription" rows="3">${picture.description || ''}</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Current Image</label>
+                            <div class="edit-image-preview">
+                                <img src="${picture.url}" alt="${picture.name}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editPictureFile">Replace Image (optional)</label>
+                            <input type="file" id="editPictureFile" accept="image/*">
+                            <div class="file-preview" id="editFilePreview"></div>
+                        </div>
+                        
+                        <button type="submit" class="admin-btn primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(editModal);
+        
+        // Handle edit form submission
+        const editForm = document.getElementById('editPictureForm');
+        const editFile = document.getElementById('editPictureFile');
+        const editFilePreview = document.getElementById('editFilePreview');
+        
+        editFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                editFilePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        editForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('editPictureName').value;
+            const category = document.getElementById('editPictureCategory').value;
+            const description = document.getElementById('editPictureDescription').value;
+            const file = editFile.files[0];
+            
+            // Update picture data
+            const pictureIndex = mockPictures.findIndex(p => p.id === picture.id);
+            if (pictureIndex === -1) return;
+            
+            mockPictures[pictureIndex].name = name;
+            mockPictures[pictureIndex].category = category;
+            mockPictures[pictureIndex].description = description;
+            
+            // Update image if a new one is provided
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const compressedImage = await compressImage(e.target.result);
+                    mockPictures[pictureIndex].url = compressedImage;
+                    
+                    // Save and refresh
+                    savePictures();
+                    displayPictures();
+                    
+                    // Close modal
+                    document.body.removeChild(editModal);
+                    
+                    // Show success notification
+                    showNotification('Picture updated successfully', 'success');
+                    
+                    // Update gallery
+                    syncGalleryWithImages();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Save and refresh without changing the image
+                savePictures();
+                displayPictures();
+                
+                // Close modal
+                document.body.removeChild(editModal);
+                
+                // Show success notification
+                showNotification('Picture updated successfully', 'success');
+                
+                // Update gallery
+                syncGalleryWithImages();
+            }
+        });
+        
+        // Handle modal close
+        const closeBtn = editModal.querySelector('.close-modal');
+        closeBtn.addEventListener('click', function() {
+            document.body.removeChild(editModal);
+        });
+        
+        // Close on outside click
+        editModal.addEventListener('click', function(e) {
+            if (e.target === editModal) {
+                document.body.removeChild(editModal);
+            }
+        });
+    }
+    
+    // Delete picture function
+    function deletePicture(id) {
+        const index = mockPictures.findIndex(p => p.id === id);
+        if (index === -1) return;
+        
+        // Remove the picture
+        mockPictures.splice(index, 1);
+        
+        // Save and refresh
+        savePictures();
+        displayPictures();
+        
+        // Show notification
+        showNotification('Picture deleted successfully', 'success');
+        
+        // Update gallery
+        syncGalleryWithImages();
+    }
+    
+    // Add to gallery function
+    function addToGallery(picture) {
+        // Get gallery items from localStorage or create new array
+        let galleryItems = localStorage.getItem('galleryItems');
+        let gallery = [];
+        
+        try {
+            gallery = galleryItems ? JSON.parse(galleryItems) : [];
+        } catch (error) {
+            console.error("Error parsing gallery items:", error);
+            gallery = [];
+        }
+        
+        // Check if picture is already in gallery
+        const existingIndex = gallery.findIndex(item => item.id === picture.id);
+        
+        if (existingIndex !== -1) {
+            // Update existing item
+            gallery[existingIndex] = {
+                id: picture.id,
+                name: picture.name,
+                category: picture.category,
+                description: picture.description || '',
+                url: picture.url
+            };
+            
+            showNotification('Gallery item updated', 'info');
+        } else {
+            // Add new item
+            gallery.push({
+                id: picture.id,
+                name: picture.name,
+                category: picture.category,
+                description: picture.description || '',
+                url: picture.url
+            });
+            
+            showNotification('Added to gallery successfully', 'success');
+        }
+        
+        // Save gallery
+        localStorage.setItem('galleryItems', JSON.stringify(gallery));
+        
+        // Update gallery display
+        syncGalleryWithImages();
+    }
+    
+    // Show website preview function
+    function showWebsitePreview(picture) {
+        // Create preview modal
+        const previewModal = document.createElement('div');
+        previewModal.className = 'admin-modal';
+        previewModal.id = 'previewModal';
+        previewModal.style.display = 'flex';
+        
+        previewModal.innerHTML = `
+            <div class="modal-content preview-modal-content">
+                <div class="modal-header">
+                    <h3>Website Preview: ${picture.name}</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="website-preview">
+                        <div class="preview-header">
+                            <div class="preview-title">Gallery Item Preview</div>
+                            <div class="preview-device-controls">
+                                <button class="device-btn active" data-device="desktop">
+                                    <i class="fas fa-desktop"></i>
+                                </button>
+                                <button class="device-btn" data-device="tablet">
+                                    <i class="fas fa-tablet-alt"></i>
+                                </button>
+                                <button class="device-btn" data-device="mobile">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="preview-container desktop">
+                            <div class="featured-image-preview">
+                                <img src="${picture.url}" alt="${picture.name}">
+                                <div class="featured-caption-preview">
+                                    <h3>${picture.name}</h3>
+                                    <p>${picture.description || 'No description available'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(previewModal);
+        
+        // Handle device preview buttons
+        const deviceBtns = previewModal.querySelectorAll('.device-btn');
+        const previewContainer = previewModal.querySelector('.preview-container');
+        
+        deviceBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                deviceBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const device = this.getAttribute('data-device');
+                previewContainer.className = `preview-container ${device}`;
+            });
+        });
+        
+        // Handle close button
+        const closeBtn = previewModal.querySelector('.close-modal');
+        closeBtn.addEventListener('click', function() {
+            document.body.removeChild(previewModal);
+        });
+        
+        // Close on outside click
+        previewModal.addEventListener('click', function(e) {
+            if (e.target === previewModal) {
+                document.body.removeChild(previewModal);
+            }
+        });
+    }
+    
+    // Function to sync gallery with image updates
+    function syncGalleryWithImages() {
+        // Get gallery items
+        let galleryItems = localStorage.getItem('galleryItems');
+        if (!galleryItems) return;
+        
+        try {
+            const gallery = JSON.parse(galleryItems);
+            
+            // Update each gallery item with latest picture data
+            let updated = false;
+            
+            gallery.forEach((item, index) => {
+                const picture = mockPictures.find(p => p.id === item.id);
+                
+                if (picture) {
+                    // Update with latest data
+                    gallery[index] = {
+                        id: picture.id,
+                        name: picture.name,
+                        category: picture.category,
+                        description: picture.description || '',
+                        url: picture.url
+                    };
+                    updated = true;
+                }
+            });
+            
+            // Remove items that no longer exist in pictures
+            const validGallery = gallery.filter(item => {
+                return mockPictures.some(p => p.id === item.id);
+            });
+            
+            if (validGallery.length !== gallery.length) {
+                updated = true;
+            }
+            
+            // Save updated gallery
+            if (updated) {
+                localStorage.setItem('galleryItems', JSON.stringify(validGallery));
+                console.log("Gallery synced with image updates");
+            }
+        } catch (error) {
+            console.error("Error syncing gallery with images:", error);
+        }
+    }
+    
+    // Show notification function
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `admin-notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-icon">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            </div>
+            <div class="notification-message">${message}</div>
+            <button class="notification-close">&times;</button>
+        `;
+        
+        // Add to document
+        document.body.appendChild(notification);
+        
+        // Show with animation
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Auto-remove after 5 seconds
+        const timeout = setTimeout(() => {
+            removeNotification();
+        }, 5000);
+        
+        // Close button handler
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            clearTimeout(timeout);
+            removeNotification();
+        });
+        
+        function removeNotification() {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }
+    }
 }
 
 // Carousel Management functionality
@@ -1671,4 +1954,5 @@ function initTransportSettings() {
         document.getElementById('vanRate').value = transportSettings.vehicleRates.van;
         document.getElementById('luxuryRate').value = transportSettings.vehicleRates.luxury;
     }
+} 
 } 
