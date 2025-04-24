@@ -108,7 +108,72 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize settings
     initSettings();
+    
+    // Ensure all modals are properly handled
+    initModalHandling();
 });
+
+// Ensure all modals are properly handled
+function initModalHandling() {
+    console.log('Initializing modal handling');
+    // Get all modals
+    const modals = document.querySelectorAll('.admin-modal');
+    
+    // Modal open buttons
+    const modalOpenButtons = {
+        'uploadModal': document.getElementById('uploadPictureBtn'),
+        'carouselModal': document.getElementById('addToCarouselBtn'),
+        'hotelModal': document.getElementById('addHotelBtn'),
+        'articleModal': document.getElementById('addArticleBtn'),
+        'videoModal': document.getElementById('addVideoBtn'),
+        'linkModal': document.getElementById('addLinkBtn')
+    };
+    
+    // Close buttons
+    const closeButtons = document.querySelectorAll('.close-modal');
+    
+    // Hide all modals initially
+    modals.forEach(modal => {
+        modal.style.display = 'none';
+    });
+    
+    // Set up open button handlers
+    for (const [modalId, button] of Object.entries(modalOpenButtons)) {
+        if (button) {
+            button.addEventListener('click', function() {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    console.log(`Opening modal: ${modalId}`);
+                    modal.style.display = 'flex';
+                    modal.classList.add('active');
+                }
+            });
+        }
+    }
+    
+    // Set up close button handlers
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.admin-modal');
+            if (modal) {
+                console.log(`Closing modal: ${modal.id}`);
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+            }
+        });
+    });
+    
+    // Close modal when clicking outside content
+    window.addEventListener('click', function(event) {
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                console.log(`Clicking outside closed modal: ${modal.id}`);
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+            }
+        });
+    });
+}
 
 // Dashboard statistics initialization
 function initDashboardStats() {

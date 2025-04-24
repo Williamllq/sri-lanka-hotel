@@ -441,7 +441,7 @@
     <script src="js/admin-dashboard.js"></script>
     
     <!-- Article Add/Edit Modal -->
-    <div id="articleModal" class="modal">
+    <div id="articleModal" class="admin-modal">
         <div class="modal-content content-modal">
             <span class="close-modal">&times;</span>
             <h3 id="articleModalTitle">Add New Article</h3>
@@ -486,7 +486,7 @@
     </div>
     
     <!-- Video Add/Edit Modal -->
-    <div id="videoModal" class="modal">
+    <div id="videoModal" class="admin-modal">
         <div class="modal-content content-modal">
             <span class="close-modal">&times;</span>
             <h3 id="videoModalTitle">Add New Video</h3>
@@ -526,7 +526,7 @@
     </div>
     
     <!-- Link Add/Edit Modal -->
-    <div id="linkModal" class="modal">
+    <div id="linkModal" class="admin-modal">
         <div class="modal-content content-modal">
             <span class="close-modal">&times;</span>
             <h3 id="linkModalTitle">Add New Link</h3>
@@ -598,6 +598,39 @@
             }
         }, 100);
     });
+    </script>
+
+    <!-- Modal Fix Script -->
+    <script>
+        // Fix for modal display issues
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close any open modals
+            const modals = document.querySelectorAll('.modal, .admin-modal');
+            modals.forEach(modal => {
+                modal.style.display = 'none';
+            });
+            
+            // Ensure close buttons work properly
+            const closeButtons = document.querySelectorAll('.close-modal');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Find the parent modal
+                    const modal = this.closest('.modal, .admin-modal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Add global click handler to close modals when clicking outside
+            document.addEventListener('click', function(event) {
+                modals.forEach(modal => {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html> 
