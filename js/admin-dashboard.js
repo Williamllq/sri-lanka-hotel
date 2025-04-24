@@ -119,18 +119,19 @@ function initModalHandling() {
     // Get all modals
     const modals = document.querySelectorAll('.admin-modal');
     
-    // Modal open buttons
-    const modalOpenButtons = {
-        'uploadModal': document.getElementById('uploadPictureBtn'),
-        'carouselModal': document.getElementById('addToCarouselBtn'),
-        'hotelModal': document.getElementById('addHotelBtn'),
-        'articleModal': document.getElementById('addArticleBtn'),
-        'videoModal': document.getElementById('addVideoBtn'),
-        'linkModal': document.getElementById('addLinkBtn')
+    // Modal open buttons mapping - corrected to target the actual button IDs
+    const modalOpenButtonMap = {
+        'uploadModal': 'uploadPictureBtn',
+        'carouselModal': 'addToCarouselBtn',
+        'hotelModal': 'addHotelBtn',
+        'articleModal': 'addArticleBtn',
+        'videoModal': 'addVideoBtn',
+        'linkModal': 'addLinkBtn'
     };
     
     // Close buttons
     const closeButtons = document.querySelectorAll('.close-modal');
+    const cancelButtons = document.querySelectorAll('.admin-btn.secondary.cancel-upload');
     
     // Hide all modals initially
     modals.forEach(modal => {
@@ -138,16 +139,19 @@ function initModalHandling() {
     });
     
     // Set up open button handlers
-    for (const [modalId, button] of Object.entries(modalOpenButtons)) {
-        if (button) {
+    for (const [modalId, buttonId] of Object.entries(modalOpenButtonMap)) {
+        const button = document.getElementById(buttonId);
+        const modal = document.getElementById(modalId);
+        
+        if (button && modal) {
+            console.log(`Setting up click handler for ${buttonId} to open ${modalId}`);
             button.addEventListener('click', function() {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    console.log(`Opening modal: ${modalId}`);
-                    modal.style.display = 'flex';
-                    modal.classList.add('active');
-                }
+                console.log(`Opening modal: ${modalId}`);
+                modal.style.display = 'flex';
+                modal.classList.add('active');
             });
+        } else {
+            console.warn(`Button ${buttonId} or modal ${modalId} not found in the DOM`);
         }
     }
     
@@ -159,6 +163,35 @@ function initModalHandling() {
                 console.log(`Closing modal: ${modal.id}`);
                 modal.style.display = 'none';
                 modal.classList.remove('active');
+            }
+        });
+    });
+    
+    // Set up cancel button handlers
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.admin-modal');
+            if (modal) {
+                console.log(`Canceling and closing modal: ${modal.id}`);
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                
+                // If in a form, reset the form
+                const form = this.closest('form');
+                if (form) {
+                    form.reset();
+                    
+                    // Reset any preview elements
+                    const previewElement = form.querySelector('.file-preview');
+                    if (previewElement) {
+                        previewElement.innerHTML = `
+                            <div class="preview-placeholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Image preview will appear here</p>
+                            </div>
+                        `;
+                    }
+                }
             }
         });
     });
@@ -221,634 +254,250 @@ function initDashboardStats() {
 
 // Picture Management functionality
 function initPictureManagement() {
-    const uploadPictureBtn = document.getElementById('uploadPictureBtn');
-    const uploadModal = document.getElementById('uploadModal');
-    const uploadPictureForm = document.getElementById('uploadPictureForm');
-    const closeModalBtns = document.querySelectorAll('.close-modal');
-    const pictureFile = document.getElementById('pictureFile');
-    const filePreview = document.getElementById('filePreview');
+    console.log('Initializing picture management');
+    
     const pictureGrid = document.getElementById('pictureGrid');
     const pictureCategory = document.getElementById('pictureCategory');
+    const uploadPictureForm = document.getElementById('uploadPictureForm');
+    const pictureFile = document.getElementById('pictureFile');
+    const filePreview = document.getElementById('filePreview');
+    
+    if (!pictureGrid) {
+        console.error('Picture grid element not found in the DOM');
+        return;
+    }
     
     // Get pictures from localStorage or use mock data if none exists
     let storedPictures = localStorage.getItem('sitePictures');
-    let mockPictures = [];
+    let pictures = [];
     
     try {
-        mockPictures = storedPictures ? JSON.parse(storedPictures) : [
-            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg', description: 'Ancient palace and fortress complex with stunning views' },
-            { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg', description: 'Beautiful lake in the heart of Kandy city' },
-            { id: 3, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/yala-leopard.jpg', description: 'Home to the highest density of leopards in the world' },
-            { id: 4, name: 'Local Cuisine', category: 'food', url: 'images/sri-lankan-food.jpg', description: 'Discover the rich flavors of authentic Sri Lankan dishes' },
-            { id: 5, name: 'Unawatuna Beach', category: 'beach', url: 'images/unawatuna-beach.jpg', description: 'Pristine golden beaches with crystal clear waters' },
-            { id: 6, name: 'Temple of the Sacred Tooth', category: 'culture', url: 'images/temple-tooth.jpg', description: 'Ancient Buddhist temple in Kandy housing Buddha\'s sacred tooth relic' },
-            { id: 7, name: 'Nine Arch Bridge', category: 'scenery', url: 'images/nine-arch-bridge.jpg', description: 'Iconic railway bridge in Ella, surrounded by lush tea plantations' }
+        pictures = storedPictures ? JSON.parse(storedPictures) : [
+            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya.jpg', description: 'Ancient rock fortress' },
+            { id: 2, name: 'Yala Leopard', category: 'wildlife', url: 'images/yala-leopard.jpg', description: 'Rare leopard sighting in Yala National Park' },
+            { id: 3, name: 'Temple of the Sacred Tooth', category: 'culture', url: 'images/temple-tooth.jpg', description: 'Buddhist temple in Kandy' },
+            { id: 4, name: 'Local Cuisine', category: 'food', url: 'images/sri-lankan-food.jpg', description: 'Authentic Sri Lankan dishes' },
+            { id: 5, name: 'Unawatuna Beach', category: 'beach', url: 'images/unawatuna-beach.jpg', description: 'Beautiful beach scene' }
         ];
-        console.log("Loaded pictures from localStorage:", mockPictures.length);
+        console.log("Loaded pictures from localStorage:", pictures.length);
     } catch (error) {
         console.error("Error loading pictures from localStorage:", error);
-        mockPictures = [
-            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg', description: 'Ancient palace and fortress complex with stunning views' },
-            { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg', description: 'Beautiful lake in the heart of Kandy city' },
-            { id: 3, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/yala-leopard.jpg', description: 'Home to the highest density of leopards in the world' },
-            { id: 4, name: 'Local Cuisine', category: 'food', url: 'images/sri-lankan-food.jpg', description: 'Discover the rich flavors of authentic Sri Lankan dishes' },
-            { id: 5, name: 'Unawatuna Beach', category: 'beach', url: 'images/unawatuna-beach.jpg', description: 'Pristine golden beaches with crystal clear waters' },
-            { id: 6, name: 'Temple of the Sacred Tooth', category: 'culture', url: 'images/temple-tooth.jpg', description: 'Ancient Buddhist temple in Kandy housing Buddha\'s sacred tooth relic' },
-            { id: 7, name: 'Nine Arch Bridge', category: 'scenery', url: 'images/nine-arch-bridge.jpg', description: 'Iconic railway bridge in Ella, surrounded by lush tea plantations' }
+        pictures = [
+            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya.jpg', description: 'Ancient rock fortress' },
+            { id: 2, name: 'Yala Leopard', category: 'wildlife', url: 'images/yala-leopard.jpg', description: 'Rare leopard sighting in Yala National Park' },
+            { id: 3, name: 'Temple of the Sacred Tooth', category: 'culture', url: 'images/temple-tooth.jpg', description: 'Buddhist temple in Kandy' },
+            { id: 4, name: 'Local Cuisine', category: 'food', url: 'images/sri-lankan-food.jpg', description: 'Authentic Sri Lankan dishes' },
+            { id: 5, name: 'Unawatuna Beach', category: 'beach', url: 'images/unawatuna-beach.jpg', description: 'Beautiful beach scene' }
         ];
     }
-    
-    // Display the pictures
-    displayPictures();
-    
-    // Handle category filter change
-    pictureCategory.addEventListener('change', displayPictures);
-    
-    // Preview image on file select
-    pictureFile.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            filePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-        };
-        reader.readAsDataURL(file);
-    });
-    
-    // Handle picture upload form submission
-    uploadPictureForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const name = document.getElementById('pictureName').value;
-        const category = document.getElementById('uploadCategory').value;
-        const description = document.getElementById('pictureDescription').value;
-        const file = pictureFile.files[0];
-        
-        if (!name || !category || !file) {
-            alert('Please fill in all required fields');
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            // Compress image for better performance
-            const compressedImage = await compressImage(e.target.result);
-            
-            // Create a new picture object
-            const newPicture = {
-                id: Date.now(),
-                name: name,
-                category: category,
-                description: description || '',
-                url: compressedImage
-            };
-            
-            // Add to the pictures array
-            mockPictures.push(newPicture);
-            
-            // Save to localStorage
-            savePictures();
-            
-            // Refresh the display
-            displayPictures();
-            
-            // Reset form and close modal
-            uploadPictureForm.reset();
-            filePreview.innerHTML = '';
-            uploadModal.style.display = 'none';
-            
-            // Show success message
-            showNotification('Picture uploaded successfully', 'success');
-            
-            // Update gallery category
-            syncGalleryWithImages();
-        };
-        reader.readAsDataURL(file);
-    });
     
     // Save pictures to localStorage
     function savePictures() {
-        try {
-            localStorage.setItem('sitePictures', JSON.stringify(mockPictures));
-            console.log("Saved pictures to localStorage, count:", mockPictures.length);
-        } catch (error) {
-            console.error("Error saving pictures to localStorage:", error);
-            
-            // If the error is due to localStorage size limit, compress images further
-            if (error.name === 'QuotaExceededError') {
-                console.log("Attempting to compress images further");
-                compressAllImages();
-            }
-        }
+        localStorage.setItem('sitePictures', JSON.stringify(pictures));
+        console.log("Saved pictures to localStorage:", pictures.length);
     }
     
-    // Compress all images in the array
-    async function compressAllImages() {
-        for (let i = 0; i < mockPictures.length; i++) {
-            if (mockPictures[i].url.startsWith('data:')) {
-                mockPictures[i].url = await compressImage(mockPictures[i].url, 800, 0.6);
+    // Initially save default pictures if none exist
+    if (!storedPictures) {
+        savePictures();
+    }
+    
+    // Handle picture file selection for preview
+    if (pictureFile) {
+        pictureFile.addEventListener('change', function(e) {
+            if (!filePreview) {
+                console.error('File preview element not found');
+                return;
             }
-        }
-        
-        // Try saving again
-        try {
-            localStorage.setItem('sitePictures', JSON.stringify(mockPictures));
-            console.log("Saved compressed pictures to localStorage");
-        } catch (error) {
-            console.error("Still unable to save to localStorage after compression:", error);
-        }
+            
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    filePreview.innerHTML = `<img src="${event.target.result}" alt="Selected Image Preview">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                filePreview.innerHTML = '';
+            }
+        });
+    } else {
+        console.error('Picture file input element not found');
+    }
+    
+    // Handle picture upload form submission
+    if (uploadPictureForm) {
+        uploadPictureForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const pictureName = document.getElementById('pictureName');
+            const uploadCategory = document.getElementById('uploadCategory');
+            const pictureDescription = document.getElementById('pictureDescription');
+            
+            if (!pictureName || !uploadCategory || !pictureFile) {
+                console.error('One or more form elements not found');
+                return;
+            }
+            
+            const file = pictureFile.files[0];
+            if (!file) {
+                alert('Please select an image file');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // In a real application, this would upload to a server
+                // For now, we'll just store it in localStorage
+                const imageUrl = event.target.result;
+                
+                // Compress image before storing (optional)
+                compressImage(imageUrl).then(compressedUrl => {
+                    // Add new picture
+                    const newPicture = {
+                        id: Date.now(), // Use timestamp as unique ID
+                        name: pictureName.value,
+                        category: uploadCategory.value,
+                        description: pictureDescription ? pictureDescription.value : '',
+                        url: compressedUrl
+                    };
+                    
+                    pictures.push(newPicture);
+                    savePictures();
+                    
+                    // Reset form
+                    uploadPictureForm.reset();
+                    if (filePreview) {
+                        filePreview.innerHTML = '';
+                    }
+                    
+                    // Close modal
+                    const uploadModal = document.getElementById('uploadModal');
+                    if (uploadModal) {
+                        uploadModal.style.display = 'none';
+                        uploadModal.classList.remove('active');
+                    }
+                    
+                    // Refresh picture grid
+                    displayPictures(uploadCategory.value);
+                    
+                    alert('Picture uploaded successfully!');
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+    } else {
+        console.error('Upload picture form not found');
     }
     
     // Compress image function
-    function compressImage(dataURL, maxWidth = 1200, quality = 0.8) {
+    async function compressImage(dataURL, maxWidth = 1200, quality = 0.8) {
         return new Promise((resolve) => {
             const img = new Image();
+            img.src = dataURL;
+            
             img.onload = function() {
                 const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
                 let width = img.width;
                 let height = img.height;
                 
-                // Scale down if width is greater than maxWidth
+                // Calculate new dimensions if image is wider than maxWidth
                 if (width > maxWidth) {
-                    height = Math.round(height * maxWidth / width);
+                    height = (height * maxWidth) / width;
                     width = maxWidth;
                 }
                 
                 canvas.width = width;
                 canvas.height = height;
                 
-                const ctx = canvas.getContext('2d');
+                // Draw image on canvas with new dimensions
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // Convert to data URL with compression
+                // Get compressed data URL
                 resolve(canvas.toDataURL('image/jpeg', quality));
             };
-            img.src = dataURL;
         });
     }
     
-    // Display pictures based on selected category
-    function displayPictures() {
-        if (!pictureGrid) return;
-        
-        const selectedCategory = pictureCategory.value;
-        
-        // Filter pictures by category
-        const filteredPictures = selectedCategory === 'all' 
-            ? mockPictures 
-            : mockPictures.filter(pic => pic.category === selectedCategory);
-        
-        // Clear the grid
-        pictureGrid.innerHTML = '';
-        
-        // Display pictures or "no pictures" message
-        if (filteredPictures.length === 0) {
-            pictureGrid.innerHTML = `
-                <div class="no-pictures">
-                    <i class="fas fa-image"></i>
-                    <p>No pictures found in this category</p>
-                </div>
-            `;
+    // Handle picture category filtering
+    if (pictureCategory) {
+        pictureCategory.addEventListener('change', function() {
+            displayPictures(this.value);
+        });
+    } else {
+        console.error('Picture category dropdown not found');
+    }
+    
+    // Delete picture
+    function deletePicture(id) {
+        if (confirm('Are you sure you want to delete this picture?')) {
+            pictures = pictures.filter(pic => pic.id !== id);
+            savePictures();
+            displayPictures(pictureCategory ? pictureCategory.value : 'all');
+        }
+    }
+    
+    // Display pictures in grid
+    function displayPictures(category = 'all') {
+        if (!pictureGrid) {
+            console.error('Picture grid not found for display');
             return;
         }
         
-        // Sort pictures by name
-        filteredPictures.sort((a, b) => a.name.localeCompare(b.name));
+        // Clear current grid
+        pictureGrid.innerHTML = '';
         
-        // Display each picture
-        filteredPictures.forEach(picture => {
+        // Filter pictures by category
+        const filteredPictures = category === 'all' ? 
+            pictures : 
+            pictures.filter(pic => pic.category === category);
+        
+        if (filteredPictures.length === 0) {
+            pictureGrid.innerHTML = '<div class="no-pictures">No pictures found in this category</div>';
+            return;
+        }
+        
+        // Create picture cards
+        filteredPictures.forEach(pic => {
             const pictureCard = document.createElement('div');
-            pictureCard.className = 'picture-card';
-            pictureCard.dataset.id = picture.id;
-            
-            const isDataURL = picture.url.startsWith('data:');
+            pictureCard.classList.add('picture-card');
             
             pictureCard.innerHTML = `
-                <div class="picture-image" style="position: relative;">
-                    <img src="${picture.url}" alt="${picture.name}">
-                    <div class="category-tag">${picture.category}</div>
-                    <div class="image-preview-btn" title="Preview in website">
-                        <i class="fas fa-eye"></i>
-                    </div>
+                <div class="picture-img">
+                    <img src="${pic.url}" alt="${pic.name}">
                 </div>
                 <div class="picture-info">
-                    <h4>${picture.name}</h4>
-                    <p>${picture.description || 'No description'}</p>
+                    <h4>${pic.name}</h4>
+                    <p class="picture-category">${pic.category}</p>
+                    <p class="picture-description">${pic.description || ''}</p>
                 </div>
                 <div class="picture-actions">
-                    <button class="picture-action-btn edit-picture" title="Edit">
+                    <button class="picture-action-btn edit-btn" data-id="${pic.id}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="picture-action-btn delete-picture" title="Delete">
+                    <button class="picture-action-btn delete-btn" data-id="${pic.id}">
                         <i class="fas fa-trash-alt"></i>
-                    </button>
-                    <button class="picture-action-btn add-to-gallery" title="Set as gallery image">
-                        <i class="fas fa-images"></i>
                     </button>
                 </div>
             `;
             
             pictureGrid.appendChild(pictureCard);
             
-            // Setup preview button
-            const previewBtn = pictureCard.querySelector('.image-preview-btn');
-            previewBtn.addEventListener('click', function() {
-                showWebsitePreview(picture);
-            });
-            
-            // Setup edit button
-            const editBtn = pictureCard.querySelector('.edit-picture');
-            editBtn.addEventListener('click', function() {
-                editPicture(picture);
-            });
-            
-            // Setup delete button
-            const deleteBtn = pictureCard.querySelector('.delete-picture');
-            deleteBtn.addEventListener('click', function() {
-                if (confirm(`Are you sure you want to delete "${picture.name}"?`)) {
-                    deletePicture(picture.id);
-                }
-            });
-            
-            // Setup add to gallery button
-            const galleryBtn = pictureCard.querySelector('.add-to-gallery');
-            galleryBtn.addEventListener('click', function() {
-                addToGallery(picture);
-            });
-        });
-    }
-    
-    // Edit picture function
-    function editPicture(picture) {
-        // Create edit modal
-        const editModal = document.createElement('div');
-        editModal.className = 'admin-modal';
-        editModal.id = 'editPictureModal';
-        editModal.style.display = 'flex';
-        
-        editModal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Edit Picture</h3>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="editPictureForm">
-                        <div class="form-group">
-                            <label for="editPictureName">Image Name</label>
-                            <input type="text" id="editPictureName" value="${picture.name}" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="editPictureCategory">Category</label>
-                            <select id="editPictureCategory">
-                                <option value="scenery" ${picture.category === 'scenery' ? 'selected' : ''}>Scenery</option>
-                                <option value="wildlife" ${picture.category === 'wildlife' ? 'selected' : ''}>Wildlife</option>
-                                <option value="culture" ${picture.category === 'culture' ? 'selected' : ''}>Culture</option>
-                                <option value="food" ${picture.category === 'food' ? 'selected' : ''}>Food</option>
-                                <option value="beach" ${picture.category === 'beach' ? 'selected' : ''}>Beach</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="editPictureDescription">Description</label>
-                            <textarea id="editPictureDescription" rows="3">${picture.description || ''}</textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Current Image</label>
-                            <div class="edit-image-preview">
-                                <img src="${picture.url}" alt="${picture.name}">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="editPictureFile">Replace Image (optional)</label>
-                            <input type="file" id="editPictureFile" accept="image/*">
-                            <div class="file-preview" id="editFilePreview"></div>
-                        </div>
-                        
-                        <button type="submit" class="admin-btn primary">Save Changes</button>
-                    </form>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(editModal);
-        
-        // Handle edit form submission
-        const editForm = document.getElementById('editPictureForm');
-        const editFile = document.getElementById('editPictureFile');
-        const editFilePreview = document.getElementById('editFilePreview');
-        
-        editFile.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                editFilePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-            };
-            reader.readAsDataURL(file);
-        });
-        
-        editForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('editPictureName').value;
-            const category = document.getElementById('editPictureCategory').value;
-            const description = document.getElementById('editPictureDescription').value;
-            const file = editFile.files[0];
-            
-            // Update picture data
-            const pictureIndex = mockPictures.findIndex(p => p.id === picture.id);
-            if (pictureIndex === -1) return;
-            
-            mockPictures[pictureIndex].name = name;
-            mockPictures[pictureIndex].category = category;
-            mockPictures[pictureIndex].description = description;
-            
-            // Update image if a new one is provided
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    const compressedImage = await compressImage(e.target.result);
-                    mockPictures[pictureIndex].url = compressedImage;
-                    
-                    // Save and refresh
-                    savePictures();
-                    displayPictures();
-                    
-                    // Close modal
-                    document.body.removeChild(editModal);
-                    
-                    // Show success notification
-                    showNotification('Picture updated successfully', 'success');
-                    
-                    // Update gallery
-                    syncGalleryWithImages();
-                };
-                reader.readAsDataURL(file);
-            } else {
-                // Save and refresh without changing the image
-                savePictures();
-                displayPictures();
-                
-                // Close modal
-                document.body.removeChild(editModal);
-                
-                // Show success notification
-                showNotification('Picture updated successfully', 'success');
-                
-                // Update gallery
-                syncGalleryWithImages();
-            }
-        });
-        
-        // Handle modal close
-        const closeBtn = editModal.querySelector('.close-modal');
-        closeBtn.addEventListener('click', function() {
-            document.body.removeChild(editModal);
-        });
-        
-        // Close on outside click
-        editModal.addEventListener('click', function(e) {
-            if (e.target === editModal) {
-                document.body.removeChild(editModal);
+            // Add delete event listener
+            const deleteBtn = pictureCard.querySelector('.delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    deletePicture(id);
+                });
             }
         });
     }
     
-    // Delete picture function
-    function deletePicture(id) {
-        const index = mockPictures.findIndex(p => p.id === id);
-        if (index === -1) return;
-        
-        // Remove the picture
-        mockPictures.splice(index, 1);
-        
-        // Save and refresh
-        savePictures();
-        displayPictures();
-        
-        // Show notification
-        showNotification('Picture deleted successfully', 'success');
-        
-        // Update gallery
-        syncGalleryWithImages();
-    }
-    
-    // Add to gallery function
-    function addToGallery(picture) {
-        // Get gallery items from localStorage or create new array
-        let galleryItems = localStorage.getItem('galleryItems');
-        let gallery = [];
-        
-        try {
-            gallery = galleryItems ? JSON.parse(galleryItems) : [];
-        } catch (error) {
-            console.error("Error parsing gallery items:", error);
-            gallery = [];
-        }
-        
-        // Check if picture is already in gallery
-        const existingIndex = gallery.findIndex(item => item.id === picture.id);
-        
-        if (existingIndex !== -1) {
-            // Update existing item
-            gallery[existingIndex] = {
-                id: picture.id,
-                name: picture.name,
-                category: picture.category,
-                description: picture.description || '',
-                url: picture.url
-            };
-            
-            showNotification('Gallery item updated', 'info');
-        } else {
-            // Add new item
-            gallery.push({
-                id: picture.id,
-                name: picture.name,
-                category: picture.category,
-                description: picture.description || '',
-                url: picture.url
-            });
-            
-            showNotification('Added to gallery successfully', 'success');
-        }
-        
-        // Save gallery
-        localStorage.setItem('galleryItems', JSON.stringify(gallery));
-        
-        // Update gallery display
-        syncGalleryWithImages();
-    }
-    
-    // Show website preview function
-    function showWebsitePreview(picture) {
-        // Create preview modal
-        const previewModal = document.createElement('div');
-        previewModal.className = 'admin-modal';
-        previewModal.id = 'previewModal';
-        previewModal.style.display = 'flex';
-        
-        previewModal.innerHTML = `
-            <div class="modal-content preview-modal-content">
-                <div class="modal-header">
-                    <h3>Website Preview: ${picture.name}</h3>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="website-preview">
-                        <div class="preview-header">
-                            <div class="preview-title">Gallery Item Preview</div>
-                            <div class="preview-device-controls">
-                                <button class="device-btn active" data-device="desktop">
-                                    <i class="fas fa-desktop"></i>
-                                </button>
-                                <button class="device-btn" data-device="tablet">
-                                    <i class="fas fa-tablet-alt"></i>
-                                </button>
-                                <button class="device-btn" data-device="mobile">
-                                    <i class="fas fa-mobile-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="preview-container desktop">
-                            <div class="featured-image-preview">
-                                <img src="${picture.url}" alt="${picture.name}">
-                                <div class="featured-caption-preview">
-                                    <h3>${picture.name}</h3>
-                                    <p>${picture.description || 'No description available'}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(previewModal);
-        
-        // Handle device preview buttons
-        const deviceBtns = previewModal.querySelectorAll('.device-btn');
-        const previewContainer = previewModal.querySelector('.preview-container');
-        
-        deviceBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                deviceBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                const device = this.getAttribute('data-device');
-                previewContainer.className = `preview-container ${device}`;
-            });
-        });
-        
-        // Handle close button
-        const closeBtn = previewModal.querySelector('.close-modal');
-        closeBtn.addEventListener('click', function() {
-            document.body.removeChild(previewModal);
-        });
-        
-        // Close on outside click
-        previewModal.addEventListener('click', function(e) {
-            if (e.target === previewModal) {
-                document.body.removeChild(previewModal);
-            }
-        });
-    }
-    
-    // Function to sync gallery with image updates
-    function syncGalleryWithImages() {
-        // Get gallery items
-        let galleryItems = localStorage.getItem('galleryItems');
-        if (!galleryItems) return;
-        
-        try {
-            const gallery = JSON.parse(galleryItems);
-            
-            // Update each gallery item with latest picture data
-            let updated = false;
-            
-            gallery.forEach((item, index) => {
-                const picture = mockPictures.find(p => p.id === item.id);
-                
-                if (picture) {
-                    // Update with latest data
-                    gallery[index] = {
-                        id: picture.id,
-                        name: picture.name,
-                        category: picture.category,
-                        description: picture.description || '',
-                        url: picture.url
-                    };
-                    updated = true;
-                }
-            });
-            
-            // Remove items that no longer exist in pictures
-            const validGallery = gallery.filter(item => {
-                return mockPictures.some(p => p.id === item.id);
-            });
-            
-            if (validGallery.length !== gallery.length) {
-                updated = true;
-            }
-            
-            // Save updated gallery
-            if (updated) {
-                localStorage.setItem('galleryItems', JSON.stringify(validGallery));
-                console.log("Gallery synced with image updates");
-            }
-        } catch (error) {
-            console.error("Error syncing gallery with images:", error);
-        }
-    }
-    
-    // Show notification function
-    function showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `admin-notification ${type}`;
-        notification.innerHTML = `
-            <div class="notification-icon">
-                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-            </div>
-            <div class="notification-message">${message}</div>
-            <button class="notification-close">&times;</button>
-        `;
-        
-        // Add to document
-        document.body.appendChild(notification);
-        
-        // Show with animation
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
-        
-        // Auto-remove after 5 seconds
-        const timeout = setTimeout(() => {
-            removeNotification();
-        }, 5000);
-        
-        // Close button handler
-        const closeBtn = notification.querySelector('.notification-close');
-        closeBtn.addEventListener('click', () => {
-            clearTimeout(timeout);
-            removeNotification();
-        });
-        
-        function removeNotification() {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    document.body.removeChild(notification);
-                }
-            }, 300);
-        }
-    }
+    // Initial display of pictures
+    displayPictures('all');
 }
 
 // Carousel Management functionality
@@ -1954,5 +1603,4 @@ function initTransportSettings() {
         document.getElementById('vanRate').value = transportSettings.vehicleRates.van;
         document.getElementById('luxuryRate').value = transportSettings.vehicleRates.luxury;
     }
-} 
 } 
