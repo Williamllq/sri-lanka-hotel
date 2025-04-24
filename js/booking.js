@@ -18,27 +18,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const bookBtn = document.getElementById('bookNowBtn');
     if (bookBtn) {
         bookBtn.addEventListener('click', processBooking);
-        // 启用Book Now按钮，因为我们现在默认显示报价
-        bookBtn.disabled = false;
+        // Initially disable Book Now button
+        bookBtn.disabled = true;
         console.log('Book Now button initialized');
     } else {
         console.error('Book Now button not found');
     }
     
-    // 确保在页面加载时Journey Quote部分是显示的
+    // 确保在页面加载时Journey Quote部分是隐藏的
     const quoteContainer = document.getElementById('quoteContainer');
     if (quoteContainer) {
-        quoteContainer.style.display = 'block'; // 改为block而不是none
-        console.log('Quote container initially shown');
+        // 通过属性和inline style双重确保隐藏
+        quoteContainer.classList.add('hidden-quote');
+        quoteContainer.style.display = 'none';
+        quoteContainer.setAttribute('hidden', 'hidden');
         
-        // 设置初始默认值
-        document.getElementById('quotedDistance').textContent = '0 km';
-        document.getElementById('quotedVehicle').textContent = 'Standard';
-        document.getElementById('quotedFare').textContent = 'LKR 0';
-        document.getElementById('quotedDeposit').textContent = 'LKR 0';
+        // 添加一个额外的检查，确保几秒后也是隐藏的
+        setTimeout(function() {
+            if (window.getComputedStyle(quoteContainer).display !== 'none') {
+                console.log('Quote container was not hidden, forcing hidden state');
+                quoteContainer.style.display = 'none !important';
+                document.head.insertAdjacentHTML('beforeend', 
+                    '<style>#quoteContainer{display:none !important;}</style>');
+            }
+        }, 500);
+        
+        console.log('Quote container initially hidden');
     } else {
         console.error('Quote container not found');
     }
+    
+    // 添加样式以确保隐藏
+    const style = document.createElement('style');
+    style.textContent = '.hidden-quote { display: none !important; }';
+    document.head.appendChild(style);
 });
 
 // Calculate the quote based on selected locations
@@ -193,10 +206,24 @@ function calculateFare(distance, vehicleType) {
 function displayQuote(quoteData) {
     console.log('Displaying quote with data:', quoteData);
 
-    // 显示报价容器
+    // 显示报价容器，移除所有隐藏相关的属性和类
     const quoteContainer = document.getElementById('quoteContainer');
     if (quoteContainer) {
+        // 移除隐藏相关的所有属性和类
+        quoteContainer.removeAttribute('style');
+        quoteContainer.removeAttribute('hidden');
+        quoteContainer.classList.remove('hidden-quote');
+        
+        // 重新设置正确的样式
         quoteContainer.style.display = 'block';
+        quoteContainer.style.backgroundColor = '#f8f9fa';
+        quoteContainer.style.borderRadius = '8px';
+        quoteContainer.style.padding = '16px';
+        quoteContainer.style.marginTop = '20px';
+        quoteContainer.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+        console.log('Quote container displayed');
+    } else {
+        console.error('Quote container not found');
     }
     
     // 显示路线地图容器
