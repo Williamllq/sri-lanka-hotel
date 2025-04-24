@@ -193,6 +193,15 @@ function displayQuote(quoteData) {
         quoteContainer.style.display = 'block';
     }
     
+    // 显示路线地图容器
+    const routeMapContainer = document.getElementById('routeMapContainer');
+    if (routeMapContainer) {
+        routeMapContainer.style.display = 'block';
+        console.log('Route map container displayed');
+    } else {
+        console.error('Route map container not found');
+    }
+    
     // 更新报价信息
     const distanceElement = document.getElementById('quotedDistance');
     if (distanceElement) {
@@ -214,14 +223,10 @@ function displayQuote(quoteData) {
         depositElement.textContent = 'LKR ' + quoteData.depositAmount.toLocaleString();
     }
     
-    // 确保地图容器显示并滚动到视图中
+    // 确保地图容器显示
     const mapContainer = document.getElementById('routeMap');
     if (mapContainer) {
         mapContainer.style.display = 'block';
-        // 滚动到地图视图
-        setTimeout(() => {
-            mapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 300);
     }
     
     // 获取坐标
@@ -250,10 +255,18 @@ function displayQuote(quoteData) {
         setTimeout(() => {
             // 初始化路线地图
             initRouteMap(pickupLat, pickupLng, adjustedDestLat, adjustedDestLng);
+            
+            // 滚动到路线地图容器
+            if (routeMapContainer) {
+                setTimeout(() => {
+                    routeMapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    console.log('Scrolled to route map container');
+                }, 300);
+            }
         }, 500);
     }
     
-    // 滚动到报价容器
+    // 首先滚动到报价容器
     quoteContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     
     // 启用Book Now按钮
