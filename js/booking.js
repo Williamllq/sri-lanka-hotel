@@ -72,42 +72,28 @@ function calculateQuote() {
         return;
     }
     
-    // Check if coordinates are missing and attempt to geocode if needed
     if (!pickupInput.dataset.lat || !pickupInput.dataset.lng || 
         !destinationInput.dataset.lat || !destinationInput.dataset.lng) {
-        
-        // Show a loading message while geocoding
-        showMessage('Attempting to locate your destinations...', 'info');
-        
-        // Try to get coordinates from the location names
-        geocodeLocations(pickupInput.value, destinationInput.value)
-            .then(coordinates => {
-                if (coordinates) {
-                    // Update the inputs with the geocoded coordinates
-                    pickupInput.dataset.lat = coordinates.pickup.lat;
-                    pickupInput.dataset.lng = coordinates.pickup.lng;
-                    destinationInput.dataset.lat = coordinates.destination.lat;
-                    destinationInput.dataset.lng = coordinates.destination.lng;
-                    
-                    // Continue with the quote calculation
-                    processQuoteCalculation(pickupInput, destinationInput, serviceType.value);
-                } else {
-                    showMessage('Could not determine coordinates for your locations. Please select locations from the map instead.', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Geocoding error:', error);
-                showMessage('An error occurred while locating your destinations. Please select locations from the map.', 'error');
-            });
-    } else {
-        // We already have coordinates, proceed with calculation
-        processQuoteCalculation(pickupInput, destinationInput, serviceType.value);
+        showMessage('Location coordinates are missing. Please select locations from the map', 'error');
+        return;
     }
-}
-
-// Function to handle the actual quote calculation after coordinates are available
-function processQuoteCalculation(pickupInput, destinationInput, serviceTypeValue) {
-    // Get coordinates
+    
+    if (serviceType && serviceType.value === '') {
+        showMessage('Please select a service type', 'error');
+        return;
+    }
+    
+    if (journeyDate && !journeyDate.value) {
+        showMessage('Please select a date for your journey', 'error');
+        return;
+    }
+    
+    if (journeyTime && !journeyTime.value) {
+        showMessage('Please select a time for your journey', 'error');
+        return;
+    }
+    
+    // Calculate distance between points
     const pickupLat = parseFloat(pickupInput.dataset.lat);
     const pickupLng = parseFloat(pickupInput.dataset.lng);
     const destLat = parseFloat(destinationInput.dataset.lat);
@@ -132,111 +118,23 @@ function processQuoteCalculation(pickupInput, destinationInput, serviceTypeValue
         distance: distance,
         totalFare: fare,
         depositAmount: deposit,
-        vehicleType: vehicleType,
-        pickupLat: pickupLat,
-        pickupLng: pickupLng,
-        destLat: destLat,
-        destLng: destLng
+        vehicleType: vehicleType
     };
     console.log('Quote data to display:', quoteData);
     
     displayQuote(quoteData);
 }
 
-// Function to geocode locations based on text input
-async function geocodeLocations(pickupAddress, destinationAddress) {
-    try {
-        // Try to use the built-in location database for common Sri Lankan locations
-        const pickupCoords = findLocationCoordinates(pickupAddress);
-        const destCoords = findLocationCoordinates(destinationAddress);
-        
-        if (pickupCoords && destCoords) {
-            return {
-                pickup: pickupCoords,
-                destination: destCoords
-            };
-        }
-        
-        // If built-in database fails, fallback to Nominatim API
-        const [pickupResult, destResult] = await Promise.all([
-            geocodeWithNominatim(pickupAddress + ', Sri Lanka'),
-            geocodeWithNominatim(destinationAddress + ', Sri Lanka')
-        ]);
-        
-        if (pickupResult && destResult) {
-            return {
-                pickup: { lat: pickupResult.lat, lng: pickupResult.lon },
-                destination: { lat: destResult.lat, lng: destResult.lon }
-            };
-        }
-        
-        return null;
-    } catch (error) {
-        console.error('Error during geocoding:', error);
-        return null;
-    }
-}
-
-// Function to find coordinates from built-in location database
-function findLocationCoordinates(searchTerm) {
-    // Common locations in Sri Lanka
-    const locations = {
-        'colombo': { lat: 6.9271, lng: 79.8612 },
-        'kandy': { lat: 7.2906, lng: 80.6337 },
-        'galle': { lat: 6.0535, lng: 80.2210 },
-        'negombo': { lat: 7.2095, lng: 79.8384 },
-        'jaffna': { lat: 9.6615, lng: 80.0255 },
-        'ella': { lat: 6.8667, lng: 81.0466 },
-        'nuwara eliya': { lat: 6.9697, lng: 80.7893 },
-        'sigiriya': { lat: 7.9572, lng: 80.7600 },
-        'anuradhapura': { lat: 8.3114, lng: 80.4037 },
-        'trincomalee': { lat: 8.5667, lng: 81.2333 },
-        'airport': { lat: 7.1801, lng: 79.8841 },
-        'colombo airport': { lat: 7.1801, lng: 79.8841 },
-        'bandaranaike airport': { lat: 7.1801, lng: 79.8841 }
-    };
-    
-    // Check if the search term matches any known location
-    const normalizedSearch = searchTerm.toLowerCase().trim();
-    
-    // Direct match
-    if (locations[normalizedSearch]) {
-        return locations[normalizedSearch];
-    }
-    
-    // Partial match
-    for (const [key, coords] of Object.entries(locations)) {
-        if (normalizedSearch.includes(key) || key.includes(normalizedSearch)) {
-            return coords;
-        }
-    }
-    
-    return null;
-}
-
-// Function to geocode using Nominatim
-async function geocodeWithNominatim(address) {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&countrycodes=lk`;
-    
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Geocoding API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        if (data && data.length > 0) {
-            return data[0];
-        }
-        return null;
-    } catch (error) {
-        console.error('Nominatim geocoding error:', error);
-        return null;
-    }
-}
-
-// Calculate distance between two points using Haversine formula
+// Calculate distance between two coordinates
 function calculateDistance(lat1, lon1, lat2, lon2) {
+    // If we have a stored driving distance from routing, use that
+    if (window.drivingDistanceKm) {
+        console.log('Using actual driving distance:', window.drivingDistanceKm);
+        return window.drivingDistanceKm;
+    }
+    
+    // Otherwise, fall back to the Haversine formula for straight-line distance
+    console.log('Using straight-line distance (Haversine formula)');
     const R = 6371; // Radius of the earth in km
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
@@ -246,7 +144,11 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
         Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c; // Distance in km
-    return distance;
+    
+    // Apply a correction factor to approximate driving distance
+    // Typically driving distance is 20-30% longer than straight line
+    const correctionFactor = 1.3;
+    return distance * correctionFactor;
 }
 
 function deg2rad(deg) {
@@ -295,68 +197,73 @@ function calculateFare(distance, vehicleType) {
 
 // Display the calculated quote
 function displayQuote(quoteData) {
-    try {
-        // Get coordinates from quoteData
-        const pickupLat = quoteData.pickupLat;
-        const pickupLng = quoteData.pickupLng;
-        const destLat = quoteData.destLat;
-        const destLng = quoteData.destLng;
+    console.log('Displaying quote with data:', quoteData);
+
+    // Get the quote container
+    const quoteContainer = document.getElementById('quoteContainer');
+    if (!quoteContainer) {
+        console.error('Quote container not found!');
+        return;
+    }
+    
+    // Show the quote container
+        quoteContainer.style.display = 'block';
+    quoteContainer.classList.add('visible');
+    
+    // Enable Book Now button
+    const bookBtn = document.getElementById('bookNowBtn');
+    if (bookBtn) {
+        bookBtn.disabled = false;
+        console.log('Book Now button enabled');
+    }
+    
+    // Display the route map container
+    const routeMapContainer = document.getElementById('routeMapContainer');
+    if (routeMapContainer) {
+        routeMapContainer.style.display = 'block';
+        console.log('Route map container displayed');
+    } else {
+        console.error('Route map container not found');
+    }
+    
+    // Update quote information
+    const distanceElement = document.getElementById('quotedDistance');
+    if (distanceElement) {
+        distanceElement.textContent = `${quoteData.distance.toFixed(1)} km`;
+    }
+    
+    const vehicleTypeElement = document.getElementById('quotedVehicle');
+    if (vehicleTypeElement) {
+        // Capitalize vehicle type
+        const capitalizedVehicleType = quoteData.vehicleType.charAt(0).toUpperCase() + quoteData.vehicleType.slice(1);
+        vehicleTypeElement.textContent = capitalizedVehicleType;
+    }
+    
+    const fareElement = document.getElementById('quotedFare');
+    if (fareElement) {
+        fareElement.textContent = `$${quoteData.totalFare.toFixed(2)}`;
+    }
+    
+    const depositElement = document.getElementById('quotedDeposit');
+    if (depositElement) {
+        depositElement.textContent = `$${quoteData.depositAmount.toFixed(2)}`;
+    }
+    
+    // If route map components exist, update the map
+    const pickupInput = document.getElementById('pickupLocation');
+    const destinationInput = document.getElementById('destinationLocation');
+    
+    if (pickupInput && destinationInput && 
+        pickupInput.dataset.lat && pickupInput.dataset.lng &&
+        destinationInput.dataset.lat && destinationInput.dataset.lng) {
         
-        if (!pickupLat || !pickupLng || !destLat || !destLng) {
-            console.error('Missing coordinates in quoteData');
-            showMessage('Incomplete location data. Please try selecting locations from the map.', 'error');
-            return;
-        }
-
-        // Update the DOM with the calculated values
-        const quoteContainer = document.getElementById('quoteContainer');
-        const quotedDistance = document.getElementById('quotedDistance');
-        const quotedVehicle = document.getElementById('quotedVehicle');
-        const quotedFare = document.getElementById('quotedFare');
-        const quotedDeposit = document.getElementById('quotedDeposit');
-        const bookNowBtn = document.getElementById('bookNowBtn');
-
-        if (quoteContainer && quotedDistance && quotedVehicle && 
-            quotedFare && quotedDeposit && bookNowBtn) {
-            
-            quotedDistance.textContent = `${quoteData.distance.toFixed(1)} km`;
-            quotedVehicle.textContent = quoteData.vehicleType.charAt(0).toUpperCase() + quoteData.vehicleType.slice(1);
-            quotedFare.textContent = `$${quoteData.totalFare.toFixed(2)}`;
-            quotedDeposit.textContent = `$${quoteData.depositAmount.toFixed(2)}`;
-            
-            // Show the quote container
-            quoteContainer.style.display = 'block';
-            
-            // Enable the Book Now button
-            bookNowBtn.disabled = false;
-            
-            // Show the route map container if hidden
-            const routeMapContainer = document.getElementById('routeMapContainer');
-            if (routeMapContainer) {
-                routeMapContainer.style.display = 'block';
-            }
-            
-            // Initialize the map to show the route
-            if (pickupLat && pickupLng && destLat && destLng) {
-                // Clear any previous error messages
-                const errorMessage = document.querySelector('.booking-message.error');
-                if (errorMessage) {
-                    errorMessage.style.display = 'none';
-                }
-                
-                // Show a success message
-                showMessage('Quote calculated successfully! View your route on the map below.', 'success');
-                
-                // Initialize the route map
-                initRouteMap(pickupLat, pickupLng, destLat, destLng);
-            }
-        } else {
-            console.error('One or more quote elements not found in the DOM');
-            showMessage('Could not display the quote. Please refresh and try again.', 'error');
-        }
-    } catch (error) {
-        console.error('Error displaying quote:', error);
-        showMessage('An error occurred while calculating your quote. Please try again.', 'error');
+        const pickupLat = parseFloat(pickupInput.dataset.lat);
+        const pickupLng = parseFloat(pickupInput.dataset.lng);
+        const destLat = parseFloat(destinationInput.dataset.lat);
+        const destLng = parseFloat(destinationInput.dataset.lng);
+        
+        // Initialize or update the route map
+        initRouteMap(pickupLat, pickupLng, destLat, destLng);
     }
 }
 
@@ -486,28 +393,27 @@ function showMessage(message, type = 'info') {
 
 // Initialize route map to show journey path
 function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
-    console.log('Initializing route map with coordinates:', {
-        pickup: { lat: pickupLat, lng: pickupLng },
-        destination: { lat: destLat, lng: destLng }
-    });
+    console.log('Initializing route map with coordinates:', 
+                'Pickup:', pickupLat, pickupLng, 
+                'Destination:', destLat, destLng);
     
-    // Get map container
     const mapContainer = document.getElementById('routeMap');
     if (!mapContainer) {
         console.error('Route map container not found');
         return;
     }
     
-    // Set some basic styles on the map container to ensure it displays correctly
-    mapContainer.setAttribute('style', `
+    // Force set the height and style of the map container - use important to override any conflicting styles
+    mapContainer.style.cssText = `
         height: 350px !important;
         width: 100% !important;
+        border-radius: 8px !important;
+        position: relative !important;
         display: block !important;
+        z-index: 1 !important;
         overflow: hidden !important;
         border: 1px solid #ddd !important;
-        border-radius: 8px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-    `);
+    `;
     
     // Check if Leaflet is loaded
     if (typeof L === 'undefined') {
@@ -515,6 +421,13 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         mapContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Map loading failed. Please try again later.</div>';
         // Try to load Leaflet again
         loadLeafletForRoute();
+        return;
+    }
+    
+    // Check if the Leaflet Routing Machine is loaded
+    if (typeof L.Routing === 'undefined') {
+        console.log('Loading Leaflet Routing Machine');
+        loadLeafletRoutingMachine();
         return;
     }
     
@@ -526,8 +439,7 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
             routeMapInstance = null;
         }
         
-        // Sometimes the map container might still have Leaflet-related elements
-        // Completely clear the container to avoid "already initialized" errors
+        // Clear the container to avoid "already initialized" errors
         mapContainer.innerHTML = '';
         
         // Generate a unique ID for the map container to avoid Leaflet initialization issues
@@ -538,21 +450,99 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         const routeMap = L.map(uniqueMapId, {
             zoomControl: true,
             scrollWheelZoom: false, // Disable zoom on scroll for better UX
-            dragging: true, // Allow dragging the map
-            touchZoom: true, // Allow finger zoom
-            zoomAnimation: true, // Enable smooth zoom animation
-            fadeAnimation: true // Enable fade animation
+            dragging: true,
+            touchZoom: true
         });
         
         // Store the map instance globally
         routeMapInstance = routeMap;
         
-        // Add a more appealing map layer
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 19
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(routeMap);
+        
+        // Create markers for pickup and destination with better visibility
+        const pickupMarker = L.marker([pickupLat, pickupLng], {
+            icon: L.divIcon({
+                className: 'journey-marker pickup-marker',
+                html: '<div class="marker-inner">Pickup</div>',
+                iconSize: [80, 30],
+                iconAnchor: [40, 15]
+            })
+        }).addTo(routeMap);
+        
+        const destMarker = L.marker([destLat, destLng], {
+            icon: L.divIcon({
+                className: 'journey-marker dest-marker',
+                html: '<div class="marker-inner">Destination</div>',
+                iconSize: [100, 30],
+                iconAnchor: [50, 15]
+            })
+        }).addTo(routeMap);
+        
+        // Initialize routing control for driving directions
+        const routingControl = L.Routing.control({
+            waypoints: [
+                L.latLng(pickupLat, pickupLng),
+                L.latLng(destLat, destLng)
+            ],
+            routeWhileDragging: false,
+            showAlternatives: false,
+            addWaypoints: false,
+            lineOptions: {
+                styles: [{color: '#4CAF50', opacity: 0.7, weight: 5}],
+                extendToWaypoints: true,
+                missingRouteTolerance: 0
+            },
+            createMarker: function() { return null; } // Don't create default markers as we already have custom ones
+        }).addTo(routeMap);
+        
+        // Store driving distance when route is calculated
+        routingControl.on('routesfound', function(e) {
+            console.log('Routes found:', e);
+            const routes = e.routes;
+            if (routes && routes.length > 0) {
+                const drivingDistance = routes[0].summary.totalDistance / 1000; // Convert to km
+                const drivingTime = routes[0].summary.totalTime; // Time in seconds
+                
+                console.log('Actual driving distance:', drivingDistance.toFixed(2) + ' km');
+                console.log('Estimated driving time:', Math.round(drivingTime / 60) + ' minutes');
+                
+                // Store the driving distance for fare calculations
+                window.drivingDistanceKm = drivingDistance;
+                
+                // Update the quote if it's already displayed
+                const quoteContainer = document.getElementById('quoteContainer');
+                if (quoteContainer && quoteContainer.style.display !== 'none') {
+                    calculateQuote();
+                }
+                
+                // Add a popup with distance and time information
+                const timeInMinutes = Math.round(drivingTime / 60);
+                const timeText = timeInMinutes < 60 
+                    ? `${timeInMinutes} minutes` 
+                    : `${Math.floor(timeInMinutes / 60)} hr ${timeInMinutes % 60} min`;
+                    
+                // Create a popup along the route
+                const midpointIndex = Math.floor(routes[0].coordinates.length / 2);
+                const midpoint = routes[0].coordinates[midpointIndex];
+                
+                L.popup({
+                    closeButton: false,
+                    className: 'distance-popup',
+                    offset: [0, -10]
+                })
+                .setLatLng([midpoint.lat, midpoint.lng])
+                .setContent(`
+                    <div style="text-align: center;">
+                        <strong>${drivingDistance.toFixed(2)} km</strong><br>
+                        <span style="font-size: 12px;">Est. ${timeText}</span>
+                    </div>
+                `)
+                .openOn(routeMap);
+            }
+        });
         
         // Add CSS for custom markers if not exists
         if (!document.getElementById('route-map-styles')) {
@@ -566,109 +556,25 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
                     font-size: 12px;
                     text-align: center;
                     color: white;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                    white-space: nowrap;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
                 }
                 .pickup-marker .marker-inner {
                     background-color: #4285F4;
-                    border: 2px solid white;
                 }
                 .dest-marker .marker-inner {
                     background-color: #DB4437;
-                    border: 2px solid white;
-                }
-                .distance-popup .leaflet-popup-content-wrapper {
-                    border-radius: 15px;
-                    background-color: rgba(255, 255, 255, 0.9);
-                    box-shadow: 0 3px 14px rgba(0,0,0,0.2);
-                }
-                .distance-popup .leaflet-popup-tip {
-                    background-color: rgba(255, 255, 255, 0.9);
-                }
-                .leaflet-marker-pane .journey-marker {
-                    transition: transform 0.3s ease-out;
-                }
-                .leaflet-marker-pane .journey-marker:hover {
-                    transform: scale(1.1);
-                    z-index: 1000 !important;
                 }
                 #routeMap {
                     height: 350px !important;
                     width: 100% !important;
                     display: block !important;
                 }
+                .leaflet-routing-container {
+                    display: none; /* Hide the default directions panel */
+                }
             `;
             document.head.appendChild(style);
         }
-        
-        // Create markers for pickup and destination with better visibility and animations
-        // First, add markers to the map with a delay for animation effect
-        setTimeout(() => {
-            // Pickup marker
-            const pickupMarker = L.marker([pickupLat, pickupLng], {
-                icon: L.divIcon({
-                    className: 'journey-marker pickup-marker',
-                    html: '<div class="marker-inner">Pickup</div>',
-                    iconSize: [80, 30],
-                    iconAnchor: [40, 15]
-                })
-            }).addTo(routeMap);
-            
-            // Add pickup marker animation
-            pickupMarker._icon.style.opacity = '0';
-            pickupMarker._icon.style.transform = 'translateY(-20px)';
-            pickupMarker._icon.style.transition = 'opacity 0.3s, transform 0.3s';
-            
-            setTimeout(() => {
-                pickupMarker._icon.style.opacity = '1';
-                pickupMarker._icon.style.transform = 'translateY(0)';
-            }, 200);
-            
-            // Destination marker with slight delay for staged animation
-            setTimeout(() => {
-                const destMarker = L.marker([destLat, destLng], {
-                    icon: L.divIcon({
-                        className: 'journey-marker dest-marker',
-                        html: '<div class="marker-inner">Destination</div>',
-                        iconSize: [100, 30],
-                        iconAnchor: [50, 15]
-                    })
-                }).addTo(routeMap);
-                
-                // Add destination marker animation
-                destMarker._icon.style.opacity = '0';
-                destMarker._icon.style.transform = 'translateY(-20px)';
-                destMarker._icon.style.transition = 'opacity 0.3s, transform 0.3s';
-                
-                setTimeout(() => {
-                    destMarker._icon.style.opacity = '1';
-                    destMarker._icon.style.transform = 'translateY(0)';
-                }, 100);
-            }, 300);
-        }, 100);
-        
-        // Add a loading indicator to the map while route is calculated
-        const loadingControl = L.control({position: 'bottomleft'});
-        loadingControl.onAdd = function() {
-            const div = L.DomUtil.create('div', 'loading-indicator');
-            div.innerHTML = '<div style="background: white; padding: 8px 12px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); display: flex; align-items: center;"><div style="width: 16px; height: 16px; border: 2px solid #4285F4; border-radius: 50%; border-top-color: transparent; animation: leaflet-spin 1s linear infinite; margin-right: 8px;"></div>Calculating route...</div>';
-            
-            // Add the animation if not exists
-            if (!document.getElementById('leaflet-spin-style')) {
-                const style = document.createElement('style');
-                style.id = 'leaflet-spin-style';
-                style.textContent = `
-                    @keyframes leaflet-spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-            
-            return div;
-        };
-        loadingControl.addTo(routeMap);
         
         // Fit bounds to show both markers with padding
         routeMap.fitBounds([
@@ -677,9 +583,6 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         ], {
             padding: [50, 50]
         });
-        
-        // Use OSRM to get the driving route
-        fetchDrivingRoute(pickupLat, pickupLng, destLat, destLng, routeMap, loadingControl);
         
         // Reset the map ID back to the original after initialization
         setTimeout(() => {
@@ -709,231 +612,6 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
     }
 }
 
-// Function to fetch driving route using OSRM API
-function fetchDrivingRoute(pickupLat, pickupLng, destLat, destLng, map, loadingControl) {
-    // OSRM demo server URL - for production use, consider using a self-hosted instance or a commercial API
-    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${pickupLng},${pickupLat};${destLng},${destLat}?overview=full&geometries=polyline`;
-    
-    fetch(osrmUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Remove loading indicator
-            if (loadingControl) {
-                map.removeControl(loadingControl);
-            }
-            
-            if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
-                throw new Error('No route found');
-            }
-            
-            // Get route data
-            const route = data.routes[0];
-            const routeGeometry = route.geometry;
-            const routeDistance = route.distance / 1000; // Convert to km
-            const routeDuration = Math.round(route.duration / 60); // Convert to minutes
-            
-            // Ensure the polyline decoder is available
-            if (typeof L.Polyline.fromEncoded === 'undefined') {
-                // Add the polyline decoder if not available
-                addPolylineDecoder();
-            }
-            
-            // Decode the polyline geometry
-            const decodedPath = L.Polyline.fromEncoded(routeGeometry).getLatLngs();
-            
-            // Draw the route with improved styling
-            const routeLine = L.polyline(decodedPath, {
-                color: '#4CAF50',
-                weight: 6,
-                opacity: 0.8,
-                lineJoin: 'round',
-                lineCap: 'round',
-                className: 'animated-route'
-            }).addTo(map);
-            
-            // Add route animation style if not exists
-            if (!document.getElementById('route-animation-style')) {
-                const style = document.createElement('style');
-                style.id = 'route-animation-style';
-                style.textContent = `
-                    @keyframes routeDash {
-                        to {
-                            stroke-dashoffset: 0;
-                        }
-                    }
-                    .animated-route {
-                        stroke-dasharray: 8, 5;
-                        animation: routeDash 1.5s linear forwards;
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-            
-            // Update the global distance calculation with the driving distance
-            const distanceElement = document.getElementById('quotedDistance');
-            if (distanceElement) {
-                distanceElement.textContent = `${routeDistance.toFixed(1)} km`;
-            }
-            
-            // Add distance and duration popup on the route
-            const midPointIndex = Math.floor(decodedPath.length / 2);
-            const midPoint = decodedPath[midPointIndex];
-            
-            L.popup({
-                closeButton: false,
-                className: 'distance-popup',
-                offset: [0, -10],
-                autoPan: false
-            })
-            .setLatLng(midPoint)
-            .setContent(`<div style="text-align: center; padding: 8px;"><strong>${routeDistance.toFixed(1)} km</strong><br>${routeDuration} min drive</div>`)
-            .openOn(map);
-            
-            // Update the calculated distance in the quote
-            // Recalculate fare based on the new driving distance
-            const vehicleType = getSelectedVehicleType();
-            const fare = calculateFare(routeDistance, vehicleType);
-            const deposit = fare * 0.2; // 20% deposit
-            
-            // Update the quoted fare
-            const fareElement = document.getElementById('quotedFare');
-            if (fareElement) {
-                fareElement.textContent = `$${fare.toFixed(2)}`;
-            }
-            
-            // Update the quoted deposit
-            const depositElement = document.getElementById('quotedDeposit');
-            if (depositElement) {
-                depositElement.textContent = `$${deposit.toFixed(2)}`;
-            }
-            
-            // Fit map bounds to the route with padding
-            map.fitBounds(routeLine.getBounds(), {
-                padding: [50, 50],
-                animate: true
-            });
-            
-            // Add route milestones for long routes (if more than 5 points)
-            if (decodedPath.length > 10) {
-                addRouteMilestones(decodedPath, map, routeDistance);
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching route:', error);
-            
-            // Remove loading indicator
-            if (loadingControl) {
-                map.removeControl(loadingControl);
-            }
-            
-            // Fall back to a straight line if route calculation fails
-            L.polyline([
-                [pickupLat, pickupLng],
-                [destLat, destLng]
-            ], {
-                color: '#FF5722',
-                weight: 5,
-                opacity: 0.7,
-                dashArray: '10, 10',
-                lineJoin: 'round'
-            }).addTo(map);
-            
-            // Add distance information popup on the line
-            const midPoint = {
-                lat: (pickupLat + destLat) / 2,
-                lng: (pickupLng + destLng) / 2
-            };
-            
-            const distance = calculateDistance(pickupLat, pickupLng, destLat, destLng);
-            
-            L.popup({
-                closeButton: false,
-                className: 'distance-popup',
-                offset: [0, -10]
-            })
-            .setLatLng([midPoint.lat, midPoint.lng])
-            .setContent(`<div style="text-align: center;"><strong>${distance.toFixed(1)} km</strong><br>(Direct distance)</div>`)
-            .openOn(map);
-            
-            // Show a warning about falling back to direct distance
-            const warningControl = L.control({position: 'bottomright'});
-            warningControl.onAdd = function() {
-                const div = L.DomUtil.create('div', 'route-warning');
-                div.innerHTML = '<div style="background: #f8d7da; color: #721c24; padding: 8px; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); font-size: 12px;">Using direct distance. Actual driving route unavailable.</div>';
-                return div;
-            };
-            warningControl.addTo(map);
-        });
-}
-
-// Function to add route milestones for better visualization
-function addRouteMilestones(decodedPath, map, totalDistance) {
-    // Only add milestones for routes longer than 10km
-    if (totalDistance < 10) return;
-    
-    // Determine how many milestones to add (1 every 5km, but max 5 total)
-    const milestoneCount = Math.min(Math.floor(totalDistance / 5), 5);
-    if (milestoneCount <= 1) return;
-    
-    // Calculate points to place milestones
-    for (let i = 1; i < milestoneCount; i++) {
-        const ratio = i / milestoneCount;
-        const pointIndex = Math.floor(ratio * (decodedPath.length - 1));
-        const point = decodedPath[pointIndex];
-        
-        // Create a milestone marker
-        L.circleMarker(point, {
-            radius: 6,
-            color: '#4CAF50',
-            fillColor: '#ffffff',
-            fillOpacity: 1,
-            weight: 2
-        }).addTo(map);
-    }
-}
-
-// Add Polyline.encoded plugin to Leaflet
-function addPolylineDecoder() {
-    if (typeof L !== 'undefined' && typeof L.Polyline.fromEncoded === 'undefined') {
-        // Polyline encoding/decoding utility (required for OSRM routes)
-        L.Polyline.fromEncoded = function(encoded, options) {
-            var points = [];
-            var index = 0, len = encoded.length;
-            var lat = 0, lng = 0;
-            
-            while (index < len) {
-                var b, shift = 0, result = 0;
-                do {
-                    b = encoded.charCodeAt(index++) - 63;
-                    result |= (b & 0x1f) << shift;
-                    shift += 5;
-                } while (b >= 0x20);
-                var dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
-                lat += dlat;
-                
-                shift = 0;
-                result = 0;
-                do {
-                    b = encoded.charCodeAt(index++) - 63;
-                    result |= (b & 0x1f) << shift;
-                    shift += 5;
-                } while (b >= 0x20);
-                var dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
-                lng += dlng;
-                
-                points.push([lat * 1e-5, lng * 1e-5]);
-            }
-            
-            return new L.Polyline(points, options);
-        };
-    }
-}
-
 // Helper function to load Leaflet specifically for route map
 function loadLeafletForRoute() {
     console.log('Attempting to load Leaflet dynamically for route map');
@@ -947,10 +625,40 @@ function loadLeafletForRoute() {
     // Add load event
     script.onload = function() {
         console.log('Leaflet loaded successfully for route map');
-        
-        // Add the polyline decoder
-        addPolylineDecoder();
-        
+        // Now load the Routing Machine
+        loadLeafletRoutingMachine();
+    };
+    
+    // Add error event
+    script.onerror = function() {
+        console.error('Failed to load Leaflet for route map');
+        const mapContainer = document.getElementById('routeMap');
+        if (mapContainer) {
+            mapContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Map loading failed. Please refresh the page and try again.</div>';
+        }
+    };
+    
+    // Add script to document
+    document.head.appendChild(script);
+}
+
+// Helper function to load Leaflet Routing Machine
+function loadLeafletRoutingMachine() {
+    console.log('Loading Leaflet Routing Machine');
+    
+    // Add the CSS for Leaflet Routing Machine
+    const linkElement = document.createElement('link');
+    linkElement.rel = 'stylesheet';
+    linkElement.href = 'https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css';
+    document.head.appendChild(linkElement);
+    
+    // Create script element
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js';
+    
+    // Add load event
+    script.onload = function() {
+        console.log('Leaflet Routing Machine loaded successfully');
         // Get form values again
         const pickupInput = document.getElementById('pickupLocation');
         const destinationInput = document.getElementById('destinationLocation');
@@ -964,36 +672,145 @@ function loadLeafletForRoute() {
             const destLat = parseFloat(destinationInput.dataset.lat);
             const destLng = parseFloat(destinationInput.dataset.lng);
             
-            // Add a small delay to ensure Leaflet is fully initialized
             setTimeout(() => initRouteMap(pickupLat, pickupLng, destLat, destLng), 500);
         }
     };
     
     // Add error event
     script.onerror = function() {
-        console.error('Failed to load Leaflet for route map');
+        console.error('Failed to load Leaflet Routing Machine');
         const mapContainer = document.getElementById('routeMap');
         if (mapContainer) {
-            mapContainer.innerHTML = `
-                <div style="text-align: center; padding: 20px; background-color: #f8d7da; color: #721c24; border-radius: 4px;">
-                    <p><strong>Map loading failed</strong></p>
-                    <p>Please refresh the page and try again, or check your internet connection.</p>
-                </div>
-            `;
+            mapContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Could not load routing service. Using straight line distance instead.</div>';
+            
+            // Fall back to standard map without routing
+            const pickupInput = document.getElementById('pickupLocation');
+            const destinationInput = document.getElementById('destinationLocation');
+            
+            if (pickupInput && destinationInput && 
+                pickupInput.dataset.lat && pickupInput.dataset.lng &&
+                destinationInput.dataset.lat && destinationInput.dataset.lng) {
+                
+                const pickupLat = parseFloat(pickupInput.dataset.lat);
+                const pickupLng = parseFloat(pickupInput.dataset.lng);
+                const destLat = parseFloat(destinationInput.dataset.lat);
+                const destLng = parseFloat(destinationInput.dataset.lng);
+                
+                // Use the original map functionality as fallback
+                fallbackToStraightLineMap(pickupLat, pickupLng, destLat, destLng);
+            }
         }
     };
     
-    // Add CSS for Leaflet
-    if (!document.getElementById('leaflet-css')) {
-        const link = document.createElement('link');
-        link.id = 'leaflet-css';
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-        link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-        link.crossOrigin = '';
-        document.head.appendChild(link);
-    }
-    
     // Add script to document
     document.head.appendChild(script);
-} 
+}
+
+// Fallback to straight line map if routing fails
+function fallbackToStraightLineMap(pickupLat, pickupLng, destLat, destLng) {
+    console.log('Falling back to straight line map');
+    
+    const mapContainer = document.getElementById('routeMap');
+    if (!mapContainer || typeof L === 'undefined') return;
+    
+    try {
+        // Clear the container
+        mapContainer.innerHTML = '';
+        
+        // Create a unique ID
+        const uniqueMapId = 'routeMap_fallback_' + Date.now();
+        mapContainer.id = uniqueMapId;
+        
+        // Create map
+        const routeMap = L.map(uniqueMapId).setView([(pickupLat + destLat) / 2, (pickupLng + destLng) / 2], 10);
+        routeMapInstance = routeMap;
+        
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(routeMap);
+        
+        // Add markers
+        L.marker([pickupLat, pickupLng]).addTo(routeMap).bindPopup('Pickup');
+        L.marker([destLat, destLng]).addTo(routeMap).bindPopup('Destination');
+        
+        // Add straight line
+        L.polyline([
+            [pickupLat, pickupLng], 
+            [destLat, destLng]
+        ], {
+            color: '#4CAF50',
+            dashArray: '5, 10'
+        }).addTo(routeMap);
+        
+        // Set bounds
+        routeMap.fitBounds([
+            [pickupLat, pickupLng],
+            [destLat, destLng]
+        ], {
+            padding: [50, 50]
+        });
+        
+        // Reset ID
+        setTimeout(() => {
+            mapContainer.id = 'routeMap';
+            routeMap.invalidateSize();
+        }, 500);
+        
+    } catch (error) {
+        console.error('Error in fallback map:', error);
+    }
+}
+
+// Check if both pickup and destination locations are set
+function checkLocationsAndEnableQuote() {
+    const pickupInput = document.getElementById('pickupLocation');
+    const destinationInput = document.getElementById('destinationLocation');
+    const quoteBtn = document.querySelector('.btn.secondary'); // Get Quote button
+    const bookBtn = document.querySelector('.btn.primary'); // Book Now button
+    
+    if (!pickupInput || !destinationInput) {
+        console.error('Pickup or destination input not found');
+        return;
+    }
+    
+    // Check if both pickup and destination have latitude and longitude data
+    const hasPickupCoords = pickupInput.dataset.lat && pickupInput.dataset.lng;
+    const hasDestinationCoords = destinationInput.dataset.lat && destinationInput.dataset.lng;
+    
+    if (hasPickupCoords && hasDestinationCoords) {
+        console.log('Both pickup and destination coordinates are set');
+        
+        // Enable the quote button
+        if (quoteBtn) {
+            quoteBtn.classList.add('active');
+            quoteBtn.disabled = false;
+        }
+        
+        // Initialize the route map automatically when both locations are set
+        const pickupLat = parseFloat(pickupInput.dataset.lat);
+        const pickupLng = parseFloat(pickupInput.dataset.lng);
+        const destLat = parseFloat(destinationInput.dataset.lat);
+        const destLng = parseFloat(destinationInput.dataset.lng);
+        
+        // Show the route map container
+        const routeMapContainer = document.getElementById('routeMapContainer');
+        if (routeMapContainer) {
+            routeMapContainer.style.display = 'block';
+        }
+        
+        // Initialize the route map with driving directions
+        initRouteMap(pickupLat, pickupLng, destLat, destLng);
+        
+    } else {
+        console.log('Pickup or destination coordinates are not set');
+        if (quoteBtn) {
+            quoteBtn.classList.remove('active');
+            quoteBtn.disabled = true;
+        }
+        if (bookBtn) {
+            bookBtn.classList.remove('active');
+            bookBtn.disabled = true;
+        }
+    }
+}

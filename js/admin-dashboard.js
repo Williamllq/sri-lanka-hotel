@@ -312,7 +312,7 @@ function initPictureManagement() {
             
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
+            const reader = new FileReader();
                 reader.onload = function(event) {
                     filePreview.innerHTML = `<img src="${event.target.result}" alt="Selected Image Preview">`;
                 };
@@ -328,12 +328,12 @@ function initPictureManagement() {
     // Handle picture upload form submission
     if (uploadPictureForm) {
         uploadPictureForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
+        e.preventDefault();
+        
             const pictureName = document.getElementById('pictureName');
             const uploadCategory = document.getElementById('uploadCategory');
             const pictureDescription = document.getElementById('pictureDescription');
-            
+        
             if (!pictureName || !uploadCategory || !pictureFile) {
                 console.error('One or more form elements not found');
                 return;
@@ -341,9 +341,9 @@ function initPictureManagement() {
             
             const file = pictureFile.files[0];
             if (!file) {
-                alert('Please select an image file');
-                return;
-            }
+            alert('Please select an image file');
+            return;
+        }
             
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -368,20 +368,20 @@ function initPictureManagement() {
                     // Reset form
                     uploadPictureForm.reset();
                     if (filePreview) {
-                        filePreview.innerHTML = '';
+                    filePreview.innerHTML = '';
                     }
                     
                     // Close modal
                     const uploadModal = document.getElementById('uploadModal');
                     if (uploadModal) {
-                        uploadModal.style.display = 'none';
+                    uploadModal.style.display = 'none';
                         uploadModal.classList.remove('active');
                     }
                     
                     // Refresh picture grid
                     displayPictures(uploadCategory.value);
                     
-                    alert('Picture uploaded successfully!');
+                        alert('Picture uploaded successfully!');
                 });
             };
             reader.readAsDataURL(file);
@@ -418,14 +418,14 @@ function initPictureManagement() {
                 // Get compressed data URL
                 resolve(canvas.toDataURL('image/jpeg', quality));
             };
-        });
+    });
     }
     
     // Handle picture category filtering
     if (pictureCategory) {
-        pictureCategory.addEventListener('change', function() {
+    pictureCategory.addEventListener('change', function() {
             displayPictures(this.value);
-        });
+    });
     } else {
         console.error('Picture category dropdown not found');
     }
@@ -494,8 +494,8 @@ function initPictureManagement() {
                 });
             }
         });
-    }
-    
+                    }
+                    
     // Initial display of pictures
     displayPictures('all');
 }
@@ -761,14 +761,14 @@ function initHotelManagement() {
     
     if (roomImage && roomImagePreview) {
         roomImage.addEventListener('change', function(e) {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
                 reader.onload = function(event) {
                     roomImagePreview.innerHTML = `<img src="${event.target.result}" alt="Room Preview">`;
-                };
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
     }
     
     // 取消按钮
@@ -786,8 +786,8 @@ function initHotelManagement() {
     // 保存客房表单
     if (roomForm) {
         roomForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
+        e.preventDefault();
+        
             const roomId = document.getElementById('roomId').value || Date.now(); // 使用时间戳作为ID
             const roomName = document.getElementById('roomName').value;
             const roomDescription = document.getElementById('roomDescription').value;
@@ -811,7 +811,7 @@ function initHotelManagement() {
                     saveRoom(roomId, roomName, roomDescription, roomPrice, roomSize, bedType, hasWifi, event.target.result);
                 };
                 reader.readAsDataURL(roomImageFile);
-            } else {
+        } else {
                 // 使用现有图片
                 const rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
                 const existingRoom = rooms.find(r => r.id == roomId);
@@ -889,7 +889,7 @@ function initHotelManagement() {
                 </div>
             `;
             return;
-        }
+            }
         
         // 创建客房卡片
         rooms.forEach(room => {
@@ -952,7 +952,7 @@ function initHotelManagement() {
     function editRoom(id) {
         const rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
         const room = rooms.find(r => r.id == id);
-        
+                
         if (room) {
             // 填充表单
             document.getElementById('roomId').value = room.id;
@@ -969,15 +969,15 @@ function initHotelManagement() {
                     radio.checked = true;
                 }
             });
-            
+                    
             // 显示图片预览
             if (roomImagePreview) {
                 roomImagePreview.innerHTML = `<img src="${room.imageUrl}" alt="${room.name}">`;
             }
-            
+                    
             // 更新模态框标题
             document.getElementById('roomModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Room';
-            
+                    
             // 显示模态框
             if (roomModal) {
                 roomModal.style.display = 'flex';
