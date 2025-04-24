@@ -706,207 +706,307 @@ function initCarouselManagement() {
 
 // Hotel Management functionality
 function initHotelManagement() {
+    console.log('Initializing hotel management');
+    
     const addHotelBtn = document.getElementById('addHotelBtn');
     const hotelModal = document.getElementById('hotelModal');
-    const closeModalBtns = document.querySelectorAll('.close-modal');
     const hotelForm = document.getElementById('hotelForm');
-    const hotelImage = document.getElementById('hotelImage');
-    const hotelImagePreview = document.getElementById('hotelImagePreview');
     const hotelsGrid = document.getElementById('hotelsGrid');
     
-    // Mock hotel data - in a real app, this would come from an API
-    let mockHotels = [
-        {
-            id: 1,
-            name: 'Cinnamon Grand Colombo',
-            location: 'Colombo',
-            price: '$150-300/night',
-            rating: 5,
-            description: 'Luxury hotel in the heart of Colombo with exceptional service and amenities.',
-            imageUrl: 'images/cinnamon-grand.jpg',
-            amenities: 'WiFi, Pool, Spa, Restaurant, Bar, Gym',
-            website: 'https://www.cinnamonhotels.com/'
-        },
-        {
-            id: 2,
-            name: 'Heritance Tea Factory',
-            location: 'Nuwara Eliya',
-            price: '$120-220/night',
-            rating: 4,
-            description: 'Unique hotel built in a converted tea factory with stunning views of tea plantations.',
-            imageUrl: 'images/tea-factory.jpg',
-            amenities: 'WiFi, Restaurant, Bar, Tea Tours, Spa',
-            website: 'https://www.heritancehotels.com/'
-        }
-    ];
+    // 酒店和客房标签页切换
+    const hotelTabs = document.querySelectorAll('.admin-tab[data-hotel-tab]');
+    const hotelTabContents = document.querySelectorAll('.hotel-tab-content');
     
-    // Open add hotel modal
-    addHotelBtn.addEventListener('click', function() {
-        // Reset form for new hotel
-        hotelForm.reset();
-        document.getElementById('hotelId').value = '';
-        hotelImagePreview.innerHTML = '';
-        document.getElementById('hotelModalTitle').textContent = 'Add New Hotel';
-        
-        hotelModal.style.display = 'block';
-    });
-    
-    // Close modals
-    closeModalBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            hotelModal.style.display = 'none';
+    hotelTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // 移除所有标签页的active类
+            hotelTabs.forEach(t => t.classList.remove('active'));
+            hotelTabContents.forEach(c => c.classList.remove('active'));
+            
+            // 激活当前标签页
+            this.classList.add('active');
+            const tabName = this.getAttribute('data-hotel-tab');
+            document.getElementById(tabName + 'Content').classList.add('active');
         });
     });
     
-    // Hotel image preview
-    hotelImage.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            const reader = new FileReader();
+    // 客房管理功能
+    const addRoomBtn = document.getElementById('addRoomBtn');
+    const roomModal = document.getElementById('roomModal');
+    const roomForm = document.getElementById('roomForm');
+    const roomsGrid = document.getElementById('roomsGrid');
+    
+    if (addRoomBtn) {
+        addRoomBtn.addEventListener('click', function() {
+            // 重置表单
+            if (roomForm) roomForm.reset();
+            document.getElementById('roomId').value = '';
+            document.getElementById('roomModalTitle').innerHTML = '<i class="fas fa-bed"></i> Add New Room';
             
-            reader.onload = function(e) {
-                hotelImagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            // 清除预览图
+            const preview = document.getElementById('roomImagePreview');
+            if (preview) preview.innerHTML = '';
+            
+            // 显示模态框
+            if (roomModal) {
+                roomModal.style.display = 'flex';
+                roomModal.classList.add('active');
+            }
+        });
+    }
+    
+    // 图片预览功能
+    const roomImage = document.getElementById('roomImage');
+    const roomImagePreview = document.getElementById('roomImagePreview');
+    
+    if (roomImage && roomImagePreview) {
+        roomImage.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    roomImagePreview.innerHTML = `<img src="${event.target.result}" alt="Room Preview">`;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+    
+    // 取消按钮
+    const cancelButtons = document.querySelectorAll('.cancel-btn');
+    cancelButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const modal = this.closest('.admin-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+            }
+        });
+    });
+    
+    // 保存客房表单
+    if (roomForm) {
+        roomForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const roomId = document.getElementById('roomId').value || Date.now(); // 使用时间戳作为ID
+            const roomName = document.getElementById('roomName').value;
+            const roomDescription = document.getElementById('roomDescription').value;
+            const roomPrice = document.getElementById('roomPrice').value;
+            const roomSize = document.getElementById('roomSize').value;
+            const bedType = document.getElementById('bedType').value;
+            const hasWifi = document.querySelector('input[name="hasWifi"]:checked').value === 'yes';
+            
+            // 获取图片
+            const roomImageFile = document.getElementById('roomImage').files[0];
+            
+            if (!roomImageFile && !document.getElementById('roomId').value) {
+                alert('请选择房间图片');
+                return;
+            }
+            
+            if (roomImageFile) {
+                // 读取图片为Base64
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    saveRoom(roomId, roomName, roomDescription, roomPrice, roomSize, bedType, hasWifi, event.target.result);
+                };
+                reader.readAsDataURL(roomImageFile);
+            } else {
+                // 使用现有图片
+                const rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
+                const existingRoom = rooms.find(r => r.id == roomId);
+                if (existingRoom) {
+                    saveRoom(roomId, roomName, roomDescription, roomPrice, roomSize, bedType, hasWifi, existingRoom.imageUrl);
+                }
+            }
+        });
+    }
+    
+    // 保存客房数据
+    function saveRoom(id, name, description, price, size, bedType, hasWifi, imageUrl) {
+        // 获取现有客房数据
+        let rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
+        
+        // 检查是新增还是编辑
+        const existingRoomIndex = rooms.findIndex(room => room.id == id);
+        
+        if (existingRoomIndex !== -1) {
+            // 更新现有客房
+            rooms[existingRoomIndex] = {
+                id: id,
+                name: name,
+                description: description,
+                price: price,
+                size: size,
+                bedType: bedType,
+                hasWifi: hasWifi,
+                imageUrl: imageUrl // 确保更新图片URL
             };
-            
-            reader.readAsDataURL(this.files[0]);
-        }
-    });
-    
-    // Form submission
-    hotelForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const hotelId = document.getElementById('hotelId').value;
-        const name = document.getElementById('hotelName').value;
-        const location = document.getElementById('hotelLocation').value;
-        const price = document.getElementById('hotelPrice').value;
-        const rating = document.getElementById('hotelRating').value;
-        const description = document.getElementById('hotelDescription').value;
-        const amenities = document.getElementById('hotelAmenities').value;
-        const website = document.getElementById('hotelWebsite').value;
-        
-        // Create hotel object
-        const hotel = {
-            id: hotelId ? parseInt(hotelId) : mockHotels.length + 1,
-            name,
-            location,
-            price,
-            rating: parseInt(rating),
-            description,
-            amenities,
-            website
-        };
-        
-        // If there's a new image
-        if (hotelImage.files && hotelImage.files[0]) {
-            hotel.imageUrl = URL.createObjectURL(hotelImage.files[0]);
-        } else if (hotelId) {
-            // Keep existing image if editing
-            const existingHotel = mockHotels.find(h => h.id === parseInt(hotelId));
-            if (existingHotel) {
-                hotel.imageUrl = existingHotel.imageUrl;
-            }
-        }
-        
-        if (hotelId) {
-            // Update existing hotel
-            const index = mockHotels.findIndex(h => h.id === parseInt(hotelId));
-            if (index !== -1) {
-                mockHotels[index] = hotel;
-            }
         } else {
-            // Add new hotel
-            mockHotels.push(hotel);
+            // 添加新客房
+            rooms.push({
+                id: id,
+                name: name,
+                description: description,
+                price: price,
+                size: size,
+                bedType: bedType,
+                hasWifi: hasWifi,
+                imageUrl: imageUrl
+            });
         }
         
-        // Update grid
-        displayHotels();
+        // 保存到localStorage
+        localStorage.setItem('siteRooms', JSON.stringify(rooms));
         
-        // Close modal
-        hotelModal.style.display = 'none';
-    });
+        // 关闭模态框
+        if (roomModal) {
+            roomModal.style.display = 'none';
+            roomModal.classList.remove('active');
+        }
+        
+        // 刷新客房列表
+        displayRooms();
+        
+        alert(existingRoomIndex !== -1 ? '客房更新成功！' : '新客房添加成功！');
+    }
     
-    // Display hotels function
-    function displayHotels() {
-        hotelsGrid.innerHTML = '';
+    // 显示客房列表
+    function displayRooms() {
+        if (!roomsGrid) return;
         
-        mockHotels.forEach(hotel => {
-            const hotelCard = document.createElement('div');
-            hotelCard.classList.add('hotel-card');
+        // 清空现有内容
+        roomsGrid.innerHTML = '';
+        
+        // 获取客房数据
+        const rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
+        
+        if (rooms.length === 0) {
+            roomsGrid.innerHTML = `
+                <div class="no-data" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-bed" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
+                    <p>还没有添加任何客房。点击"Add New Room"按钮添加您的第一个客房。</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // 创建客房卡片
+        rooms.forEach(room => {
+            const roomCard = document.createElement('div');
+            roomCard.classList.add('room-admin-card');
             
-            // Create star rating HTML
-            let starsHtml = '';
-            for (let i = 0; i < hotel.rating; i++) {
-                starsHtml += '<i class="fas fa-star"></i>';
-            }
-            for (let i = hotel.rating; i < 5; i++) {
-                starsHtml += '<i class="far fa-star"></i>';
-            }
-            
-            hotelCard.innerHTML = `
-                <img src="${hotel.imageUrl}" alt="${hotel.name}" class="hotel-image">
-                <div class="hotel-details">
-                    <h3 class="hotel-name">${hotel.name}</h3>
-                    <div class="hotel-location"><i class="fas fa-map-marker-alt"></i> ${hotel.location}</div>
-                    <div class="hotel-rating">${starsHtml}</div>
-                    <div class="hotel-price">${hotel.price}</div>
-                    <p class="hotel-description">${hotel.description}</p>
-                    <div class="hotel-actions">
-                        <button class="admin-btn secondary edit-hotel" data-id="${hotel.id}">
-                            <i class="fas fa-edit"></i> Edit
+            roomCard.innerHTML = `
+                <div class="room-image-container">
+                    <img src="${room.imageUrl}" alt="${room.name}">
+                </div>
+                <div class="room-details">
+                    <h3 class="room-name">${room.name}</h3>
+                    <p class="room-description">${room.description}</p>
+                    <div class="room-specs">
+                        <div class="room-spec">
+                            <i class="fas fa-bed"></i> ${room.bedType}
+                        </div>
+                        <div class="room-spec">
+                            <i class="fas fa-ruler-combined"></i> ${room.size} m²
+                        </div>
+                        <div class="room-spec">
+                            <i class="fas fa-wifi"></i> ${room.hasWifi ? 'Free WiFi' : 'No WiFi'}
+                        </div>
+                    </div>
+                    <div class="room-price">From $${room.price}/night</div>
+                    <div class="room-actions">
+                        <button class="room-action-btn edit-btn" data-id="${room.id}">
+                            <i class="fas fa-edit"></i>
                         </button>
-                        <button class="admin-btn danger delete-hotel" data-id="${hotel.id}">
-                            <i class="fas fa-trash"></i> Delete
+                        <button class="room-action-btn delete-btn" data-id="${room.id}">
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
                 </div>
             `;
             
-            hotelsGrid.appendChild(hotelCard);
-        });
-        
-        // Add edit event listeners
-        document.querySelectorAll('.edit-hotel').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const hotelId = parseInt(this.getAttribute('data-id'));
-                const hotel = mockHotels.find(h => h.id === hotelId);
-                
-                if (hotel) {
-                    // Populate form with hotel data
-                    document.getElementById('hotelId').value = hotel.id;
-                    document.getElementById('hotelName').value = hotel.name;
-                    document.getElementById('hotelLocation').value = hotel.location;
-                    document.getElementById('hotelPrice').value = hotel.price;
-                    document.getElementById('hotelRating').value = hotel.rating;
-                    document.getElementById('hotelDescription').value = hotel.description;
-                    document.getElementById('hotelAmenities').value = hotel.amenities;
-                    document.getElementById('hotelWebsite').value = hotel.website || '';
-                    
-                    // Set image preview
-                    hotelImagePreview.innerHTML = `<img src="${hotel.imageUrl}" alt="Preview">`;
-                    
-                    // Update modal title
-                    document.getElementById('hotelModalTitle').textContent = 'Edit Hotel';
-                    
-                    // Open modal
-                    hotelModal.style.display = 'block';
-                }
-            });
-        });
-        
-        // Add delete event listeners
-        document.querySelectorAll('.delete-hotel').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const hotelId = parseInt(this.getAttribute('data-id'));
-                
-                if (confirm('Are you sure you want to delete this hotel?')) {
-                    mockHotels = mockHotels.filter(h => h.id !== hotelId);
-                    displayHotels();
-                }
-            });
+            roomsGrid.appendChild(roomCard);
+            
+            // 编辑按钮事件
+            const editBtn = roomCard.querySelector('.edit-btn');
+            if (editBtn) {
+                editBtn.addEventListener('click', function() {
+                    const roomId = this.getAttribute('data-id');
+                    editRoom(roomId);
+                });
+            }
+            
+            // 删除按钮事件
+            const deleteBtn = roomCard.querySelector('.delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function() {
+                    const roomId = this.getAttribute('data-id');
+                    deleteRoom(roomId);
+                });
+            }
         });
     }
     
-    // Initial display
+    // 编辑客房
+    function editRoom(id) {
+        const rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
+        const room = rooms.find(r => r.id == id);
+        
+        if (room) {
+            // 填充表单
+            document.getElementById('roomId').value = room.id;
+            document.getElementById('roomName').value = room.name;
+            document.getElementById('roomDescription').value = room.description;
+            document.getElementById('roomPrice').value = room.price;
+            document.getElementById('roomSize').value = room.size;
+            document.getElementById('bedType').value = room.bedType;
+            
+            // 设置WiFi选项
+            const wifiRadios = document.querySelectorAll('input[name="hasWifi"]');
+            wifiRadios.forEach(radio => {
+                if ((radio.value === 'yes' && room.hasWifi) || (radio.value === 'no' && !room.hasWifi)) {
+                    radio.checked = true;
+                }
+            });
+            
+            // 显示图片预览
+            if (roomImagePreview) {
+                roomImagePreview.innerHTML = `<img src="${room.imageUrl}" alt="${room.name}">`;
+            }
+            
+            // 更新模态框标题
+            document.getElementById('roomModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Room';
+            
+            // 显示模态框
+            if (roomModal) {
+                roomModal.style.display = 'flex';
+                roomModal.classList.add('active');
+            }
+        }
+    }
+    
+    // 删除客房
+    function deleteRoom(id) {
+        if (confirm('确定要删除这个客房吗？此操作无法撤销。')) {
+            let rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
+            rooms = rooms.filter(room => room.id != id);
+            localStorage.setItem('siteRooms', JSON.stringify(rooms));
+            
+            // 刷新客房列表
+            displayRooms();
+            
+            alert('客房已成功删除！');
+        }
+    }
+    
+    // 初始化时显示客房列表
+    displayRooms();
+    
+    // 继续原有的酒店管理代码
+    // ...
+
+    // 初始化时加载酒店列表
     displayHotels();
 }
 

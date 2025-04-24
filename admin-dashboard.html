@@ -358,14 +358,39 @@
             <div class="admin-section" id="hotelsSection">
                 <h2><i class="fas fa-hotel"></i> Hotel Recommendations</h2>
                 
-                <div class="action-buttons">
-                    <button class="admin-btn primary" id="addHotelBtn">
-                        <i class="fas fa-plus"></i> Add New Hotel
-                    </button>
+                <div class="section-description">
+                    <p>管理网站上显示的酒店和住宿推荐。设置客房类型、图片、价格和详情，这些内容会显示在前端的"Luxurious Accommodations"部分。</p>
                 </div>
                 
-                <div class="hotels-grid" id="hotelsGrid">
-                    <!-- Hotels will be loaded here dynamically -->
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-hotel-tab="recommendations">Hotel Recommendations</button>
+                    <button class="admin-tab" data-hotel-tab="accommodations">Luxurious Accommodations</button>
+                </div>
+                
+                <!-- Hotel Recommendations Tab -->
+                <div class="hotel-tab-content active" id="recommendationsContent">
+                    <div class="action-buttons">
+                        <button class="admin-btn primary" id="addHotelBtn">
+                            <i class="fas fa-plus"></i> Add New Hotel
+                        </button>
+                    </div>
+                    
+                    <div class="hotels-grid" id="hotelsGrid">
+                        <!-- Hotels will be loaded here dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Luxurious Accommodations Tab -->
+                <div class="hotel-tab-content" id="accommodationsContent">
+                    <div class="action-buttons">
+                        <button class="admin-btn primary" id="addRoomBtn">
+                            <i class="fas fa-plus"></i> Add New Room
+                        </button>
+                    </div>
+                    
+                    <div class="rooms-grid" id="roomsGrid">
+                        <!-- Rooms will be loaded here dynamically -->
+                    </div>
                 </div>
                 
                 <!-- Add/Edit Hotel Modal -->
@@ -427,6 +452,80 @@
                                 </div>
                                 
                                 <button type="submit" class="admin-btn primary" id="saveHotelBtn">Save Hotel</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Add/Edit Room Modal -->
+                <div id="roomModal" class="admin-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 id="roomModalTitle"><i class="fas fa-bed"></i> Add New Room</h3>
+                            <button class="close-modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="roomForm">
+                                <input type="hidden" id="roomId">
+                                
+                                <div class="form-group">
+                                    <label for="roomName"><i class="fas fa-tag"></i> Room Name</label>
+                                    <input type="text" id="roomName" placeholder="e.g. Ocean View Suite" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="roomDescription"><i class="fas fa-align-left"></i> Description</label>
+                                    <input type="text" id="roomDescription" placeholder="e.g. Wake up to breathtaking views of the Indian Ocean" required>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="roomPrice"><i class="fas fa-dollar-sign"></i> Price per Night</label>
+                                        <input type="number" id="roomPrice" placeholder="e.g. 250" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="roomSize"><i class="fas fa-ruler-combined"></i> Room Size (m²)</label>
+                                        <input type="number" id="roomSize" placeholder="e.g. 55" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="bedType"><i class="fas fa-bed"></i> Bed Type</label>
+                                        <select id="bedType" required>
+                                            <option value="King Bed">King Bed</option>
+                                            <option value="Queen Bed">Queen Bed</option>
+                                            <option value="Twin Beds">Twin Beds</option>
+                                            <option value="Double Bed">Double Bed</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label><i class="fas fa-wifi"></i> WiFi</label>
+                                        <div class="radio-group">
+                                            <label>
+                                                <input type="radio" name="hasWifi" value="yes" checked> Yes
+                                            </label>
+                                            <label>
+                                                <input type="radio" name="hasWifi" value="no"> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="roomImage"><i class="fas fa-image"></i> Room Image</label>
+                                    <input type="file" id="roomImage" accept="image/*" required>
+                                    <div class="file-preview" id="roomImagePreview"></div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" class="admin-btn secondary cancel-btn">Cancel</button>
+                                    <button type="submit" class="admin-btn primary">
+                                        <i class="fas fa-save"></i> Save Room
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
