@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 feedbackModal.classList.remove('active');
             }
         });
+    } else {
+        console.error('Feedback modal or button not found');
     }
     
     // Handle feedback form submission
@@ -58,5 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             feedbackForm.reset();
             feedbackModal.classList.remove('active');
         });
+    } else {
+        console.error('Feedback form not found');
     }
 }); 
