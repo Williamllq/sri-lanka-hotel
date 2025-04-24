@@ -72,28 +72,42 @@ function calculateQuote() {
         return;
     }
     
+    // Check if coordinates are missing and attempt to geocode if needed
     if (!pickupInput.dataset.lat || !pickupInput.dataset.lng || 
         !destinationInput.dataset.lat || !destinationInput.dataset.lng) {
-        showMessage('Location coordinates are missing. Please select locations from the map', 'error');
-        return;
+        
+        // Show a loading message while geocoding
+        showMessage('Attempting to locate your destinations...', 'info');
+        
+        // Try to get coordinates from the location names
+        geocodeLocations(pickupInput.value, destinationInput.value)
+            .then(coordinates => {
+                if (coordinates) {
+                    // Update the inputs with the geocoded coordinates
+                    pickupInput.dataset.lat = coordinates.pickup.lat;
+                    pickupInput.dataset.lng = coordinates.pickup.lng;
+                    destinationInput.dataset.lat = coordinates.destination.lat;
+                    destinationInput.dataset.lng = coordinates.destination.lng;
+                    
+                    // Continue with the quote calculation
+                    processQuoteCalculation(pickupInput, destinationInput, serviceType.value);
+                } else {
+                    showMessage('Could not determine coordinates for your locations. Please select locations from the map instead.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Geocoding error:', error);
+                showMessage('An error occurred while locating your destinations. Please select locations from the map.', 'error');
+            });
+    } else {
+        // We already have coordinates, proceed with calculation
+        processQuoteCalculation(pickupInput, destinationInput, serviceType.value);
     }
-    
-    if (serviceType && serviceType.value === '') {
-        showMessage('Please select a service type', 'error');
-        return;
-    }
-    
-    if (journeyDate && !journeyDate.value) {
-        showMessage('Please select a date for your journey', 'error');
-        return;
-    }
-    
-    if (journeyTime && !journeyTime.value) {
-        showMessage('Please select a time for your journey', 'error');
-        return;
-    }
-    
-    // Calculate distance between points
+}
+
+// Function to handle the actual quote calculation after coordinates are available
+function processQuoteCalculation(pickupInput, destinationInput, serviceTypeValue) {
+    // Get coordinates
     const pickupLat = parseFloat(pickupInput.dataset.lat);
     const pickupLng = parseFloat(pickupInput.dataset.lng);
     const destLat = parseFloat(destinationInput.dataset.lat);
@@ -118,11 +132,107 @@ function calculateQuote() {
         distance: distance,
         totalFare: fare,
         depositAmount: deposit,
-        vehicleType: vehicleType
+        vehicleType: vehicleType,
+        pickupLat: pickupLat,
+        pickupLng: pickupLng,
+        destLat: destLat,
+        destLng: destLng
     };
     console.log('Quote data to display:', quoteData);
     
     displayQuote(quoteData);
+}
+
+// Function to geocode locations based on text input
+async function geocodeLocations(pickupAddress, destinationAddress) {
+    try {
+        // Try to use the built-in location database for common Sri Lankan locations
+        const pickupCoords = findLocationCoordinates(pickupAddress);
+        const destCoords = findLocationCoordinates(destinationAddress);
+        
+        if (pickupCoords && destCoords) {
+            return {
+                pickup: pickupCoords,
+                destination: destCoords
+            };
+        }
+        
+        // If built-in database fails, fallback to Nominatim API
+        const [pickupResult, destResult] = await Promise.all([
+            geocodeWithNominatim(pickupAddress + ', Sri Lanka'),
+            geocodeWithNominatim(destinationAddress + ', Sri Lanka')
+        ]);
+        
+        if (pickupResult && destResult) {
+            return {
+                pickup: { lat: pickupResult.lat, lng: pickupResult.lon },
+                destination: { lat: destResult.lat, lng: destResult.lon }
+            };
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Error during geocoding:', error);
+        return null;
+    }
+}
+
+// Function to find coordinates from built-in location database
+function findLocationCoordinates(searchTerm) {
+    // Common locations in Sri Lanka
+    const locations = {
+        'colombo': { lat: 6.9271, lng: 79.8612 },
+        'kandy': { lat: 7.2906, lng: 80.6337 },
+        'galle': { lat: 6.0535, lng: 80.2210 },
+        'negombo': { lat: 7.2095, lng: 79.8384 },
+        'jaffna': { lat: 9.6615, lng: 80.0255 },
+        'ella': { lat: 6.8667, lng: 81.0466 },
+        'nuwara eliya': { lat: 6.9697, lng: 80.7893 },
+        'sigiriya': { lat: 7.9572, lng: 80.7600 },
+        'anuradhapura': { lat: 8.3114, lng: 80.4037 },
+        'trincomalee': { lat: 8.5667, lng: 81.2333 },
+        'airport': { lat: 7.1801, lng: 79.8841 },
+        'colombo airport': { lat: 7.1801, lng: 79.8841 },
+        'bandaranaike airport': { lat: 7.1801, lng: 79.8841 }
+    };
+    
+    // Check if the search term matches any known location
+    const normalizedSearch = searchTerm.toLowerCase().trim();
+    
+    // Direct match
+    if (locations[normalizedSearch]) {
+        return locations[normalizedSearch];
+    }
+    
+    // Partial match
+    for (const [key, coords] of Object.entries(locations)) {
+        if (normalizedSearch.includes(key) || key.includes(normalizedSearch)) {
+            return coords;
+        }
+    }
+    
+    return null;
+}
+
+// Function to geocode using Nominatim
+async function geocodeWithNominatim(address) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&countrycodes=lk`;
+    
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Geocoding API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (data && data.length > 0) {
+            return data[0];
+        }
+        return null;
+    } catch (error) {
+        console.error('Nominatim geocoding error:', error);
+        return null;
+    }
 }
 
 // Calculate distance between two points using Haversine formula
@@ -186,46 +296,33 @@ function calculateFare(distance, vehicleType) {
 // Display the calculated quote
 function displayQuote(quoteData) {
     try {
-        const pickupLocation = document.getElementById('pickup-location').value;
-        const destination = document.getElementById('destination').value;
-        const pickupLat = document.getElementById('pickup-lat').value;
-        const pickupLng = document.getElementById('pickup-lng').value;
-        const destLat = document.getElementById('dest-lat').value;
-        const destLng = document.getElementById('dest-lng').value;
-
-        // Check if we have all needed values
-        if (!pickupLocation || !destination || !pickupLat || !pickupLng || !destLat || !destLng) {
-            console.error('Missing values for quote calculation');
-            showMessage('Please select both pickup and destination locations', 'error');
+        // Get coordinates from quoteData
+        const pickupLat = quoteData.pickupLat;
+        const pickupLng = quoteData.pickupLng;
+        const destLat = quoteData.destLat;
+        const destLng = quoteData.destLng;
+        
+        if (!pickupLat || !pickupLng || !destLat || !destLng) {
+            console.error('Missing coordinates in quoteData');
+            showMessage('Incomplete location data. Please try selecting locations from the map.', 'error');
             return;
         }
 
-        // Calculate distance using Haversine formula (as the crow flies)
-        let distance = calculateDistance(pickupLat, pickupLng, destLat, destLng);
-        
-        const vehicleType = getSelectedVehicleType();
-        let fare = calculateFare(distance, vehicleType);
-        const deposit = fare * 0.2; // 20% deposit
-
         // Update the DOM with the calculated values
         const quoteContainer = document.getElementById('quoteContainer');
-        const quotedPickup = document.getElementById('quotedPickup');
-        const quotedDestination = document.getElementById('quotedDestination');
         const quotedDistance = document.getElementById('quotedDistance');
-        const quotedVehicleType = document.getElementById('quotedVehicleType');
+        const quotedVehicle = document.getElementById('quotedVehicle');
         const quotedFare = document.getElementById('quotedFare');
         const quotedDeposit = document.getElementById('quotedDeposit');
         const bookNowBtn = document.getElementById('bookNowBtn');
 
-        if (quoteContainer && quotedPickup && quotedDestination && quotedDistance &&
-            quotedVehicleType && quotedFare && quotedDeposit && bookNowBtn) {
+        if (quoteContainer && quotedDistance && quotedVehicle && 
+            quotedFare && quotedDeposit && bookNowBtn) {
             
-            quotedPickup.textContent = pickupLocation;
-            quotedDestination.textContent = destination;
-            quotedDistance.textContent = `${distance.toFixed(1)} km`;
-            quotedVehicleType.textContent = vehicleType.charAt(0).toUpperCase() + vehicleType.slice(1);
-            quotedFare.textContent = `$${fare.toFixed(2)}`;
-            quotedDeposit.textContent = `$${deposit.toFixed(2)}`;
+            quotedDistance.textContent = `${quoteData.distance.toFixed(1)} km`;
+            quotedVehicle.textContent = quoteData.vehicleType.charAt(0).toUpperCase() + quoteData.vehicleType.slice(1);
+            quotedFare.textContent = `$${quoteData.totalFare.toFixed(2)}`;
+            quotedDeposit.textContent = `$${quoteData.depositAmount.toFixed(2)}`;
             
             // Show the quote container
             quoteContainer.style.display = 'block';
@@ -233,12 +330,29 @@ function displayQuote(quoteData) {
             // Enable the Book Now button
             bookNowBtn.disabled = false;
             
+            // Show the route map container if hidden
+            const routeMapContainer = document.getElementById('routeMapContainer');
+            if (routeMapContainer) {
+                routeMapContainer.style.display = 'block';
+            }
+            
             // Initialize the map to show the route
             if (pickupLat && pickupLng && destLat && destLng) {
+                // Clear any previous error messages
+                const errorMessage = document.querySelector('.booking-message.error');
+                if (errorMessage) {
+                    errorMessage.style.display = 'none';
+                }
+                
+                // Show a success message
+                showMessage('Quote calculated successfully! View your route on the map below.', 'success');
+                
+                // Initialize the route map
                 initRouteMap(pickupLat, pickupLng, destLat, destLng);
             }
         } else {
             console.error('One or more quote elements not found in the DOM');
+            showMessage('Could not display the quote. Please refresh and try again.', 'error');
         }
     } catch (error) {
         console.error('Error displaying quote:', error);
