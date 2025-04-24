@@ -125,16 +125,8 @@ function calculateQuote() {
     displayQuote(quoteData);
 }
 
-// Calculate distance between two coordinates
+// Calculate distance between two points using Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    // If we have a stored driving distance from routing, use that
-    if (window.drivingDistanceKm) {
-        console.log('Using actual driving distance:', window.drivingDistanceKm);
-        return window.drivingDistanceKm;
-    }
-    
-    // Otherwise, fall back to the Haversine formula for straight-line distance
-    console.log('Using straight-line distance (Haversine formula)');
     const R = 6371; // Radius of the earth in km
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
@@ -144,11 +136,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
         Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c; // Distance in km
-    
-    // Apply a correction factor to approximate driving distance
-    // Typically driving distance is 20-30% longer than straight line
-    const correctionFactor = 1.3;
-    return distance * correctionFactor;
+    return distance;
 }
 
 function deg2rad(deg) {
@@ -198,7 +186,7 @@ function calculateFare(distance, vehicleType) {
 // Display the calculated quote
 function displayQuote(quoteData) {
     console.log('Displaying quote with data:', quoteData);
-
+    
     // Get the quote container
     const quoteContainer = document.getElementById('quoteContainer');
     if (!quoteContainer) {
@@ -207,7 +195,7 @@ function displayQuote(quoteData) {
     }
     
     // Show the quote container
-        quoteContainer.style.display = 'block';
+    quoteContainer.style.display = 'block';
     quoteContainer.classList.add('visible');
     
     // Enable Book Now button
@@ -254,7 +242,7 @@ function displayQuote(quoteData) {
     const destinationInput = document.getElementById('destinationLocation');
     
     if (pickupInput && destinationInput && 
-        pickupInput.dataset.lat && pickupInput.dataset.lng &&
+        pickupInput.dataset.lat && pickupInput.dataset.lng && 
         destinationInput.dataset.lat && destinationInput.dataset.lng) {
         
         const pickupLat = parseFloat(pickupInput.dataset.lat);
@@ -424,13 +412,6 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         return;
     }
     
-    // Check if the Leaflet Routing Machine is loaded
-    if (typeof L.Routing === 'undefined') {
-        console.log('Loading Leaflet Routing Machine');
-        loadLeafletRoutingMachine();
-        return;
-    }
-    
     try {
         // Check if a map instance already exists and remove it
         if (routeMapInstance) {
@@ -439,7 +420,8 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
             routeMapInstance = null;
         }
         
-        // Clear the container to avoid "already initialized" errors
+        // Sometimes the map container might still have Leaflet-related elements
+        // Completely clear the container to avoid "already initialized" errors
         mapContainer.innerHTML = '';
         
         // Generate a unique ID for the map container to avoid Leaflet initialization issues
@@ -450,8 +432,8 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         const routeMap = L.map(uniqueMapId, {
             zoomControl: true,
             scrollWheelZoom: false, // Disable zoom on scroll for better UX
-            dragging: true,
-            touchZoom: true
+            dragging: true, // 允许拖动地图
+            touchZoom: true // 允许手指缩放
         });
         
         // Store the map instance globally
@@ -481,68 +463,17 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
             })
         }).addTo(routeMap);
         
-        // Initialize routing control for driving directions
-        const routingControl = L.Routing.control({
-            waypoints: [
-                L.latLng(pickupLat, pickupLng),
-                L.latLng(destLat, destLng)
-            ],
-            routeWhileDragging: false,
-            showAlternatives: false,
-            addWaypoints: false,
-            lineOptions: {
-                styles: [{color: '#4CAF50', opacity: 0.7, weight: 5}],
-                extendToWaypoints: true,
-                missingRouteTolerance: 0
-            },
-            createMarker: function() { return null; } // Don't create default markers as we already have custom ones
+        // Create a line connecting the two points with better visibility
+        const journeyLine = L.polyline([
+            [pickupLat, pickupLng],
+            [destLat, destLng]
+        ], {
+            color: '#4CAF50',
+            weight: 5,
+            opacity: 0.7,
+            dashArray: '10, 10',
+            lineJoin: 'round'
         }).addTo(routeMap);
-        
-        // Store driving distance when route is calculated
-        routingControl.on('routesfound', function(e) {
-            console.log('Routes found:', e);
-            const routes = e.routes;
-            if (routes && routes.length > 0) {
-                const drivingDistance = routes[0].summary.totalDistance / 1000; // Convert to km
-                const drivingTime = routes[0].summary.totalTime; // Time in seconds
-                
-                console.log('Actual driving distance:', drivingDistance.toFixed(2) + ' km');
-                console.log('Estimated driving time:', Math.round(drivingTime / 60) + ' minutes');
-                
-                // Store the driving distance for fare calculations
-                window.drivingDistanceKm = drivingDistance;
-                
-                // Update the quote if it's already displayed
-                const quoteContainer = document.getElementById('quoteContainer');
-                if (quoteContainer && quoteContainer.style.display !== 'none') {
-                    calculateQuote();
-                }
-                
-                // Add a popup with distance and time information
-                const timeInMinutes = Math.round(drivingTime / 60);
-                const timeText = timeInMinutes < 60 
-                    ? `${timeInMinutes} minutes` 
-                    : `${Math.floor(timeInMinutes / 60)} hr ${timeInMinutes % 60} min`;
-                    
-                // Create a popup along the route
-                const midpointIndex = Math.floor(routes[0].coordinates.length / 2);
-                const midpoint = routes[0].coordinates[midpointIndex];
-                
-                L.popup({
-                    closeButton: false,
-                    className: 'distance-popup',
-                    offset: [0, -10]
-                })
-                .setLatLng([midpoint.lat, midpoint.lng])
-                .setContent(`
-                    <div style="text-align: center;">
-                        <strong>${drivingDistance.toFixed(2)} km</strong><br>
-                        <span style="font-size: 12px;">Est. ${timeText}</span>
-                    </div>
-                `)
-                .openOn(routeMap);
-            }
-        });
         
         // Add CSS for custom markers if not exists
         if (!document.getElementById('route-map-styles')) {
@@ -569,9 +500,6 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
                     width: 100% !important;
                     display: block !important;
                 }
-                .leaflet-routing-container {
-                    display: none; /* Hide the default directions panel */
-                }
             `;
             document.head.appendChild(style);
         }
@@ -583,6 +511,23 @@ function initRouteMap(pickupLat, pickupLng, destLat, destLng) {
         ], {
             padding: [50, 50]
         });
+        
+        // Add distance information popup on the line
+        const midPoint = {
+            lat: (pickupLat + destLat) / 2,
+            lng: (pickupLng + destLng) / 2
+        };
+        
+        const distance = calculateDistance(pickupLat, pickupLng, destLat, destLng);
+        
+        L.popup({
+            closeButton: false,
+            className: 'distance-popup',
+            offset: [0, -10]
+        })
+        .setLatLng([midPoint.lat, midPoint.lng])
+        .setContent(`<div style="text-align: center;"><strong>${distance.toFixed(2)} km</strong></div>`)
+        .openOn(routeMap);
         
         // Reset the map ID back to the original after initialization
         setTimeout(() => {
@@ -625,40 +570,6 @@ function loadLeafletForRoute() {
     // Add load event
     script.onload = function() {
         console.log('Leaflet loaded successfully for route map');
-        // Now load the Routing Machine
-        loadLeafletRoutingMachine();
-    };
-    
-    // Add error event
-    script.onerror = function() {
-        console.error('Failed to load Leaflet for route map');
-        const mapContainer = document.getElementById('routeMap');
-        if (mapContainer) {
-            mapContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Map loading failed. Please refresh the page and try again.</div>';
-        }
-    };
-    
-    // Add script to document
-    document.head.appendChild(script);
-}
-
-// Helper function to load Leaflet Routing Machine
-function loadLeafletRoutingMachine() {
-    console.log('Loading Leaflet Routing Machine');
-    
-    // Add the CSS for Leaflet Routing Machine
-    const linkElement = document.createElement('link');
-    linkElement.rel = 'stylesheet';
-    linkElement.href = 'https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css';
-    document.head.appendChild(linkElement);
-    
-    // Create script element
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js';
-    
-    // Add load event
-    script.onload = function() {
-        console.log('Leaflet Routing Machine loaded successfully');
         // Get form values again
         const pickupInput = document.getElementById('pickupLocation');
         const destinationInput = document.getElementById('destinationLocation');
@@ -678,139 +589,13 @@ function loadLeafletRoutingMachine() {
     
     // Add error event
     script.onerror = function() {
-        console.error('Failed to load Leaflet Routing Machine');
+        console.error('Failed to load Leaflet for route map');
         const mapContainer = document.getElementById('routeMap');
         if (mapContainer) {
-            mapContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Could not load routing service. Using straight line distance instead.</div>';
-            
-            // Fall back to standard map without routing
-            const pickupInput = document.getElementById('pickupLocation');
-            const destinationInput = document.getElementById('destinationLocation');
-            
-            if (pickupInput && destinationInput && 
-                pickupInput.dataset.lat && pickupInput.dataset.lng &&
-                destinationInput.dataset.lat && destinationInput.dataset.lng) {
-                
-                const pickupLat = parseFloat(pickupInput.dataset.lat);
-                const pickupLng = parseFloat(pickupInput.dataset.lng);
-                const destLat = parseFloat(destinationInput.dataset.lat);
-                const destLng = parseFloat(destinationInput.dataset.lng);
-                
-                // Use the original map functionality as fallback
-                fallbackToStraightLineMap(pickupLat, pickupLng, destLat, destLng);
-            }
+            mapContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Map loading failed. Please refresh the page and try again.</div>';
         }
     };
     
     // Add script to document
     document.head.appendChild(script);
-}
-
-// Fallback to straight line map if routing fails
-function fallbackToStraightLineMap(pickupLat, pickupLng, destLat, destLng) {
-    console.log('Falling back to straight line map');
-    
-    const mapContainer = document.getElementById('routeMap');
-    if (!mapContainer || typeof L === 'undefined') return;
-    
-    try {
-        // Clear the container
-        mapContainer.innerHTML = '';
-        
-        // Create a unique ID
-        const uniqueMapId = 'routeMap_fallback_' + Date.now();
-        mapContainer.id = uniqueMapId;
-        
-        // Create map
-        const routeMap = L.map(uniqueMapId).setView([(pickupLat + destLat) / 2, (pickupLng + destLng) / 2], 10);
-        routeMapInstance = routeMap;
-        
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(routeMap);
-        
-        // Add markers
-        L.marker([pickupLat, pickupLng]).addTo(routeMap).bindPopup('Pickup');
-        L.marker([destLat, destLng]).addTo(routeMap).bindPopup('Destination');
-        
-        // Add straight line
-        L.polyline([
-            [pickupLat, pickupLng], 
-            [destLat, destLng]
-        ], {
-            color: '#4CAF50',
-            dashArray: '5, 10'
-        }).addTo(routeMap);
-        
-        // Set bounds
-        routeMap.fitBounds([
-            [pickupLat, pickupLng],
-            [destLat, destLng]
-        ], {
-            padding: [50, 50]
-        });
-        
-        // Reset ID
-        setTimeout(() => {
-            mapContainer.id = 'routeMap';
-            routeMap.invalidateSize();
-        }, 500);
-        
-    } catch (error) {
-        console.error('Error in fallback map:', error);
-    }
-}
-
-// Check if both pickup and destination locations are set
-function checkLocationsAndEnableQuote() {
-    const pickupInput = document.getElementById('pickupLocation');
-    const destinationInput = document.getElementById('destinationLocation');
-    const quoteBtn = document.querySelector('.btn.secondary'); // Get Quote button
-    const bookBtn = document.querySelector('.btn.primary'); // Book Now button
-    
-    if (!pickupInput || !destinationInput) {
-        console.error('Pickup or destination input not found');
-        return;
-    }
-    
-    // Check if both pickup and destination have latitude and longitude data
-    const hasPickupCoords = pickupInput.dataset.lat && pickupInput.dataset.lng;
-    const hasDestinationCoords = destinationInput.dataset.lat && destinationInput.dataset.lng;
-    
-    if (hasPickupCoords && hasDestinationCoords) {
-        console.log('Both pickup and destination coordinates are set');
-        
-        // Enable the quote button
-        if (quoteBtn) {
-            quoteBtn.classList.add('active');
-            quoteBtn.disabled = false;
-        }
-        
-        // Initialize the route map automatically when both locations are set
-        const pickupLat = parseFloat(pickupInput.dataset.lat);
-        const pickupLng = parseFloat(pickupInput.dataset.lng);
-        const destLat = parseFloat(destinationInput.dataset.lat);
-        const destLng = parseFloat(destinationInput.dataset.lng);
-        
-        // Show the route map container
-        const routeMapContainer = document.getElementById('routeMapContainer');
-        if (routeMapContainer) {
-            routeMapContainer.style.display = 'block';
-        }
-        
-        // Initialize the route map with driving directions
-        initRouteMap(pickupLat, pickupLng, destLat, destLng);
-        
-    } else {
-        console.log('Pickup or destination coordinates are not set');
-        if (quoteBtn) {
-            quoteBtn.classList.remove('active');
-            quoteBtn.disabled = true;
-        }
-        if (bookBtn) {
-            bookBtn.classList.remove('active');
-            bookBtn.disabled = true;
-        }
-    }
-}
+} 

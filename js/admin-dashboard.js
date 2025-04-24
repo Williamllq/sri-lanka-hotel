@@ -119,19 +119,18 @@ function initModalHandling() {
     // Get all modals
     const modals = document.querySelectorAll('.admin-modal');
     
-    // Modal open buttons mapping - corrected to target the actual button IDs
-    const modalOpenButtonMap = {
-        'uploadModal': 'uploadPictureBtn',
-        'carouselModal': 'addToCarouselBtn',
-        'hotelModal': 'addHotelBtn',
-        'articleModal': 'addArticleBtn',
-        'videoModal': 'addVideoBtn',
-        'linkModal': 'addLinkBtn'
+    // Modal open buttons
+    const modalOpenButtons = {
+        'uploadModal': document.getElementById('uploadPictureBtn'),
+        'carouselModal': document.getElementById('addToCarouselBtn'),
+        'hotelModal': document.getElementById('addHotelBtn'),
+        'articleModal': document.getElementById('addArticleBtn'),
+        'videoModal': document.getElementById('addVideoBtn'),
+        'linkModal': document.getElementById('addLinkBtn')
     };
     
     // Close buttons
     const closeButtons = document.querySelectorAll('.close-modal');
-    const cancelButtons = document.querySelectorAll('.admin-btn.secondary.cancel-upload');
     
     // Hide all modals initially
     modals.forEach(modal => {
@@ -139,19 +138,16 @@ function initModalHandling() {
     });
     
     // Set up open button handlers
-    for (const [modalId, buttonId] of Object.entries(modalOpenButtonMap)) {
-        const button = document.getElementById(buttonId);
-        const modal = document.getElementById(modalId);
-        
-        if (button && modal) {
-            console.log(`Setting up click handler for ${buttonId} to open ${modalId}`);
+    for (const [modalId, button] of Object.entries(modalOpenButtons)) {
+        if (button) {
             button.addEventListener('click', function() {
-                console.log(`Opening modal: ${modalId}`);
-                modal.style.display = 'flex';
-                modal.classList.add('active');
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    console.log(`Opening modal: ${modalId}`);
+                    modal.style.display = 'flex';
+                    modal.classList.add('active');
+                }
             });
-        } else {
-            console.warn(`Button ${buttonId} or modal ${modalId} not found in the DOM`);
         }
     }
     
@@ -163,35 +159,6 @@ function initModalHandling() {
                 console.log(`Closing modal: ${modal.id}`);
                 modal.style.display = 'none';
                 modal.classList.remove('active');
-            }
-        });
-    });
-    
-    // Set up cancel button handlers
-    cancelButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const modal = this.closest('.admin-modal');
-            if (modal) {
-                console.log(`Canceling and closing modal: ${modal.id}`);
-                modal.style.display = 'none';
-                modal.classList.remove('active');
-                
-                // If in a form, reset the form
-                const form = this.closest('form');
-                if (form) {
-                    form.reset();
-                    
-                    // Reset any preview elements
-                    const previewElement = form.querySelector('.file-preview');
-                    if (previewElement) {
-                        previewElement.innerHTML = `
-                            <div class="preview-placeholder">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p>Image preview will appear here</p>
-                            </div>
-                        `;
-                    }
-                }
             }
         });
     });
@@ -254,250 +221,351 @@ function initDashboardStats() {
 
 // Picture Management functionality
 function initPictureManagement() {
-    console.log('Initializing picture management');
-    
-    const pictureGrid = document.getElementById('pictureGrid');
-    const pictureCategory = document.getElementById('pictureCategory');
+    const uploadPictureBtn = document.getElementById('uploadPictureBtn');
+    const uploadModal = document.getElementById('uploadModal');
     const uploadPictureForm = document.getElementById('uploadPictureForm');
+    const closeModalBtns = document.querySelectorAll('.close-modal');
     const pictureFile = document.getElementById('pictureFile');
     const filePreview = document.getElementById('filePreview');
-    
-    if (!pictureGrid) {
-        console.error('Picture grid element not found in the DOM');
-        return;
-    }
+    const pictureGrid = document.getElementById('pictureGrid');
+    const pictureCategory = document.getElementById('pictureCategory');
     
     // Get pictures from localStorage or use mock data if none exists
     let storedPictures = localStorage.getItem('sitePictures');
-    let pictures = [];
+    let mockPictures = [];
     
     try {
-        pictures = storedPictures ? JSON.parse(storedPictures) : [
-            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya.jpg', description: 'Ancient rock fortress' },
-            { id: 2, name: 'Yala Leopard', category: 'wildlife', url: 'images/yala-leopard.jpg', description: 'Rare leopard sighting in Yala National Park' },
-            { id: 3, name: 'Temple of the Sacred Tooth', category: 'culture', url: 'images/temple-tooth.jpg', description: 'Buddhist temple in Kandy' },
-            { id: 4, name: 'Local Cuisine', category: 'food', url: 'images/sri-lankan-food.jpg', description: 'Authentic Sri Lankan dishes' },
-            { id: 5, name: 'Unawatuna Beach', category: 'beach', url: 'images/unawatuna-beach.jpg', description: 'Beautiful beach scene' }
+        mockPictures = storedPictures ? JSON.parse(storedPictures) : [
+            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
+            { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg' },
+            { id: 3, name: 'Cinnamon Grand Hotel', category: 'hotel', url: 'images/cinnamon-grand.jpg' },
+            { id: 4, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/elephant.jpg' },
+            { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
         ];
-        console.log("Loaded pictures from localStorage:", pictures.length);
+        console.log("Loaded pictures from localStorage:", mockPictures.length);
+        console.log("First picture URL length: ", mockPictures[0]?.url?.length || 0);
     } catch (error) {
         console.error("Error loading pictures from localStorage:", error);
-        pictures = [
-            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya.jpg', description: 'Ancient rock fortress' },
-            { id: 2, name: 'Yala Leopard', category: 'wildlife', url: 'images/yala-leopard.jpg', description: 'Rare leopard sighting in Yala National Park' },
-            { id: 3, name: 'Temple of the Sacred Tooth', category: 'culture', url: 'images/temple-tooth.jpg', description: 'Buddhist temple in Kandy' },
-            { id: 4, name: 'Local Cuisine', category: 'food', url: 'images/sri-lankan-food.jpg', description: 'Authentic Sri Lankan dishes' },
-            { id: 5, name: 'Unawatuna Beach', category: 'beach', url: 'images/unawatuna-beach.jpg', description: 'Beautiful beach scene' }
+        mockPictures = [
+            { id: 1, name: 'Sigiriya Rock', category: 'scenery', url: 'images/sigiriya-rock.jpg' },
+            { id: 2, name: 'Kandy Lake', category: 'scenery', url: 'images/kandy-lake.jpg' },
+            { id: 3, name: 'Cinnamon Grand Hotel', category: 'hotel', url: 'images/cinnamon-grand.jpg' },
+            { id: 4, name: 'Sri Lankan Elephant', category: 'wildlife', url: 'images/elephant.jpg' },
+            { id: 5, name: 'Train to Ella', category: 'transport', url: 'images/train-ella.jpg' }
         ];
     }
     
-    // Save pictures to localStorage
+    // Save pictures to localStorage whenever they change
     function savePictures() {
-        localStorage.setItem('sitePictures', JSON.stringify(pictures));
-        console.log("Saved pictures to localStorage:", pictures.length);
-    }
-    
-    // Initially save default pictures if none exist
-    if (!storedPictures) {
-        savePictures();
-    }
-    
-    // Handle picture file selection for preview
-    if (pictureFile) {
-        pictureFile.addEventListener('change', function(e) {
-            if (!filePreview) {
-                console.error('File preview element not found');
-                return;
+        try {
+            const jsonString = JSON.stringify(mockPictures);
+            console.log("Saving pictures to localStorage. Size:", jsonString.length / 1024, "KB");
+            
+            // Check if we're approaching localStorage limits (usually around 5MB)
+            if (jsonString.length > 4 * 1024 * 1024) {
+                console.warn("WARNING: localStorage size is getting large:", jsonString.length / (1024 * 1024), "MB");
+                alert("Warning: Your image storage is getting full. Consider removing some older images.");
             }
             
-            const file = e.target.files[0];
-            if (file) {
-            const reader = new FileReader();
-                reader.onload = function(event) {
-                    filePreview.innerHTML = `<img src="${event.target.result}" alt="Selected Image Preview">`;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                filePreview.innerHTML = '';
-            }
-        });
-    } else {
-        console.error('Picture file input element not found');
-    }
-    
-    // Handle picture upload form submission
-    if (uploadPictureForm) {
-        uploadPictureForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-            const pictureName = document.getElementById('pictureName');
-            const uploadCategory = document.getElementById('uploadCategory');
-            const pictureDescription = document.getElementById('pictureDescription');
-        
-            if (!pictureName || !uploadCategory || !pictureFile) {
-                console.error('One or more form elements not found');
-                return;
-            }
-            
-            const file = pictureFile.files[0];
-            if (!file) {
-            alert('Please select an image file');
-            return;
+            localStorage.setItem('sitePictures', jsonString);
+            console.log("Saved pictures to localStorage:", mockPictures.length);
+            return true;
+        } catch (error) {
+            console.error("Error saving pictures to localStorage:", error);
+            alert("Failed to save images. Your browser storage might be full. Try removing some existing images first.");
+            return false;
         }
-            
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                // In a real application, this would upload to a server
-                // For now, we'll just store it in localStorage
-                const imageUrl = event.target.result;
-                
-                // Compress image before storing (optional)
-                compressImage(imageUrl).then(compressedUrl => {
-                    // Add new picture
-                    const newPicture = {
-                        id: Date.now(), // Use timestamp as unique ID
-                        name: pictureName.value,
-                        category: uploadCategory.value,
-                        description: pictureDescription ? pictureDescription.value : '',
-                        url: compressedUrl
-                    };
-                    
-                    pictures.push(newPicture);
-                    savePictures();
-                    
-                    // Reset form
-                    uploadPictureForm.reset();
-                    if (filePreview) {
-                    filePreview.innerHTML = '';
-                    }
-                    
-                    // Close modal
-                    const uploadModal = document.getElementById('uploadModal');
-                    if (uploadModal) {
-                    uploadModal.style.display = 'none';
-                        uploadModal.classList.remove('active');
-                    }
-                    
-                    // Refresh picture grid
-                    displayPictures(uploadCategory.value);
-                    
-                        alert('Picture uploaded successfully!');
-                });
-            };
-            reader.readAsDataURL(file);
-        });
-    } else {
-        console.error('Upload picture form not found');
     }
     
-    // Compress image function
-    async function compressImage(dataURL, maxWidth = 1200, quality = 0.8) {
-        return new Promise((resolve) => {
+    // Compress image to reduce storage size
+    function compressImage(dataURL, maxWidth = 1200, quality = 0.8) {
+        return new Promise((resolve, reject) => {
+            console.log("Starting image compression...");
             const img = new Image();
-            img.src = dataURL;
-            
             img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
+                // Calculate new dimensions
                 let width = img.width;
                 let height = img.height;
                 
-                // Calculate new dimensions if image is wider than maxWidth
+                console.log("Original image dimensions:", width, "x", height);
+                
                 if (width > maxWidth) {
-                    height = (height * maxWidth) / width;
+                    const ratio = maxWidth / width;
                     width = maxWidth;
+                    height = height * ratio;
+                    console.log("Resizing to:", width, "x", height);
                 }
                 
+                // Create canvas and resize image
+                const canvas = document.createElement('canvas');
                 canvas.width = width;
                 canvas.height = height;
                 
-                // Draw image on canvas with new dimensions
+                // Draw image
+                const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
                 // Get compressed data URL
-                resolve(canvas.toDataURL('image/jpeg', quality));
+                const compressedDataURL = canvas.toDataURL('image/jpeg', quality);
+                console.log("Compression complete. Original size:", dataURL.length / 1024, "KB, New size:", compressedDataURL.length / 1024, "KB");
+                resolve(compressedDataURL);
             };
-    });
+            img.onerror = function(err) {
+                console.error("Failed to load image for compression:", err);
+                reject(new Error('Failed to load image for compression'));
+            };
+            img.src = dataURL;
+        });
     }
     
-    // Handle picture category filtering
-    if (pictureCategory) {
-    pictureCategory.addEventListener('change', function() {
-            displayPictures(this.value);
+    // Open upload modal
+    uploadPictureBtn.addEventListener('click', function() {
+        uploadModal.style.display = 'block';
     });
-    } else {
-        console.error('Picture category dropdown not found');
-    }
     
-    // Delete picture
-    function deletePicture(id) {
-        if (confirm('Are you sure you want to delete this picture?')) {
-            pictures = pictures.filter(pic => pic.id !== id);
-            savePictures();
-            displayPictures(pictureCategory ? pictureCategory.value : 'all');
+    // Close modals
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            uploadModal.style.display = 'none';
+        });
+    });
+    
+    // File preview functionality
+    pictureFile.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                filePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                console.log("Image preview loaded. File size:", e.target.result.length / 1024, "KB");
+                
+                // Warn if the image is very large
+                if (e.target.result.length > 5 * 1024 * 1024) {
+                    filePreview.innerHTML += `<p class="warning">Warning: This image is large (${(e.target.result.length / (1024 * 1024)).toFixed(2)} MB) and will be compressed.</p>`;
+                }
+            };
+            
+            reader.readAsDataURL(this.files[0]);
         }
-    }
+    });
     
-    // Display pictures in grid
-    function displayPictures(category = 'all') {
-        if (!pictureGrid) {
-            console.error('Picture grid not found for display');
+    // Form submission
+    uploadPictureForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const pictureName = document.getElementById('pictureName').value;
+        const category = document.getElementById('uploadCategory').value;
+        const description = document.getElementById('pictureDescription').value;
+        
+        if (!pictureFile.files || !pictureFile.files[0]) {
+            alert('Please select an image file');
             return;
         }
+        
+        try {
+            // Show loading message
+            filePreview.innerHTML += '<p>Processing image... This may take a moment for large images.</p>';
+            
+            const reader = new FileReader();
+            
+            reader.onload = async function(event) {
+                try {
+                    console.log("Image read complete. Starting compression...");
+                    
+                    // Compress the image - use stronger compression for large images
+                    const originalSize = event.target.result.length;
+                    let quality = 0.8; // 提高默认质量
+                    let maxWidth = 1200; // 增加默认最大宽度
+                    
+                    // For larger images, use stronger compression
+                    if (originalSize > 5 * 1024 * 1024) { // 增加到5MB
+                        quality = 0.7; // 提高大图片的质量
+                        maxWidth = 1000; // 增加大图片的最大宽度
+                        console.log("Large image detected. Using compression settings with quality:", quality);
+                    }
+                    
+                    const compressedImage = await compressImage(event.target.result, maxWidth, quality);
+                    console.log("Compression ratio:", compressedImage.length / originalSize);
+                    
+                    // Generate a unique ID using timestamp and random number
+                    const uniqueId = Date.now() + Math.floor(Math.random() * 1000);
+                    
+                    // Create a new picture object with the data URL
+                    const newPicture = {
+                        id: uniqueId,
+                        name: pictureName,
+                        category: category,
+                        url: compressedImage,
+                        description: description,
+                        dateAdded: new Date().toISOString()
+                    };
+                    
+                    // Add to data
+                    mockPictures.push(newPicture);
+                    
+                    // Save to localStorage
+                    const saveSuccess = savePictures();
+                    
+                    // Reset form
+                    uploadPictureForm.reset();
+                    filePreview.innerHTML = '';
+                    
+                    // Close modal
+                    uploadModal.style.display = 'none';
+                    
+                    // Refresh grid
+                    displayPictures();
+                    
+                    // Show success message
+                    if (saveSuccess) {
+                        alert('Picture uploaded successfully!');
+                    }
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                    alert('Failed to process image: ' + (error.message || 'Please try again with a smaller image.'));
+                }
+            };
+            
+            reader.onerror = function(event) {
+                console.error("File reader error:", event);
+                alert('Error reading the image file. Please try again with a different image.');
+            };
+            
+            reader.readAsDataURL(pictureFile.files[0]);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('An error occurred while uploading the image: ' + error.message);
+        }
+    });
+    
+    // Filter by category
+    pictureCategory.addEventListener('change', function() {
+        displayPictures();
+    });
+    
+    // Display pictures function
+    function displayPictures() {
+        const category = pictureCategory.value;
+        console.log("Displaying pictures for category:", category);
         
         // Clear current grid
         pictureGrid.innerHTML = '';
         
-        // Filter pictures by category
-        const filteredPictures = category === 'all' ? 
-            pictures : 
-            pictures.filter(pic => pic.category === category);
+        // Filter images by category if not "all"
+        const filteredPictures = category === 'all' 
+            ? mockPictures 
+            : mockPictures.filter(pic => pic.category === category);
+        
+        console.log("Filtered pictures count:", filteredPictures.length);
         
         if (filteredPictures.length === 0) {
-            pictureGrid.innerHTML = '<div class="no-pictures">No pictures found in this category</div>';
+            pictureGrid.innerHTML = '<p class="no-images-message">No images found in this category. Upload images to see them here.</p>';
             return;
         }
         
-        // Create picture cards
-        filteredPictures.forEach(pic => {
+        // Add pictures to grid
+        filteredPictures.forEach(picture => {
             const pictureCard = document.createElement('div');
             pictureCard.classList.add('picture-card');
-            
             pictureCard.innerHTML = `
-                <div class="picture-img">
-                    <img src="${pic.url}" alt="${pic.name}">
-                </div>
+                <img src="${picture.url}" alt="${picture.name}" onerror="this.src='images/image-error.jpg'; this.alt='Error loading image';">
                 <div class="picture-info">
-                    <h4>${pic.name}</h4>
-                    <p class="picture-category">${pic.category}</p>
-                    <p class="picture-description">${pic.description || ''}</p>
+                    <h4>${picture.name}</h4>
+                    <span>${picture.category}</span>
                 </div>
                 <div class="picture-actions">
-                    <button class="picture-action-btn edit-btn" data-id="${pic.id}">
+                    <button class="picture-action-btn edit-picture" data-id="${picture.id}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="picture-action-btn delete-btn" data-id="${pic.id}">
-                        <i class="fas fa-trash-alt"></i>
+                    <button class="picture-action-btn delete-picture" data-id="${picture.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="picture-action-btn add-to-carousel" data-id="${picture.id}" title="Add to Carousel">
+                        <i class="fas fa-images"></i>
                     </button>
                 </div>
             `;
-            
             pictureGrid.appendChild(pictureCard);
-            
-            // Add delete event listener
-            const deleteBtn = pictureCard.querySelector('.delete-btn');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function() {
-                    const id = parseInt(this.getAttribute('data-id'));
-                    deletePicture(id);
-                });
-            }
         });
+        
+        // Event listeners for edit and delete buttons
+        document.querySelectorAll('.edit-picture').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const pictureId = this.getAttribute('data-id');
+                // Edit functionality would be added here
+                alert(`Edit picture ${pictureId}`);
+            });
+        });
+        
+        document.querySelectorAll('.delete-picture').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const pictureId = parseInt(this.getAttribute('data-id'));
+                
+                if (confirm('Are you sure you want to delete this picture?')) {
+                    // Remove from data
+                    const index = mockPictures.findIndex(pic => pic.id === pictureId);
+                    if (index !== -1) {
+                        // Check if this image is used in carousel
+                        const storedCarouselImages = localStorage.getItem('siteCarouselImages');
+                        if (storedCarouselImages) {
+                            const carouselImages = JSON.parse(storedCarouselImages);
+                            const inCarousel = carouselImages.some(img => img.id === pictureId);
+                            
+                            if (inCarousel && !confirm('This image is used in the carousel. Deleting it will also remove it from the carousel. Continue?')) {
+                                return;
+                            }
+                            
+                            // Remove from carousel if present
+                            const updatedCarousel = carouselImages.filter(img => img.id !== pictureId);
+                            localStorage.setItem('siteCarouselImages', JSON.stringify(updatedCarousel));
+                        }
+                        
+                        // Remove from pictures
+                        mockPictures.splice(index, 1);
+                        
+                        // Save changes to localStorage
+                        savePictures();
+                        displayPictures(); // Refresh the grid
+                    }
+                }
+            });
+        });
+        
+        // Add to carousel directly from pictures grid
+        document.querySelectorAll('.add-to-carousel').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const pictureId = parseInt(this.getAttribute('data-id'));
+                const picture = mockPictures.find(pic => pic.id === pictureId);
+                
+                if (picture) {
+                    // Get current carousel images
+                    const storedCarouselImages = localStorage.getItem('siteCarouselImages');
+                    let carouselImages = storedCarouselImages ? JSON.parse(storedCarouselImages) : [];
+                    
+                    // Check if already in carousel
+                    if (carouselImages.some(img => img.id === pictureId)) {
+                        alert('This image is already in the carousel.');
+                        return;
                     }
                     
-    // Initial display of pictures
-    displayPictures('all');
+                    // Add to carousel
+                    carouselImages.push(picture);
+                    
+                    // Save to localStorage
+                    try {
+                        localStorage.setItem('siteCarouselImages', JSON.stringify(carouselImages));
+                        alert('Image added to carousel successfully!');
+                    } catch (error) {
+                        console.error('Error saving to carousel:', error);
+                        alert('Failed to add image to carousel. Storage may be full.');
+                    }
+                }
+            });
+        });
+    }
+    
+    // Initial display
+    displayPictures();
 }
 
 // Carousel Management functionality
@@ -706,307 +774,207 @@ function initCarouselManagement() {
 
 // Hotel Management functionality
 function initHotelManagement() {
-    console.log('Initializing hotel management');
-    
     const addHotelBtn = document.getElementById('addHotelBtn');
     const hotelModal = document.getElementById('hotelModal');
+    const closeModalBtns = document.querySelectorAll('.close-modal');
     const hotelForm = document.getElementById('hotelForm');
+    const hotelImage = document.getElementById('hotelImage');
+    const hotelImagePreview = document.getElementById('hotelImagePreview');
     const hotelsGrid = document.getElementById('hotelsGrid');
     
-    // 酒店和客房标签页切换
-    const hotelTabs = document.querySelectorAll('.admin-tab[data-hotel-tab]');
-    const hotelTabContents = document.querySelectorAll('.hotel-tab-content');
+    // Mock hotel data - in a real app, this would come from an API
+    let mockHotels = [
+        {
+            id: 1,
+            name: 'Cinnamon Grand Colombo',
+            location: 'Colombo',
+            price: '$150-300/night',
+            rating: 5,
+            description: 'Luxury hotel in the heart of Colombo with exceptional service and amenities.',
+            imageUrl: 'images/cinnamon-grand.jpg',
+            amenities: 'WiFi, Pool, Spa, Restaurant, Bar, Gym',
+            website: 'https://www.cinnamonhotels.com/'
+        },
+        {
+            id: 2,
+            name: 'Heritance Tea Factory',
+            location: 'Nuwara Eliya',
+            price: '$120-220/night',
+            rating: 4,
+            description: 'Unique hotel built in a converted tea factory with stunning views of tea plantations.',
+            imageUrl: 'images/tea-factory.jpg',
+            amenities: 'WiFi, Restaurant, Bar, Tea Tours, Spa',
+            website: 'https://www.heritancehotels.com/'
+        }
+    ];
     
-    hotelTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            // 移除所有标签页的active类
-            hotelTabs.forEach(t => t.classList.remove('active'));
-            hotelTabContents.forEach(c => c.classList.remove('active'));
-            
-            // 激活当前标签页
-            this.classList.add('active');
-            const tabName = this.getAttribute('data-hotel-tab');
-            document.getElementById(tabName + 'Content').classList.add('active');
+    // Open add hotel modal
+    addHotelBtn.addEventListener('click', function() {
+        // Reset form for new hotel
+        hotelForm.reset();
+        document.getElementById('hotelId').value = '';
+        hotelImagePreview.innerHTML = '';
+        document.getElementById('hotelModalTitle').textContent = 'Add New Hotel';
+        
+        hotelModal.style.display = 'block';
+    });
+    
+    // Close modals
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            hotelModal.style.display = 'none';
         });
     });
     
-    // 客房管理功能
-    const addRoomBtn = document.getElementById('addRoomBtn');
-    const roomModal = document.getElementById('roomModal');
-    const roomForm = document.getElementById('roomForm');
-    const roomsGrid = document.getElementById('roomsGrid');
-    
-    if (addRoomBtn) {
-        addRoomBtn.addEventListener('click', function() {
-            // 重置表单
-            if (roomForm) roomForm.reset();
-            document.getElementById('roomId').value = '';
-            document.getElementById('roomModalTitle').innerHTML = '<i class="fas fa-bed"></i> Add New Room';
-            
-            // 清除预览图
-            const preview = document.getElementById('roomImagePreview');
-            if (preview) preview.innerHTML = '';
-            
-            // 显示模态框
-            if (roomModal) {
-                roomModal.style.display = 'flex';
-                roomModal.classList.add('active');
-            }
-        });
-    }
-    
-    // 图片预览功能
-    const roomImage = document.getElementById('roomImage');
-    const roomImagePreview = document.getElementById('roomImagePreview');
-    
-    if (roomImage && roomImagePreview) {
-        roomImage.addEventListener('change', function(e) {
+    // Hotel image preview
+    hotelImage.addEventListener('change', function() {
         if (this.files && this.files[0]) {
             const reader = new FileReader();
-                reader.onload = function(event) {
-                    roomImagePreview.innerHTML = `<img src="${event.target.result}" alt="Room Preview">`;
+            
+            reader.onload = function(e) {
+                hotelImagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
             };
+            
             reader.readAsDataURL(this.files[0]);
         }
     });
-    }
     
-    // 取消按钮
-    const cancelButtons = document.querySelectorAll('.cancel-btn');
-    cancelButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const modal = this.closest('.admin-modal');
-            if (modal) {
-                modal.style.display = 'none';
-                modal.classList.remove('active');
-            }
-        });
-    });
-    
-    // 保存客房表单
-    if (roomForm) {
-        roomForm.addEventListener('submit', function(e) {
+    // Form submission
+    hotelForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-            const roomId = document.getElementById('roomId').value || Date.now(); // 使用时间戳作为ID
-            const roomName = document.getElementById('roomName').value;
-            const roomDescription = document.getElementById('roomDescription').value;
-            const roomPrice = document.getElementById('roomPrice').value;
-            const roomSize = document.getElementById('roomSize').value;
-            const bedType = document.getElementById('bedType').value;
-            const hasWifi = document.querySelector('input[name="hasWifi"]:checked').value === 'yes';
-            
-            // 获取图片
-            const roomImageFile = document.getElementById('roomImage').files[0];
-            
-            if (!roomImageFile && !document.getElementById('roomId').value) {
-                alert('请选择房间图片');
-                return;
-            }
-            
-            if (roomImageFile) {
-                // 读取图片为Base64
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    saveRoom(roomId, roomName, roomDescription, roomPrice, roomSize, bedType, hasWifi, event.target.result);
-                };
-                reader.readAsDataURL(roomImageFile);
-        } else {
-                // 使用现有图片
-                const rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
-                const existingRoom = rooms.find(r => r.id == roomId);
-                if (existingRoom) {
-                    saveRoom(roomId, roomName, roomDescription, roomPrice, roomSize, bedType, hasWifi, existingRoom.imageUrl);
-                }
-            }
-        });
-    }
-    
-    // 保存客房数据
-    function saveRoom(id, name, description, price, size, bedType, hasWifi, imageUrl) {
-        // 获取现有客房数据
-        let rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
+        const hotelId = document.getElementById('hotelId').value;
+        const name = document.getElementById('hotelName').value;
+        const location = document.getElementById('hotelLocation').value;
+        const price = document.getElementById('hotelPrice').value;
+        const rating = document.getElementById('hotelRating').value;
+        const description = document.getElementById('hotelDescription').value;
+        const amenities = document.getElementById('hotelAmenities').value;
+        const website = document.getElementById('hotelWebsite').value;
         
-        // 检查是新增还是编辑
-        const existingRoomIndex = rooms.findIndex(room => room.id == id);
+        // Create hotel object
+        const hotel = {
+            id: hotelId ? parseInt(hotelId) : mockHotels.length + 1,
+            name,
+            location,
+            price,
+            rating: parseInt(rating),
+            description,
+            amenities,
+            website
+        };
         
-        if (existingRoomIndex !== -1) {
-            // 更新现有客房
-            rooms[existingRoomIndex] = {
-                id: id,
-                name: name,
-                description: description,
-                price: price,
-                size: size,
-                bedType: bedType,
-                hasWifi: hasWifi,
-                imageUrl: imageUrl // 确保更新图片URL
-            };
-        } else {
-            // 添加新客房
-            rooms.push({
-                id: id,
-                name: name,
-                description: description,
-                price: price,
-                size: size,
-                bedType: bedType,
-                hasWifi: hasWifi,
-                imageUrl: imageUrl
-            });
+        // If there's a new image
+        if (hotelImage.files && hotelImage.files[0]) {
+            hotel.imageUrl = URL.createObjectURL(hotelImage.files[0]);
+        } else if (hotelId) {
+            // Keep existing image if editing
+            const existingHotel = mockHotels.find(h => h.id === parseInt(hotelId));
+            if (existingHotel) {
+                hotel.imageUrl = existingHotel.imageUrl;
+            }
         }
         
-        // 保存到localStorage
-        localStorage.setItem('siteRooms', JSON.stringify(rooms));
-        
-        // 关闭模态框
-        if (roomModal) {
-            roomModal.style.display = 'none';
-            roomModal.classList.remove('active');
+        if (hotelId) {
+            // Update existing hotel
+            const index = mockHotels.findIndex(h => h.id === parseInt(hotelId));
+            if (index !== -1) {
+                mockHotels[index] = hotel;
+            }
+        } else {
+            // Add new hotel
+            mockHotels.push(hotel);
         }
         
-        // 刷新客房列表
-        displayRooms();
+        // Update grid
+        displayHotels();
         
-        alert(existingRoomIndex !== -1 ? '客房更新成功！' : '新客房添加成功！');
-    }
+        // Close modal
+        hotelModal.style.display = 'none';
+    });
     
-    // 显示客房列表
-    function displayRooms() {
-        if (!roomsGrid) return;
+    // Display hotels function
+    function displayHotels() {
+        hotelsGrid.innerHTML = '';
         
-        // 清空现有内容
-        roomsGrid.innerHTML = '';
-        
-        // 获取客房数据
-        const rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
-        
-        if (rooms.length === 0) {
-            roomsGrid.innerHTML = `
-                <div class="no-data" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
-                    <i class="fas fa-bed" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
-                    <p>还没有添加任何客房。点击"Add New Room"按钮添加您的第一个客房。</p>
-                </div>
-            `;
-            return;
-            }
-        
-        // 创建客房卡片
-        rooms.forEach(room => {
-            const roomCard = document.createElement('div');
-            roomCard.classList.add('room-admin-card');
+        mockHotels.forEach(hotel => {
+            const hotelCard = document.createElement('div');
+            hotelCard.classList.add('hotel-card');
             
-            roomCard.innerHTML = `
-                <div class="room-image-container">
-                    <img src="${room.imageUrl}" alt="${room.name}">
-                </div>
-                <div class="room-details">
-                    <h3 class="room-name">${room.name}</h3>
-                    <p class="room-description">${room.description}</p>
-                    <div class="room-specs">
-                        <div class="room-spec">
-                            <i class="fas fa-bed"></i> ${room.bedType}
-                        </div>
-                        <div class="room-spec">
-                            <i class="fas fa-ruler-combined"></i> ${room.size} m²
-                        </div>
-                        <div class="room-spec">
-                            <i class="fas fa-wifi"></i> ${room.hasWifi ? 'Free WiFi' : 'No WiFi'}
-                        </div>
-                    </div>
-                    <div class="room-price">From $${room.price}/night</div>
-                    <div class="room-actions">
-                        <button class="room-action-btn edit-btn" data-id="${room.id}">
-                            <i class="fas fa-edit"></i>
+            // Create star rating HTML
+            let starsHtml = '';
+            for (let i = 0; i < hotel.rating; i++) {
+                starsHtml += '<i class="fas fa-star"></i>';
+            }
+            for (let i = hotel.rating; i < 5; i++) {
+                starsHtml += '<i class="far fa-star"></i>';
+            }
+            
+            hotelCard.innerHTML = `
+                <img src="${hotel.imageUrl}" alt="${hotel.name}" class="hotel-image">
+                <div class="hotel-details">
+                    <h3 class="hotel-name">${hotel.name}</h3>
+                    <div class="hotel-location"><i class="fas fa-map-marker-alt"></i> ${hotel.location}</div>
+                    <div class="hotel-rating">${starsHtml}</div>
+                    <div class="hotel-price">${hotel.price}</div>
+                    <p class="hotel-description">${hotel.description}</p>
+                    <div class="hotel-actions">
+                        <button class="admin-btn secondary edit-hotel" data-id="${hotel.id}">
+                            <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="room-action-btn delete-btn" data-id="${room.id}">
-                            <i class="fas fa-trash-alt"></i>
+                        <button class="admin-btn danger delete-hotel" data-id="${hotel.id}">
+                            <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
                 </div>
             `;
             
-            roomsGrid.appendChild(roomCard);
-            
-            // 编辑按钮事件
-            const editBtn = roomCard.querySelector('.edit-btn');
-            if (editBtn) {
-                editBtn.addEventListener('click', function() {
-                    const roomId = this.getAttribute('data-id');
-                    editRoom(roomId);
-                });
-            }
-            
-            // 删除按钮事件
-            const deleteBtn = roomCard.querySelector('.delete-btn');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function() {
-                    const roomId = this.getAttribute('data-id');
-                    deleteRoom(roomId);
-                });
-            }
+            hotelsGrid.appendChild(hotelCard);
         });
-    }
-    
-    // 编辑客房
-    function editRoom(id) {
-        const rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
-        const room = rooms.find(r => r.id == id);
+        
+        // Add edit event listeners
+        document.querySelectorAll('.edit-hotel').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const hotelId = parseInt(this.getAttribute('data-id'));
+                const hotel = mockHotels.find(h => h.id === hotelId);
                 
-        if (room) {
-            // 填充表单
-            document.getElementById('roomId').value = room.id;
-            document.getElementById('roomName').value = room.name;
-            document.getElementById('roomDescription').value = room.description;
-            document.getElementById('roomPrice').value = room.price;
-            document.getElementById('roomSize').value = room.size;
-            document.getElementById('bedType').value = room.bedType;
-            
-            // 设置WiFi选项
-            const wifiRadios = document.querySelectorAll('input[name="hasWifi"]');
-            wifiRadios.forEach(radio => {
-                if ((radio.value === 'yes' && room.hasWifi) || (radio.value === 'no' && !room.hasWifi)) {
-                    radio.checked = true;
+                if (hotel) {
+                    // Populate form with hotel data
+                    document.getElementById('hotelId').value = hotel.id;
+                    document.getElementById('hotelName').value = hotel.name;
+                    document.getElementById('hotelLocation').value = hotel.location;
+                    document.getElementById('hotelPrice').value = hotel.price;
+                    document.getElementById('hotelRating').value = hotel.rating;
+                    document.getElementById('hotelDescription').value = hotel.description;
+                    document.getElementById('hotelAmenities').value = hotel.amenities;
+                    document.getElementById('hotelWebsite').value = hotel.website || '';
+                    
+                    // Set image preview
+                    hotelImagePreview.innerHTML = `<img src="${hotel.imageUrl}" alt="Preview">`;
+                    
+                    // Update modal title
+                    document.getElementById('hotelModalTitle').textContent = 'Edit Hotel';
+                    
+                    // Open modal
+                    hotelModal.style.display = 'block';
                 }
             });
-                    
-            // 显示图片预览
-            if (roomImagePreview) {
-                roomImagePreview.innerHTML = `<img src="${room.imageUrl}" alt="${room.name}">`;
-            }
-                    
-            // 更新模态框标题
-            document.getElementById('roomModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Room';
-                    
-            // 显示模态框
-            if (roomModal) {
-                roomModal.style.display = 'flex';
-                roomModal.classList.add('active');
-            }
-        }
+        });
+        
+        // Add delete event listeners
+        document.querySelectorAll('.delete-hotel').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const hotelId = parseInt(this.getAttribute('data-id'));
+                
+                if (confirm('Are you sure you want to delete this hotel?')) {
+                    mockHotels = mockHotels.filter(h => h.id !== hotelId);
+                    displayHotels();
+                }
+            });
+        });
     }
     
-    // 删除客房
-    function deleteRoom(id) {
-        if (confirm('确定要删除这个客房吗？此操作无法撤销。')) {
-            let rooms = JSON.parse(localStorage.getItem('siteRooms') || '[]');
-            rooms = rooms.filter(room => room.id != id);
-            localStorage.setItem('siteRooms', JSON.stringify(rooms));
-            
-            // 刷新客房列表
-            displayRooms();
-            
-            alert('客房已成功删除！');
-        }
-    }
-    
-    // 初始化时显示客房列表
-    displayRooms();
-    
-    // 继续原有的酒店管理代码
-    // ...
-
-    // 初始化时加载酒店列表
+    // Initial display
     displayHotels();
 }
 
