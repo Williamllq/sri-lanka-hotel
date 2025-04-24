@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Sri Lanka Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .info {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        #progress {
+            margin-top: 20px;
+            display: none;
+        }
+        progress {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Download Images for Sri Lanka Stay & Explore</h1>
+        
+        <div class="info">
+            <p>This tool will download a collection of beautiful Sri Lanka images from the internet and add them to your website's admin panel.</p>
+            <p>The images will be available in the admin dashboard's image management section.</p>
+            <p><strong>Note:</strong> This process might take a few moments to complete, depending on your internet connection.</p>
+        </div>
+        
+        <button id="startDownload">Download Images</button>
+        
+        <div id="progress">
+            <p>Downloading and processing images... Please wait.</p>
+            <progress></progress>
+        </div>
+        
+        <div id="status" class="status"></div>
+    </div>
+    
+    <script>
+        document.getElementById('startDownload').addEventListener('click', function() {
+            // Show progress
+            document.getElementById('progress').style.display = 'block';
+            
+            // Load and execute the download script
+            const script = document.createElement('script');
+            script.src = 'download-images.js';
+            script.onload = function() {
+                console.log('Download script loaded');
+            };
+            script.onerror = function() {
+                showStatus('Failed to load the download script. Please try again.', 'error');
+            };
+            document.body.appendChild(script);
+        });
+        
+        // Function to show status messages
+        function showStatus(message, type) {
+            const statusElem = document.getElementById('status');
+            statusElem.textContent = message;
+            statusElem.className = 'status ' + type;
+            statusElem.style.display = 'block';
+            
+            // Hide progress
+            document.getElementById('progress').style.display = 'none';
+        }
+        
+        // Listen for completion message from the download script
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'downloadComplete') {
+                if (event.data.success) {
+                    showStatus('Images have been successfully downloaded and added to your website! Please refresh the admin page to see the new images.', 'success');
+                } else {
+                    showStatus('There was an error downloading some images. ' + event.data.message, 'error');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1968,12 +1968,17 @@ select:focus {
 
 /* 确保地图在报价容器中可见 */
 #quoteContainer {
-    display: block !important;
-    background-color: #f8f9fa !important;
-    border-radius: 8px !important;
-    padding: 16px !important;
-    margin-top: 20px !important;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+    display: none; /* Hidden by default */
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+#quoteContainer.visible {
+    display: block;
 }
 
 /* 距离弹出窗口样式 */
@@ -2079,4 +2084,9 @@ select:focus {
 
 .feedback-submit:hover {
     background-color: var(--accent-color);
+}
+
+/* Hidden Quote Style */
+.hidden-quote {
+    display: none !important;
 } 

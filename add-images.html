@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加斯里兰卡图片到管理界面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .info {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .success-message {
+            display: none;
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .admin-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .admin-link a {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .admin-link a:hover {
+            background-color: #219653;
+        }
+        .preview {
+            margin-top: 30px;
+        }
+        .preview h3 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .image-item {
+            border: 1px solid #eee;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .image-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        .image-info {
+            padding: 10px;
+        }
+        .image-info h4 {
+            margin: 0 0 5px 0;
+        }
+        .image-info p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>添加斯里兰卡图片到管理界面</h1>
+        
+        <div class="info">
+            <p>这个工具会将项目中现有的斯里兰卡图片添加到网站管理界面中，方便在管理员界面进行图片管理。</p>
+            <p>点击下面的按钮将图片添加到管理员界面，添加完成后请刷新管理员页面以查看新添加的图片。</p>
+        </div>
+        
+        <button id="addImagesButton">添加图片到管理界面</button>
+        
+        <div id="successMessage" class="success-message">
+            图片已成功添加到管理界面！请刷新管理员页面查看。
+        </div>
+        
+        <div class="admin-link">
+            <a href="admin-dashboard.html" target="_blank">打开管理员界面</a>
+        </div>
+        
+        <div class="preview">
+            <h3>将添加的图片预览</h3>
+            <div class="image-grid">
+                <div class="image-item">
+                    <img src="images/Scenery in Sir Lanka 1.jpg" alt="Sri Lanka Scenery">
+                    <div class="image-info">
+                        <h4>Sri Lanka Scenery 1</h4>
+                        <p>Category: scenery</p>
+                    </div>
+                </div>
+                <div class="image-item">
+                    <img src="images/Scenery in Sir Lanka 2.jpg" alt="Sri Lanka Scenery">
+                    <div class="image-info">
+                        <h4>Sri Lanka Scenery 2</h4>
+                        <p>Category: scenery</p>
+                    </div>
+                </div>
+                <div class="image-item">
+                    <img src="images/Scenery in Sir Lanka elephant 1.jpg" alt="Sri Lankan Elephant">
+                    <div class="image-info">
+                        <h4>Sri Lankan Elephant</h4>
+                        <p>Category: wildlife</p>
+                    </div>
+                </div>
+                <div class="image-item">
+                    <img src="images/Scenery in Sir Lanka monkey.jpg" alt="Sri Lankan Monkey">
+                    <div class="image-info">
+                        <h4>Sri Lankan Monkey</h4>
+                        <p>Category: wildlife</p>
+                    </div>
+                </div>
+                <div class="image-item">
+                    <img src="images/Tea factory 1.jpg" alt="Tea Plantation">
+                    <div class="image-info">
+                        <h4>Tea Plantation</h4>
+                        <p>Category: culture</p>
+                    </div>
+                </div>
+                <div class="image-item">
+                    <img src="images/Car1.jpg" alt="Transport in Sri Lanka">
+                    <div class="image-info">
+                        <h4>Transport in Sri Lanka</h4>
+                        <p>Category: transport</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="simple-add-images.js"></script>
+    <script>
+        // 添加按钮点击事件处理
+        document.getElementById('addImagesButton').addEventListener('click', function() {
+            setTimeout(function() {
+                document.getElementById('successMessage').style.display = 'block';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

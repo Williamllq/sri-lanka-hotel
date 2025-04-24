@@ -1,0 +1,29 @@
+{
+  "lastUpdated": "2025-04-24T13:10:28.089Z",
+  "images": [
+    {
+      "filename": "kandy-temple.jpg",
+      "category": "culture",
+      "name": "Kandy Temple",
+      "description": "Sacred Temple of the Tooth Relic in Kandy"
+    },
+    {
+      "filename": "tea-plantations.jpg",
+      "category": "scenery",
+      "name": "Tea Plantations",
+      "description": "Beautiful tea plantations in the highlands"
+    },
+    {
+      "filename": "sri-lankan-leopard.jpg",
+      "category": "wildlife",
+      "name": "Sri Lankan Leopard",
+      "description": "Rare Sri Lankan leopard in Yala National Park"
+    },
+    {
+      "filename": "stilt-fishermen.jpg",
+      "category": "culture",
+      "name": "Stilt Fishermen",
+      "description": "Traditional stilt fishermen at sunset"
+    }
+  ]
+}

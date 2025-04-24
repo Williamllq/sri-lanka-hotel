@@ -25,33 +25,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Book Now button not found');
     }
     
-    // 确保在页面加载时Journey Quote部分是隐藏的
+    // Make sure the quote container is hidden initially
     const quoteContainer = document.getElementById('quoteContainer');
     if (quoteContainer) {
-        // 通过属性和inline style双重确保隐藏
-        quoteContainer.classList.add('hidden-quote');
         quoteContainer.style.display = 'none';
-        quoteContainer.setAttribute('hidden', 'hidden');
-        
-        // 添加一个额外的检查，确保几秒后也是隐藏的
-        setTimeout(function() {
-            if (window.getComputedStyle(quoteContainer).display !== 'none') {
-                console.log('Quote container was not hidden, forcing hidden state');
-                quoteContainer.style.display = 'none !important';
-                document.head.insertAdjacentHTML('beforeend', 
-                    '<style>#quoteContainer{display:none !important;}</style>');
-            }
-        }, 500);
-        
         console.log('Quote container initially hidden');
     } else {
         console.error('Quote container not found');
     }
-    
-    // 添加样式以确保隐藏
-    const style = document.createElement('style');
-    style.textContent = '.hidden-quote { display: none !important; }';
-    document.head.appendChild(style);
 });
 
 // Calculate the quote based on selected locations
@@ -205,28 +186,26 @@ function calculateFare(distance, vehicleType) {
 // Display the calculated quote
 function displayQuote(quoteData) {
     console.log('Displaying quote with data:', quoteData);
-
-    // 显示报价容器，移除所有隐藏相关的属性和类
+    
+    // Get the quote container
     const quoteContainer = document.getElementById('quoteContainer');
-    if (quoteContainer) {
-        // 移除隐藏相关的所有属性和类
-        quoteContainer.removeAttribute('style');
-        quoteContainer.removeAttribute('hidden');
-        quoteContainer.classList.remove('hidden-quote');
-        
-        // 重新设置正确的样式
-        quoteContainer.style.display = 'block';
-        quoteContainer.style.backgroundColor = '#f8f9fa';
-        quoteContainer.style.borderRadius = '8px';
-        quoteContainer.style.padding = '16px';
-        quoteContainer.style.marginTop = '20px';
-        quoteContainer.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
-        console.log('Quote container displayed');
-    } else {
-        console.error('Quote container not found');
+    if (!quoteContainer) {
+        console.error('Quote container not found!');
+        return;
     }
     
-    // 显示路线地图容器
+    // Show the quote container
+    quoteContainer.style.display = 'block';
+    quoteContainer.classList.add('visible');
+    
+    // Enable Book Now button
+    const bookBtn = document.getElementById('bookNowBtn');
+    if (bookBtn) {
+        bookBtn.disabled = false;
+        console.log('Book Now button enabled');
+    }
+    
+    // Display the route map container
     const routeMapContainer = document.getElementById('routeMapContainer');
     if (routeMapContainer) {
         routeMapContainer.style.display = 'block';
@@ -235,39 +214,35 @@ function displayQuote(quoteData) {
         console.error('Route map container not found');
     }
     
-    // 更新报价信息
+    // Update quote information
     const distanceElement = document.getElementById('quotedDistance');
     if (distanceElement) {
-        distanceElement.textContent = quoteData.distance.toFixed(2) + ' km';
+        distanceElement.textContent = `${quoteData.distance.toFixed(1)} km`;
     }
     
-    const vehicleElement = document.getElementById('quotedVehicle');
-    if (vehicleElement) {
-        vehicleElement.textContent = quoteData.vehicleType.charAt(0).toUpperCase() + quoteData.vehicleType.slice(1);
+    const vehicleTypeElement = document.getElementById('quotedVehicle');
+    if (vehicleTypeElement) {
+        // Capitalize vehicle type
+        const capitalizedVehicleType = quoteData.vehicleType.charAt(0).toUpperCase() + quoteData.vehicleType.slice(1);
+        vehicleTypeElement.textContent = capitalizedVehicleType;
     }
     
     const fareElement = document.getElementById('quotedFare');
     if (fareElement) {
-        fareElement.textContent = 'LKR ' + quoteData.totalFare.toLocaleString();
+        fareElement.textContent = `$${quoteData.totalFare.toFixed(2)}`;
     }
     
     const depositElement = document.getElementById('quotedDeposit');
     if (depositElement) {
-        depositElement.textContent = 'LKR ' + quoteData.depositAmount.toLocaleString();
+        depositElement.textContent = `$${quoteData.depositAmount.toFixed(2)}`;
     }
     
-    // 确保地图容器显示
-    const mapContainer = document.getElementById('routeMap');
-    if (mapContainer) {
-        mapContainer.style.display = 'block';
-    }
-    
-    // 获取坐标
+    // If route map components exist, update the map
     const pickupInput = document.getElementById('pickupLocation');
     const destinationInput = document.getElementById('destinationLocation');
     
     if (pickupInput && destinationInput && 
-        pickupInput.dataset.lat && pickupInput.dataset.lng &&
+        pickupInput.dataset.lat && pickupInput.dataset.lng && 
         destinationInput.dataset.lat && destinationInput.dataset.lng) {
         
         const pickupLat = parseFloat(pickupInput.dataset.lat);
@@ -275,38 +250,8 @@ function displayQuote(quoteData) {
         const destLat = parseFloat(destinationInput.dataset.lat);
         const destLng = parseFloat(destinationInput.dataset.lng);
         
-        // 如果起点和终点坐标完全相同，稍微偏移终点位置以避免地图上的覆盖
-        let adjustedDestLat = destLat;
-        let adjustedDestLng = destLng;
-        if (pickupLat === destLat && pickupLng === destLng) {
-            adjustedDestLat += 0.0005; // 稍微向北偏移
-            adjustedDestLng += 0.0005; // 稍微向东偏移
-            console.log('Adjusted destination coordinates to avoid overlap');
-        }
-        
-        // 使用延迟初始化地图，确保容器完全可见
-        setTimeout(() => {
-            // 初始化路线地图
-            initRouteMap(pickupLat, pickupLng, adjustedDestLat, adjustedDestLng);
-            
-            // 滚动到路线地图容器
-            if (routeMapContainer) {
-                setTimeout(() => {
-                    routeMapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    console.log('Scrolled to route map container');
-                }, 300);
-            }
-        }, 500);
-    }
-    
-    // 首先滚动到报价容器
-    quoteContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    
-    // 启用Book Now按钮
-    const bookBtn = document.getElementById('bookNowBtn');
-    if (bookBtn) {
-        bookBtn.disabled = false;
-        bookBtn.classList.add('active');
+        // Initialize or update the route map
+        initRouteMap(pickupLat, pickupLng, destLat, destLng);
     }
 }
 
