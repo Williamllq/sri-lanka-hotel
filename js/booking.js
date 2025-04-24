@@ -186,7 +186,7 @@ function calculateFare(distance, vehicleType) {
 // Display the calculated quote
 function displayQuote(quoteData) {
     console.log('Displaying quote with data:', quoteData);
-    
+
     // Get the quote container
     const quoteContainer = document.getElementById('quoteContainer');
     if (!quoteContainer) {
@@ -195,7 +195,7 @@ function displayQuote(quoteData) {
     }
     
     // Show the quote container
-    quoteContainer.style.display = 'block';
+        quoteContainer.style.display = 'block';
     quoteContainer.classList.add('visible');
     
     // Enable Book Now button
@@ -242,7 +242,7 @@ function displayQuote(quoteData) {
     const destinationInput = document.getElementById('destinationLocation');
     
     if (pickupInput && destinationInput && 
-        pickupInput.dataset.lat && pickupInput.dataset.lng && 
+        pickupInput.dataset.lat && pickupInput.dataset.lng &&
         destinationInput.dataset.lat && destinationInput.dataset.lng) {
         
         const pickupLat = parseFloat(pickupInput.dataset.lat);
