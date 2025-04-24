@@ -18,18 +18,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const bookBtn = document.getElementById('bookNowBtn');
     if (bookBtn) {
         bookBtn.addEventListener('click', processBooking);
-        // Initially disable Book Now button
-        bookBtn.disabled = true;
+        // 启用Book Now按钮，因为我们现在默认显示报价
+        bookBtn.disabled = false;
         console.log('Book Now button initialized');
     } else {
         console.error('Book Now button not found');
     }
     
-    // 确保在页面加载时Journey Quote部分是隐藏的
+    // 确保在页面加载时Journey Quote部分是显示的
     const quoteContainer = document.getElementById('quoteContainer');
     if (quoteContainer) {
-        quoteContainer.style.display = 'none';
-        console.log('Quote container initially hidden');
+        quoteContainer.style.display = 'block'; // 改为block而不是none
+        console.log('Quote container initially shown');
+        
+        // 设置初始默认值
+        document.getElementById('quotedDistance').textContent = '0 km';
+        document.getElementById('quotedVehicle').textContent = 'Standard';
+        document.getElementById('quotedFare').textContent = 'LKR 0';
+        document.getElementById('quotedDeposit').textContent = 'LKR 0';
     } else {
         console.error('Quote container not found');
     }
