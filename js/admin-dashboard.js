@@ -124,7 +124,7 @@ function setupModalHandlers() {
     if (uploadPictureBtn && uploadModal) {
         console.log('Found upload button and modal, setting up handler');
         
-        // Add direct click handler - more reliable than addEventListener
+        // Add click handler using direct assignment
         uploadPictureBtn.onclick = function() {
             console.log('Upload picture button clicked, showing modal');
             uploadModal.style.display = 'block';
