@@ -109,77 +109,103 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize settings
     initSettings();
     
-    // Fix for picture upload modal
-    setupModalHandlers();
+    // Ensure all modals are properly handled
+    initModalHandling();
 });
 
-// Directly set up modal handlers for picture upload
-function setupModalHandlers() {
-    console.log('Setting up modal handlers manually');
+// Ensure all modals are properly handled
+function initModalHandling() {
+    console.log('Initializing modal handling');
+    // Get all modals
+    const modals = document.querySelectorAll('.admin-modal');
     
-    // Set up event handlers for 'Upload Picture' button
-    const uploadPictureBtn = document.getElementById('uploadPictureBtn');
-    const uploadModal = document.getElementById('uploadModal');
+    // Modal open buttons mapping - corrected to target the actual button IDs
+    const modalOpenButtonMap = {
+        'uploadModal': 'uploadPictureBtn',
+        'carouselModal': 'addToCarouselBtn',
+        'hotelModal': 'addHotelBtn',
+        'articleModal': 'addArticleBtn',
+        'videoModal': 'addVideoBtn',
+        'linkModal': 'addLinkBtn'
+    };
     
-    if (uploadPictureBtn && uploadModal) {
-        console.log('Found upload button and modal, setting up handler');
+    // Close buttons
+    const closeButtons = document.querySelectorAll('.close-modal');
+    const cancelButtons = document.querySelectorAll('.admin-btn.secondary.cancel-upload');
+    
+    // Hide all modals initially
+    modals.forEach(modal => {
+        modal.style.display = 'none';
+    });
+    
+    // Set up open button handlers
+    for (const [modalId, buttonId] of Object.entries(modalOpenButtonMap)) {
+        const button = document.getElementById(buttonId);
+        const modal = document.getElementById(modalId);
         
-        // Add click handler using direct assignment
-        uploadPictureBtn.onclick = function() {
-            console.log('Upload picture button clicked, showing modal');
-            uploadModal.style.display = 'block';
-            uploadModal.classList.add('active');
-        };
-        
-        // Set up close button handlers
-        const closeButtons = uploadModal.querySelectorAll('.close-modal');
-        closeButtons.forEach(button => {
+        if (button && modal) {
+            console.log(`Setting up click handler for ${buttonId} to open ${modalId}`);
             button.addEventListener('click', function() {
-                console.log('Close button clicked, hiding modal');
-                uploadModal.style.display = 'none';
-                uploadModal.classList.remove('active');
+                console.log(`Opening modal: ${modalId}`);
+                modal.style.display = 'flex';
+                modal.classList.add('active');
             });
-        });
-        
-        // Set up cancel button handler
-        const cancelButton = uploadModal.querySelector('.cancel-upload');
-        if (cancelButton) {
-            cancelButton.addEventListener('click', function() {
-                console.log('Cancel button clicked, hiding modal');
-                uploadModal.style.display = 'none';
-                uploadModal.classList.remove('active');
-                
-                // Reset form
-                const form = uploadModal.querySelector('form');
-                if (form) form.reset();
-                
-                // Reset preview
-                const preview = uploadModal.querySelector('.file-preview');
-                if (preview) {
-                    preview.innerHTML = `
-                        <div class="preview-placeholder">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Image preview will appear here</p>
-                        </div>
-                    `;
-                }
-            });
+        } else {
+            console.warn(`Button ${buttonId} or modal ${modalId} not found in the DOM`);
         }
-        
-        // Close modal when clicking outside content
-        window.addEventListener('click', function(event) {
-            if (event.target === uploadModal) {
-                console.log('Clicked outside modal content, hiding modal');
-                uploadModal.style.display = 'none';
-                uploadModal.classList.remove('active');
+    }
+    
+    // Set up close button handlers
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.admin-modal');
+            if (modal) {
+                console.log(`Closing modal: ${modal.id}`);
+                modal.style.display = 'none';
+                modal.classList.remove('active');
             }
         });
-    } else {
-        console.warn('Upload button or modal not found', { 
-            buttonFound: !!uploadPictureBtn, 
-            modalFound: !!uploadModal 
+    });
+    
+    // Set up cancel button handlers
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.admin-modal');
+            if (modal) {
+                console.log(`Canceling and closing modal: ${modal.id}`);
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+                
+                // If in a form, reset the form
+                const form = this.closest('form');
+                if (form) {
+                    form.reset();
+                    
+                    // Reset any preview elements
+                    const previewElement = form.querySelector('.file-preview');
+                    if (previewElement) {
+                        previewElement.innerHTML = `
+                            <div class="preview-placeholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Image preview will appear here</p>
+                            </div>
+                        `;
+                    }
+                }
+            }
         });
-    }
+    });
+    
+    // Close modal when clicking outside content
+    window.addEventListener('click', function(event) {
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                console.log(`Clicking outside closed modal: ${modal.id}`);
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+            }
+        });
+    });
 }
 
 // Dashboard statistics initialization
