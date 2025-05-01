@@ -238,23 +238,26 @@
                             <!-- 修改报价容器结构，移除显示限制 -->
                             <div id="quoteContainer" style="display: none; background-color: #f8f9fa; border-radius: 8px; padding: 16px; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                                 <h3 style="margin-top: 0; color: #218838; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 15px;">Journey Quote</h3>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span>Distance:</span>
-                                    <span id="quotedDistance">0 km</span>
+                                <div class="quote-details">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span>Distance:</span>
+                                        <span id="quotedDistance">0 km</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <span>Vehicle Type:</span>
+                                        <span id="quotedVehicle">Standard</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; font-size: 1.1em; margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 10px;">
+                                        <span>Estimated Total:</span>
+                                        <span id="quotedFare">$0</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #d63031; font-weight: bold;">
+                                        <span>Required Deposit (30%):</span>
+                                        <span id="quotedDeposit">$0</span>
+                                    </div>
+                                    <p style="font-size: 0.9em; color: #666; font-style: italic; margin-top: 15px; margin-bottom: 15px;">The full amount is payable on the day of travel.</p>
+                                    <!-- Rate info will be inserted here by JavaScript -->
                                 </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span>Vehicle Type:</span>
-                                    <span id="quotedVehicle">Standard</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; font-size: 1.1em; margin-top: 15px; border-top: 1px dashed #ddd; padding-top: 10px;">
-                                    <span>Estimated Total:</span>
-                                    <span id="quotedFare">LKR 0</span>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #d63031; font-weight: bold;">
-                                    <span>Required Deposit (30%):</span>
-                                    <span id="quotedDeposit">LKR 0</span>
-                                </div>
-                                <p style="font-size: 0.9em; color: #666; font-style: italic; margin-top: 15px; margin-bottom: 15px;">The full amount is payable on the day of travel.</p>
                             </div>
                             
                             <div class="price-estimate"></div>
