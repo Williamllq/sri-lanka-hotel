@@ -106,7 +106,7 @@ function calculateQuote() {
     const vehicleType = getSelectedVehicleType() || 'sedan';
     console.log('Selected vehicle type:', vehicleType);
     
-    const fare = calculateFare(distance, vehicleType);
+    const fare = calculateFare(distance, vehicleType, journeyDate.value, journeyTime.value);
     console.log('Calculated fare:', fare);
     
     // Calculate deposit (30% of fare)
@@ -162,32 +162,64 @@ function getSelectedVehicleType() {
 }
 
 // Calculate fare based on distance and vehicle type
-function calculateFare(distance, vehicleType) {
-    // Base rates by vehicle type (USD)
-    const rates = {
-        sedan: {
-            base: 20,
-            perKm: 0.8
-        },
-        suv: {
-            base: 30,
-            perKm: 1.2
-        },
-        van: {
-            base: 40,
-            perKm: 1.5
-        },
-        luxury: {
-            base: 50,
-            perKm: 2.0
+function calculateFare(distance, vehicleType, journeyDate, journeyTime) {
+    // Get transport settings from localStorage or use defaults
+    const defaultSettings = {
+        baseFare: 30,
+        ratePerKm: 0.5,
+        rushHourMultiplier: 1.5,
+        nightMultiplier: 1.3,
+        weekendMultiplier: 1.2,
+        vehicleRates: {
+            sedan: 1.0,
+            suv: 1.5,
+            van: 1.8,
+            luxury: 2.2
         }
     };
     
-    // Get rate for selected vehicle (or default to sedan)
-    const rate = rates[vehicleType] || rates.sedan;
+    const transportSettings = JSON.parse(localStorage.getItem('transportSettings') || JSON.stringify(defaultSettings));
     
-    // Calculate total fare with base fare + per km charge
-    let totalFare = rate.base + (distance * rate.perKm);
+    // Calculate base fare
+    let baseFare = transportSettings.baseFare;
+    let ratePerKm = transportSettings.ratePerKm;
+    
+    // Apply vehicle multiplier
+    const vehicleMultiplier = transportSettings.vehicleRates[vehicleType] || transportSettings.vehicleRates.sedan;
+    
+    // Calculate time-based multipliers if needed
+    let timeMultiplier = 1.0;
+    
+    // If journey date and time are provided, use them; otherwise use current time
+    let journeyDateTime = new Date();
+    
+    if (journeyDate && journeyTime) {
+        // Parse date and time
+        const [year, month, day] = journeyDate.split('-').map(num => parseInt(num));
+        const [hours, minutes] = journeyTime.split(':').map(num => parseInt(num));
+        
+        // Create date object (month is 0-indexed in JS Date)
+        journeyDateTime = new Date(year, month - 1, day, hours, minutes);
+    }
+    
+    const hours = journeyDateTime.getHours();
+    const day = journeyDateTime.getDay(); // 0 = Sunday, 6 = Saturday
+    
+    // Check if it's weekend (Saturday or Sunday)
+    if (day === 0 || day === 6) {
+        timeMultiplier = transportSettings.weekendMultiplier;
+    }
+    // Check if it's rush hour (6-9 AM or 4-7 PM)
+    else if ((hours >= 6 && hours < 9) || (hours >= 16 && hours < 19)) {
+        timeMultiplier = transportSettings.rushHourMultiplier;
+    }
+    // Check if it's night time (10 PM - 6 AM)
+    else if (hours >= 22 || hours < 6) {
+        timeMultiplier = transportSettings.nightMultiplier;
+    }
+    
+    // Calculate total fare
+    let totalFare = (baseFare + (distance * ratePerKm)) * vehicleMultiplier * timeMultiplier;
     
     // Round to 2 decimal places
     totalFare = Math.round(totalFare * 100) / 100;
@@ -207,7 +239,7 @@ function displayQuote(quoteData) {
     }
     
     // Show the quote container
-        quoteContainer.style.display = 'block';
+    quoteContainer.style.display = 'block';
     quoteContainer.classList.add('visible');
     
     // Enable Book Now button
@@ -249,6 +281,9 @@ function displayQuote(quoteData) {
         depositElement.textContent = `$${quoteData.depositAmount.toFixed(2)}`;
     }
     
+    // Display current rate information
+    displayCurrentRates();
+    
     // If route map components exist, update the map
     const pickupInput = document.getElementById('pickupLocation');
     const destinationInput = document.getElementById('destinationLocation');
@@ -265,6 +300,78 @@ function displayQuote(quoteData) {
         // Initialize or update the route map
         initRouteMap(pickupLat, pickupLng, destLat, destLng);
     }
+}
+
+// Display the current rate information
+function displayCurrentRates() {
+    // Get transport settings
+    const defaultSettings = {
+        baseFare: 30,
+        ratePerKm: 0.5,
+        rushHourMultiplier: 1.5,
+        nightMultiplier: 1.3,
+        weekendMultiplier: 1.2,
+        vehicleRates: {
+            sedan: 1.0,
+            suv: 1.5,
+            van: 1.8,
+            luxury: 2.2
+        }
+    };
+    
+    const transportSettings = JSON.parse(localStorage.getItem('transportSettings') || JSON.stringify(defaultSettings));
+    
+    // Find or create rate info container
+    let rateInfoElement = document.getElementById('rateInfo');
+    
+    if (!rateInfoElement) {
+        rateInfoElement = document.createElement('div');
+        rateInfoElement.id = 'rateInfo';
+        rateInfoElement.className = 'rate-info';
+        
+        // Add styles if needed
+        if (!document.getElementById('rate-info-styles')) {
+            const style = document.createElement('style');
+            style.id = 'rate-info-styles';
+            style.textContent = `
+                .rate-info {
+                    font-size: 0.85rem;
+                    margin-top: 8px;
+                    color: #666;
+                    background-color: #f8f9fa;
+                    padding: 8px;
+                    border-radius: 4px;
+                }
+                
+                .rate-info ul {
+                    margin: 5px 0;
+                    padding-left: 20px;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Find where to insert the rate info
+        const quoteDetails = document.querySelector('.quote-details');
+        if (quoteDetails) {
+            quoteDetails.appendChild(rateInfoElement);
+        } else {
+            const quoteContainer = document.getElementById('quoteContainer');
+            if (quoteContainer) {
+                quoteContainer.appendChild(rateInfoElement);
+            }
+        }
+    }
+    
+    // Set the content
+    rateInfoElement.innerHTML = `
+        <p><strong>Current Rates:</strong></p>
+        <ul>
+            <li>Base Fare: $${transportSettings.baseFare.toFixed(2)}</li>
+            <li>Rate per km: $${transportSettings.ratePerKm.toFixed(2)}</li>
+        </ul>
+        <p><small>Time and vehicle type multipliers also apply to the final price.</small></p>
+    `;
 }
 
 // Process booking
