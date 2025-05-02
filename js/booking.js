@@ -177,10 +177,16 @@ function displayQuote(distance, fare, deposit) {
         pickupInput.dataset.lat && pickupInput.dataset.lng && 
         destinationInput.dataset.lat && destinationInput.dataset.lng) {
         
-        // If there's a map implementation, initialize it here
-        const routeMapContainer = document.getElementById('routeMapContainer');
-        if (routeMapContainer) {
-            routeMapContainer.style.display = 'block';
+        // Call the showRouteMap function from map.js to display the route
+        if (typeof showRouteMap === 'function') {
+            showRouteMap();
+        } else {
+            console.error('showRouteMap function not found');
+            // Fallback: just show the container
+            const routeMapContainer = document.getElementById('routeMapContainer');
+            if (routeMapContainer) {
+                routeMapContainer.style.display = 'block';
+            }
         }
     }
 }

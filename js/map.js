@@ -9,6 +9,7 @@ let searchInput = null;
 let searchButton = null;
 let confirmButton = null;
 let mapLoadingIndicator = null; // 新增：地图加载指示器
+let routeMap = null; // Add global variable for route map
 
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -866,4 +867,166 @@ function translate(key, defaultText) {
 function getCurrentLanguage() {
     // 从localStorage中获取当前语言设置
     return localStorage.getItem('selectedLanguage') || 'en';
+}
+
+// Add new function to show route on map
+/**
+ * Show the route map between pickup and destination
+ */
+function showRouteMap() {
+    console.log('Initializing route map');
+    
+    // Get route map container
+    const routeMapContainer = document.getElementById('routeMapContainer');
+    const routeMapElement = document.getElementById('routeMap');
+    
+    if (!routeMapContainer || !routeMapElement) {
+        console.error('Route map container or element not found');
+        return;
+    }
+    
+    // Make container visible
+    routeMapContainer.style.display = 'block';
+    
+    // Get coordinates from input fields
+    const pickupInput = document.getElementById('pickupLocation');
+    const destinationInput = document.getElementById('destinationLocation');
+    
+    if (!pickupInput || !destinationInput || 
+        !pickupInput.dataset.lat || !pickupInput.dataset.lng || 
+        !destinationInput.dataset.lat || !destinationInput.dataset.lng) {
+        console.error('Missing location coordinates');
+        return;
+    }
+    
+    const pickupLat = parseFloat(pickupInput.dataset.lat);
+    const pickupLng = parseFloat(pickupInput.dataset.lng);
+    const destLat = parseFloat(destinationInput.dataset.lat);
+    const destLng = parseFloat(destinationInput.dataset.lng);
+    
+    // Initialize the map if not already done
+    if (!routeMap) {
+        console.log('Creating new route map');
+        
+        // Create loading indicator for the route map
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'map-loading-indicator';
+        loadingIndicator.innerHTML = `
+            <div class="spinner"></div>
+            <p>Loading route map...</p>
+        `;
+        routeMapElement.appendChild(loadingIndicator);
+        
+        // Create map centered between pickup and destination
+        const centerLat = (pickupLat + destLat) / 2;
+        const centerLng = (pickupLng + destLng) / 2;
+        
+        // Check if Leaflet is loaded
+        if (typeof L === 'undefined') {
+            console.log('Leaflet not loaded, loading now...');
+            loadLeaflet(function() {
+                initializeRouteMap(pickupLat, pickupLng, destLat, destLng, centerLat, centerLng, routeMapElement, loadingIndicator);
+            });
+        } else {
+            console.log('Leaflet already loaded, initializing map...');
+            initializeRouteMap(pickupLat, pickupLng, destLat, destLng, centerLat, centerLng, routeMapElement, loadingIndicator);
+        }
+    } else {
+        // Update existing map with new route
+        console.log('Updating existing route map');
+        updateRouteMap(pickupLat, pickupLng, destLat, destLng);
+    }
+}
+
+/**
+ * Initialize the route map
+ */
+function initializeRouteMap(pickupLat, pickupLng, destLat, destLng, centerLat, centerLng, mapElement, loadingIndicator) {
+    // Create map
+    routeMap = L.map(mapElement).setView([centerLat, centerLng], 10);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18
+    }).addTo(routeMap);
+    
+    // Add markers
+    const pickupMarker = L.marker([pickupLat, pickupLng]).addTo(routeMap);
+    pickupMarker.bindPopup('<b>Pickup Location</b>').openPopup();
+    
+    const destMarker = L.marker([destLat, destLng]).addTo(routeMap);
+    destMarker.bindPopup('<b>Destination</b>');
+    
+    // Draw line between markers
+    const routeLine = L.polyline([
+        [pickupLat, pickupLng],
+        [destLat, destLng]
+    ], {
+        color: '#4CAF50',
+        weight: 5,
+        opacity: 0.7,
+        dashArray: '10, 10',
+        lineJoin: 'round'
+    }).addTo(routeMap);
+    
+    // Fit map to show both markers
+    const bounds = L.latLngBounds([
+        [pickupLat, pickupLng],
+        [destLat, destLng]
+    ]);
+    routeMap.fitBounds(bounds, { padding: [50, 50] });
+    
+    // Remove loading indicator
+    if (loadingIndicator && loadingIndicator.parentNode) {
+        loadingIndicator.parentNode.removeChild(loadingIndicator);
+    }
+    
+    // Force map to recalculate size
+    setTimeout(function() {
+        routeMap.invalidateSize();
+    }, 100);
+}
+
+/**
+ * Update the route map with new coordinates
+ */
+function updateRouteMap(pickupLat, pickupLng, destLat, destLng) {
+    // Clear previous markers and routes
+    routeMap.eachLayer(function(layer) {
+        if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+            routeMap.removeLayer(layer);
+        }
+    });
+    
+    // Add new markers
+    const pickupMarker = L.marker([pickupLat, pickupLng]).addTo(routeMap);
+    pickupMarker.bindPopup('<b>Pickup Location</b>').openPopup();
+    
+    const destMarker = L.marker([destLat, destLng]).addTo(routeMap);
+    destMarker.bindPopup('<b>Destination</b>');
+    
+    // Draw new line
+    const routeLine = L.polyline([
+        [pickupLat, pickupLng],
+        [destLat, destLng]
+    ], {
+        color: '#4CAF50',
+        weight: 5,
+        opacity: 0.7,
+        dashArray: '10, 10',
+        lineJoin: 'round'
+    }).addTo(routeMap);
+    
+    // Fit map to show both markers
+    const bounds = L.latLngBounds([
+        [pickupLat, pickupLng],
+        [destLat, destLng]
+    ]);
+    routeMap.fitBounds(bounds, { padding: [50, 50] });
+    
+    // Force map to recalculate size
+    setTimeout(function() {
+        routeMap.invalidateSize();
+    }, 100);
 } 
