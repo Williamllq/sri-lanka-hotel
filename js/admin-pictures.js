@@ -865,7 +865,66 @@ function editPicture(pictureId) {
             return;
         }
         
-        // 检查是否已有编辑模态框，如果没有则创建
+        // 检查是否有系统已有的编辑模态框
+        const existingEditModal = document.querySelector('.admin-modal[id^="edit"][id$="Modal"]');
+        
+        // 如果存在系统模态框，尝试使用它
+        if (existingEditModal) {
+            console.log('Using existing modal system for editing');
+            
+            const modalTitle = existingEditModal.querySelector('.modal-title');
+            if (modalTitle) {
+                modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Picture';
+            }
+            
+            const nameInput = existingEditModal.querySelector('input[name="name"]');
+            const categorySelect = existingEditModal.querySelector('select[name="category"]');
+            const descriptionTextarea = existingEditModal.querySelector('textarea[name="description"]');
+            
+            if (nameInput && categorySelect && descriptionTextarea) {
+                nameInput.value = picture.name;
+                categorySelect.value = picture.category;
+                descriptionTextarea.value = picture.description || '';
+                
+                // 设置确认按钮点击事件
+                const saveBtn = existingEditModal.querySelector('button[type="submit"]');
+                if (saveBtn) {
+                    // 移除所有现有的事件监听器
+                    const newSaveBtn = saveBtn.cloneNode(true);
+                    saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+                    
+                    newSaveBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        updatePicture(
+                            picture.id,
+                            nameInput.value.trim(),
+                            categorySelect.value,
+                            descriptionTextarea.value.trim(),
+                            picture.imageUrl
+                        );
+                        
+                        // 关闭模态框
+                        if (typeof closeModal === 'function') {
+                            closeModal(existingEditModal.id);
+                        } else {
+                            existingEditModal.style.display = 'none';
+                        }
+                    });
+                }
+                
+                // 显示模态框
+                if (typeof openModal === 'function') {
+                    openModal(existingEditModal.id);
+                } else {
+                    existingEditModal.style.display = 'block';
+                }
+                
+                return;
+            }
+        }
+        
+        // 如果没有系统模态框，或者无法使用它，则创建自定义模态框
         let editModal = document.getElementById('editPictureModal');
         if (!editModal) {
             // 创建编辑模态框
@@ -874,18 +933,18 @@ function editPicture(pictureId) {
             editModal.className = 'admin-modal';
             
             editModal.innerHTML = `
-                <div class="admin-modal-content" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+                <div class="admin-modal-content" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; background-color: white; border-radius: 6px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
                     <div class="admin-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #e3e3e3; background-color: #f8f9fa;">
                         <h3 class="modal-title" style="margin: 0; font-size: 18px; color: #333;"><i class="fas fa-edit"></i> Edit Picture</h3>
                         <button class="close-modal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #666;">&times;</button>
                     </div>
-                    <form id="editPictureForm" class="admin-form" style="padding: 20px;">
+                    <form id="editPictureForm" class="admin-form" style="padding: 20px; background-color: white;">
                         <input type="hidden" id="editPictureId">
                         
                         <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                             <div class="form-group">
                                 <label for="editPictureName" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Image Name</label>
-                                <input type="text" id="editPictureName" required style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+                                <input type="text" id="editPictureName" required style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background-color: white;">
                             </div>
                             <div class="form-group">
                                 <label for="editCategory" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Category</label>
@@ -901,7 +960,7 @@ function editPicture(pictureId) {
                         
                         <div class="form-group" style="margin-bottom: 15px;">
                             <label for="editPictureDescription" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Description</label>
-                            <textarea id="editPictureDescription" rows="3" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical;"></textarea>
+                            <textarea id="editPictureDescription" rows="3" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical; background-color: white;"></textarea>
                         </div>
                         
                         <div class="form-group" style="margin-bottom: 20px;">
@@ -929,8 +988,8 @@ function editPicture(pictureId) {
             editModal.style.left = '0';
             editModal.style.width = '100%';
             editModal.style.height = '100%';
-            editModal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-            editModal.style.display = 'flex';
+            editModal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            editModal.style.display = 'none';
             editModal.style.justifyContent = 'center';
             editModal.style.alignItems = 'center';
             editModal.style.zIndex = '1000';
@@ -986,7 +1045,7 @@ function editPicture(pictureId) {
                     const reader = new FileReader();
                     reader.onload = function(event) {
                         editFilePreview.innerHTML = `
-                            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background-color: white;">
                                 <img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain; display: block;">
                             </div>
                         `;
@@ -1005,7 +1064,7 @@ function editPicture(pictureId) {
         // 显示当前图片
         const editImagePreview = document.getElementById('editImagePreview');
         editImagePreview.innerHTML = `
-            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px;">
+            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px; background-color: white;">
                 <img src="${picture.imageUrl}" alt="${picture.name}" style="max-width: 100%; max-height: 200px; object-fit: contain; display: block; margin: 0 auto;">
             </div>
         `;
