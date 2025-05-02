@@ -709,10 +709,10 @@ function submitBooking() {
 
 // Save booking data to localStorage
 function saveBookingData(bookingData) {
-    // Get existing bookings or create new array
-    let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
-    bookings.push(bookingData);
-    localStorage.setItem('bookings', JSON.stringify(bookings));
+        // Get existing bookings or create new array
+        let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+        bookings.push(bookingData);
+        localStorage.setItem('bookings', JSON.stringify(bookings));
     console.log('Booking saved to localStorage:', bookingData);
     
     // Also store in user bookings (filtered by email)
@@ -748,7 +748,7 @@ function showMyBookings() {
         } else {
             alert('Please login to view your bookings');
         }
-        return;
+                return;
     }
         
     // Create booking history container if not exists
