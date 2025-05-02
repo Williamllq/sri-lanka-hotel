@@ -5,6 +5,13 @@
 - **GitHub 仓库**: https://github.com/Williamllq/sri-lanka-hotel
 - **部署网站**: https://sri-lanka-stay-explore.netlify.app/
 
+## 网站访问信息
+
+- **用户界面网址**: https://sri-lanka-stay-explore.netlify.app/
+- **管理员界面网址**: https://sri-lanka-stay-explore.netlify.app/admin-dashboard.html
+- **管理员用户名**: admin
+- **管理员密码**: rangabandara2024
+
 ## 分支管理
 
 本项目使用以下分支策略：
@@ -44,6 +51,7 @@
 - 确保每次提交都有清晰的提交信息
 - 在合并前测试您的更改
 - Pull Request应包含相关的功能说明或修复的问题
+- **重要**: 请勿在公共场合分享管理员凭据，此信息仅供项目成员使用
 
 ## 本地开发设置
 

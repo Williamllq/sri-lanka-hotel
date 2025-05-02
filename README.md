@@ -37,6 +37,12 @@ A web application for booking accommodations and transportation services in Sri 
 - **GitHub Repository**: https://github.com/Williamllq/sri-lanka-hotel
 - **Deployed Website**: https://sri-lanka-stay-explore.netlify.app/
 
+### Access Information
+
+- **User Interface**: https://sri-lanka-stay-explore.netlify.app/
+- **Admin Dashboard**: https://sri-lanka-stay-explore.netlify.app/admin-dashboard.html
+- **Note**: Admin credentials are stored in the GITHUB_WORKFLOW.md file for team members only
+
 ### Branch Management
 
 This project uses the following branch strategy:
