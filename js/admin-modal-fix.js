@@ -232,9 +232,18 @@ function fixFileUpload() {
     if (uploadForm) {
         console.log('设置上传表单提交事件');
         
+        // 检查表单是否已经被admin-pictures.js处理过
+        if (uploadForm.getAttribute('data-handler') === 'admin-pictures') {
+            console.log('上传表单已经由admin-pictures.js处理，跳过事件绑定');
+            return;
+        }
+        
         // 移除现有监听器
         const newUploadForm = uploadForm.cloneNode(true);
         uploadForm.parentNode.replaceChild(newUploadForm, uploadForm);
+        
+        // 设置标记，表明此表单已经处理过
+        newUploadForm.setAttribute('data-handler', 'admin-modal-fix');
         
         // 修复新表单内的文件上传部分
         const newPictureFile = newUploadForm.querySelector('#pictureFile');
