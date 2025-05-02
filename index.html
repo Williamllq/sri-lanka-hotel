@@ -93,6 +93,7 @@
     /* Ensure My Bookings nav item aligns with other menu items */
     #myBookingsNavItem {
         display: none; /* Initially hidden, will show on login */
+        vertical-align: middle;
     }
     
     #myBookingsNavItem a {
@@ -103,10 +104,30 @@
         transition: all 0.3s ease;
         padding: 0.5rem 1rem;
         border-radius: 20px;
+        line-height: normal;
+        display: inline-flex;
+        align-items: center;
     }
     
     #myBookingsNavItem a:hover {
         color: var(--accent-color);
+    }
+    
+    /* Ensure consistent alignment in the navigation */
+    .nav-links li {
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .nav-links li a {
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    /* Ensure the nav login button aligns properly */
+    .nav-login-btn {
+        display: inline-flex !important;
+        align-items: center;
     }
     </style>
 </head>

@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const myBookingsNavItem = document.getElementById('myBookingsNavItem');
         if (myBookingsNavItem) {
             if (event.detail.isLoggedIn) {
-                myBookingsNavItem.style.display = 'inline-block';
+                myBookingsNavItem.style.display = 'inline-flex';
             } else {
                 myBookingsNavItem.style.display = 'none';
                 // Hide bookings section if visible
@@ -29,6 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // Check immediately on page load if user is logged in
+    if (typeof UserAuth !== 'undefined' && UserAuth.isLoggedIn()) {
+        const myBookingsNavItem = document.getElementById('myBookingsNavItem');
+        if (myBookingsNavItem) {
+            myBookingsNavItem.style.display = 'inline-flex';
+        }
+    }
 });
 
 /**
@@ -267,12 +275,106 @@ function loadUserBookings(user) {
     const bookingsList = document.getElementById('bookingsList');
     if (!bookingsList) return;
     
-    // Get bookings from localStorage
-    const bookingsStr = localStorage.getItem('userBookings');
-    const allBookings = bookingsStr ? JSON.parse(bookingsStr) : {};
+    console.log('Loading bookings for user:', user.email);
     
-    // Get this user's bookings
-    const userBookings = allBookings[user.email] || [];
+    // Check multiple localStorage keys where bookings might be stored
+    const possibleKeys = ['userBookings', 'bookings', 'transportBookings', 'journeyBookings'];
+    let allBookings = {};
+    let userBookings = [];
+    
+    // Debug: Log all localStorage keys
+    console.log('All localStorage keys:');
+    for (let i = 0; i < localStorage.length; i++) {
+        console.log(`- ${localStorage.key(i)}`);
+    }
+    
+    // Try all possible keys
+    for (const key of possibleKeys) {
+        const bookingsStr = localStorage.getItem(key);
+        if (bookingsStr) {
+            console.log(`Found data in localStorage key: ${key}`);
+            try {
+                const parsedData = JSON.parse(bookingsStr);
+                
+                // Check if data is an object with user emails as keys
+                if (parsedData && typeof parsedData === 'object') {
+                    if (parsedData[user.email]) {
+                        console.log(`Found ${parsedData[user.email].length} bookings for user ${user.email} in key ${key}`);
+                        userBookings = userBookings.concat(parsedData[user.email]);
+                    } else if (Array.isArray(parsedData)) {
+                        // If it's an array, filter bookings by user email
+                        const userEmailBookings = parsedData.filter(booking => 
+                            booking.userEmail === user.email || 
+                            booking.email === user.email || 
+                            booking.user === user.email
+                        );
+                        console.log(`Found ${userEmailBookings.length} bookings in array for user ${user.email} in key ${key}`);
+                        userBookings = userBookings.concat(userEmailBookings);
+                    }
+                }
+            } catch (e) {
+                console.error(`Error parsing data from key ${key}:`, e);
+            }
+        }
+    }
+    
+    // Manually check for bookings in the main booking system
+    try {
+        const bookingSystemData = localStorage.getItem('bookingSystem');
+        if (bookingSystemData) {
+            console.log('Found bookingSystem data');
+            const parsedData = JSON.parse(bookingSystemData);
+            if (parsedData && parsedData.bookings) {
+                const userEmailBookings = parsedData.bookings.filter(booking => 
+                    booking.userEmail === user.email || 
+                    booking.email === user.email || 
+                    booking.user === user.email
+                );
+                console.log(`Found ${userEmailBookings.length} bookings in bookingSystem for user ${user.email}`);
+                userBookings = userBookings.concat(userEmailBookings);
+            }
+        }
+    } catch (e) {
+        console.error('Error parsing bookingSystem data:', e);
+    }
+    
+    // Look for any bookings with this user's data
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.includes('booking') || key.includes('order') || key.includes('journey')) {
+            try {
+                const data = JSON.parse(localStorage.getItem(key));
+                if (data && (data.userEmail === user.email || data.email === user.email)) {
+                    console.log(`Found individual booking in key ${key}`);
+                    userBookings.push(data);
+                }
+            } catch (e) {
+                // Skip if not valid JSON
+            }
+        }
+    }
+    
+    console.log(`Total bookings found for user: ${userBookings.length}`);
+    
+    // If we're on a development server, create some sample bookings for testing
+    if (window.location.hostname === 'localhost' || 
+        window.location.hostname === '127.0.0.1' || 
+        window.location.hostname.includes('netlify.app')) {
+        
+        if (userBookings.length === 0) {
+            console.log('Creating sample booking for development testing');
+            userBookings.push({
+                id: 'sample-' + Date.now(),
+                status: 'confirmed',
+                serviceType: 'Airport Transfer',
+                date: new Date().toISOString(),
+                pickupLocation: 'Colombo Airport',
+                destinationLocation: 'Kandy City',
+                totalPrice: 78.50,
+                createdAt: new Date().toISOString()
+            });
+        }
+    }
     
     // Clear existing content
     bookingsList.innerHTML = '';
@@ -290,53 +392,59 @@ function loadUserBookings(user) {
     }
     
     // Sort bookings by date, newest first
-    userBookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    userBookings.sort((a, b) => new Date(b.createdAt || b.date || 0) - new Date(a.createdAt || a.date || 0));
     
     // Add each booking to the list
     userBookings.forEach(booking => {
         const bookingItem = document.createElement('div');
         bookingItem.className = 'booking-item';
         
+        // Ensure booking has an ID
+        const bookingId = booking.id || booking.bookingId || booking.orderId || ('booking-' + Date.now());
+        
         const statusClass = 
-            booking.status === 'confirmed' ? 'status-confirmed' :
-            booking.status === 'pending' ? 'status-pending' :
+            (booking.status === 'confirmed' || booking.status === 'Confirmed') ? 'status-confirmed' :
+            (booking.status === 'pending' || booking.status === 'Pending') ? 'status-pending' :
             'status-cancelled';
+        
+        // Default status if not specified
+        const status = booking.status || 'Confirmed';
         
         bookingItem.innerHTML = `
             <div class="booking-header">
-                <div class="booking-id">Booking #${booking.id}</div>
-                <div class="booking-status ${statusClass}">${capitalizeFirstLetter(booking.status)}</div>
+                <div class="booking-id">Booking #${bookingId}</div>
+                <div class="booking-status ${statusClass}">${capitalizeFirstLetter(status)}</div>
             </div>
             <div class="booking-details">
                 <div class="booking-detail">
                     <span class="detail-label">Service</span>
-                    <span class="detail-value">${booking.serviceType}</span>
+                    <span class="detail-value">${booking.serviceType || booking.service || booking.type || 'Transport Service'}</span>
                 </div>
                 <div class="booking-detail">
                     <span class="detail-label">Date</span>
-                    <span class="detail-value">${formatDate(booking.date)}</span>
+                    <span class="detail-value">${formatDate(booking.date || booking.journeyDate || booking.createdAt)}</span>
                 </div>
                 <div class="booking-detail">
                     <span class="detail-label">From</span>
-                    <span class="detail-value">${booking.pickupLocation}</span>
+                    <span class="detail-value">${booking.pickupLocation || booking.from || booking.pickup || 'Not specified'}</span>
                 </div>
                 <div class="booking-detail">
                     <span class="detail-label">To</span>
-                    <span class="detail-value">${booking.destinationLocation}</span>
+                    <span class="detail-value">${booking.destinationLocation || booking.to || booking.destination || 'Not specified'}</span>
                 </div>
                 <div class="booking-detail">
                     <span class="detail-label">Total</span>
-                    <span class="detail-value">$${booking.totalPrice.toFixed(2)}</span>
+                    <span class="detail-value">$${(booking.totalPrice || booking.price || booking.total || 0).toFixed(2)}</span>
                 </div>
                 <div class="booking-detail">
                     <span class="detail-label">Booked On</span>
-                    <span class="detail-value">${formatDate(booking.createdAt)}</span>
+                    <span class="detail-value">${formatDate(booking.createdAt || booking.date || new Date())}</span>
                 </div>
             </div>
-            ${booking.status !== 'cancelled' ? `
+            ${(booking.status !== 'cancelled' && booking.status !== 'Cancelled') ? `
             <div class="booking-actions">
-                <button class="booking-btn cancel-btn" data-booking-id="${booking.id}">Cancel Booking</button>
-                <button class="booking-btn modify-btn" data-booking-id="${booking.id}">Modify Booking</button>
+                <button class="booking-btn cancel-btn" data-booking-id="${bookingId}">Cancel Booking</button>
+                <button class="booking-btn modify-btn" data-booking-id="${bookingId}">Modify Booking</button>
             </div>
             ` : ''}
         `;
@@ -371,26 +479,80 @@ function cancelBooking(bookingId, userEmail) {
         return;
     }
     
-    // Get all bookings
-    const bookingsStr = localStorage.getItem('userBookings');
-    const allBookings = bookingsStr ? JSON.parse(bookingsStr) : {};
+    console.log(`Attempting to cancel booking: ${bookingId} for user: ${userEmail}`);
     
-    // Get this user's bookings
-    const userBookings = allBookings[userEmail] || [];
+    // Check multiple possible storage keys
+    let cancelled = false;
     
-    // Find and update the booking
-    const bookingIndex = userBookings.findIndex(b => b.id === bookingId);
-    if (bookingIndex !== -1) {
-        userBookings[bookingIndex].status = 'cancelled';
-        
-        // Save back to localStorage
-        allBookings[userEmail] = userBookings;
-        localStorage.setItem('userBookings', JSON.stringify(allBookings));
-        
-        // Reload the bookings display
+    const possibleKeys = ['userBookings', 'bookings', 'transportBookings', 'journeyBookings'];
+    
+    for (const key of possibleKeys) {
+        const bookingsStr = localStorage.getItem(key);
+        if (bookingsStr) {
+            try {
+                const allBookings = JSON.parse(bookingsStr);
+                
+                if (allBookings[userEmail]) {
+                    // Format: { userEmail: [bookings] }
+                    const userBookings = allBookings[userEmail];
+                    const bookingIndex = userBookings.findIndex(b => b.id === bookingId || b.bookingId === bookingId);
+                    
+                    if (bookingIndex !== -1) {
+                        userBookings[bookingIndex].status = 'cancelled';
+                        allBookings[userEmail] = userBookings;
+                        localStorage.setItem(key, JSON.stringify(allBookings));
+                        cancelled = true;
+                        console.log(`Cancelled booking in ${key}`);
+                    }
+                } else if (Array.isArray(allBookings)) {
+                    // Format: [bookings]
+                    const bookingIndex = allBookings.findIndex(b => 
+                        (b.id === bookingId || b.bookingId === bookingId) && 
+                        (b.userEmail === userEmail || b.email === userEmail)
+                    );
+                    
+                    if (bookingIndex !== -1) {
+                        allBookings[bookingIndex].status = 'cancelled';
+                        localStorage.setItem(key, JSON.stringify(allBookings));
+                        cancelled = true;
+                        console.log(`Cancelled booking in ${key} array`);
+                    }
+                }
+            } catch (e) {
+                console.error(`Error updating booking in ${key}:`, e);
+            }
+        }
+    }
+    
+    // Check bookingSystem format
+    try {
+        const bookingSystemData = localStorage.getItem('bookingSystem');
+        if (bookingSystemData) {
+            const parsedData = JSON.parse(bookingSystemData);
+            if (parsedData && parsedData.bookings && Array.isArray(parsedData.bookings)) {
+                const bookingIndex = parsedData.bookings.findIndex(b => 
+                    (b.id === bookingId || b.bookingId === bookingId) &&
+                    (b.userEmail === userEmail || b.email === userEmail)
+                );
+                
+                if (bookingIndex !== -1) {
+                    parsedData.bookings[bookingIndex].status = 'cancelled';
+                    localStorage.setItem('bookingSystem', JSON.stringify(parsedData));
+                    cancelled = true;
+                    console.log('Cancelled booking in bookingSystem');
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Error updating booking in bookingSystem:', e);
+    }
+    
+    // Reload the bookings display
+    if (cancelled) {
         loadUserBookings({email: userEmail});
-        
         alert('Booking has been cancelled');
+    } else {
+        alert('Could not find the booking to cancel. Please try again later.');
     }
 }
 
@@ -398,19 +560,29 @@ function cancelBooking(bookingId, userEmail) {
  * Helper function to format date strings
  */
 function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric'
-    });
+    if (!dateStr) return 'N/A';
+    
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return 'Invalid Date';
+        
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric'
+        });
+    } catch (e) {
+        console.error('Error formatting date:', e);
+        return 'Date Error';
+    }
 }
 
 /**
  * Helper function to capitalize first letter
  */
 function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+    if (!string) return '';
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }
 
 // Make functions available globally

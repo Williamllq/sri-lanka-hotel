@@ -4,6 +4,13 @@
         max-width: 1140px;
         margin: 0 auto;
     }
+    
+    /* Ensure consistent nav item alignment on large screens */
+    .nav-links li {
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+    }
 }
 
 /* 平板电脑和小型笔记本 (768px - 1199px) */
@@ -24,6 +31,12 @@
 
     .service-features {
         grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Ensure consistent nav alignment on medium screens */
+    .nav-links li {
+        display: inline-flex;
+        align-items: center;
     }
 }
 
@@ -51,12 +64,28 @@
     #myBookingsNavItem {
         text-align: center;
         width: 100%;
+        display: flex;
+        justify-content: center;
     }
     
     #myBookingsNavItem a {
-        display: inline-block;
-        width: 100%;
-        padding: 0.6rem 0;
+        display: inline-flex;
+        width: auto;
+        padding: 0.6rem 1rem;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    /* Consistent alignment for all nav items on mobile */
+    .nav-links li {
+        display: flex;
+        justify-content: center;
+    }
+    
+    .nav-links li a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .hero-content h2 {
@@ -150,6 +179,12 @@
     .booking-actions {
         flex-direction: column;
         gap: 8px;
+    }
+    
+    /* Ensure My Bookings navigation is consistent on very small screens */
+    #myBookingsNavItem a {
+        font-size: 1rem;
+        padding: 0.5rem;
     }
 }
 
