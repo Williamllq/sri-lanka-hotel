@@ -1058,6 +1058,28 @@
             if (storedOrders) {
                 ordersData = JSON.parse(storedOrders);
                 console.log('User bookings found:', ordersData.length);
+                
+                // 过滤掉无效订单数据
+                ordersData = ordersData.filter(order => {
+                    // 排除没有ID的订单
+                    if (!order.id || order.id === 'undefined') {
+                        console.log('过滤掉无效ID订单:', order);
+                        return false;
+                    }
+                    
+                    // 排除显示为undefined且价格为0的订单
+                    if (
+                        (order.totalFare === 0 || order.price === 0) && 
+                        (!order.customerName || order.customerName === 'N/A') && 
+                        (!order.customerEmail || order.customerEmail === 'N/A')
+                    ) {
+                        console.log('过滤掉无效测试订单:', order);
+                        return false;
+                    }
+                    
+                    return true;
+                });
+                
             } else {
                 // Create demo orders if no real bookings
                 ordersData = createDemoOrders();

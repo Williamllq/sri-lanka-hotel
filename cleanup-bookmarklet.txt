@@ -1,0 +1,43 @@
+javascript:(function(){
+  // 从localStorage获取订单数据
+  const storedOrders = localStorage.getItem('bookings');
+  
+  if (!storedOrders) {
+    alert('没有找到订单数据');
+    return;
+  }
+  
+  try {
+    // 解析订单数据
+    let orders = JSON.parse(storedOrders);
+    const originalCount = orders.length;
+    
+    // 过滤掉无效的订单 (undefined ID或显示为undefined的订单)
+    const validOrders = orders.filter(order => {
+      // 删除所有ID为undefined或者显示为undefined的订单
+      if (!order.id || order.id === 'undefined') {
+        return false;
+      }
+      
+      // 过滤掉价格为0的订单
+      if ((order.totalFare === 0 || order.price === 0) && 
+          order.customerName === 'N/A' || !order.customerName) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    // 将有效订单保存回localStorage
+    if (validOrders.length < orders.length) {
+      localStorage.setItem('bookings', JSON.stringify(validOrders));
+      alert(`已成功删除 ${originalCount - validOrders.length} 条无效订单数据，页面将自动刷新`);
+      // 刷新页面
+      window.location.reload();
+    } else {
+      alert('没有找到需要删除的无效订单');
+    }
+  } catch (error) {
+    alert('清理订单数据时出错: ' + error.message);
+  }
+})(); 
