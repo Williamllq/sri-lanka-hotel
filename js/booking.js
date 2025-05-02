@@ -49,72 +49,72 @@ function initConfirmationModal() {
                     <div class="booking-modal-header">
                         <i class="fas fa-check-circle"></i>
                         <h2>Booking Confirmed!</h2>
-                    </div>
+            </div>
                     <div class="booking-modal-body">
                         <div class="booking-details">
                             <div class="booking-id-container">
                                 <span>Booking ID:</span>
                                 <span id="confirmationBookingId" class="booking-id">B12345678</span>
-                            </div>
+            </div>
                             <div class="booking-info-grid">
                                 <div class="booking-info-item">
                                     <i class="fas fa-calendar-day"></i>
                                     <div class="booking-info-content">
                                         <span class="booking-info-label">Date & Time</span>
                                         <span id="confirmationDateTime">2023-08-15 14:30</span>
-                                    </div>
-                                </div>
+            </div>
+        </div>
                                 <div class="booking-info-item">
                                     <i class="fas fa-map-marker-alt"></i>
                                     <div class="booking-info-content">
                                         <span class="booking-info-label">Pickup Location</span>
                                         <span id="confirmationPickup">Colombo International Airport</span>
-                                    </div>
-                                </div>
+            </div>
+            </div>
                                 <div class="booking-info-item">
                                     <i class="fas fa-map-pin"></i>
                                     <div class="booking-info-content">
                                         <span class="booking-info-label">Destination</span>
                                         <span id="confirmationDestination">Kandy City Center</span>
-                                    </div>
-                                </div>
+        </div>
+        </div>
                                 <div class="booking-info-item">
                                     <i class="fas fa-users"></i>
                                     <div class="booking-info-content">
                                         <span class="booking-info-label">Passengers</span>
                                         <span id="confirmationPassengers">2 People</span>
-                                    </div>
-                                </div>
+        </div>
+        </div>
                                 <div class="booking-info-item">
                                     <i class="fas fa-route"></i>
                                     <div class="booking-info-content">
                                         <span class="booking-info-label">Distance</span>
                                         <span id="confirmationDistance">120 km</span>
-                                    </div>
-                                </div>
+            </div>
+                    </div>
                                 <div class="booking-info-item">
                                     <i class="fas fa-dollar-sign"></i>
                                     <div class="booking-info-content">
                                         <span class="booking-info-label">Total Price</span>
                                         <span id="confirmationPrice">$85.00</span>
-                                    </div>
-                                </div>
-                            </div>
+                        </div>
+                        </div>
+                        </div>
                             <div class="booking-notes">
                                 <div id="confirmationNotes">
                                     <p>A confirmation email has been sent to your registered email address.</p>
                                     <p>Please note that 30% deposit is required to secure your booking.</p>
-                                </div>
-                            </div>
                         </div>
+                        </div>
+                    </div>
                     </div>
                     <div class="booking-modal-footer">
                         <button id="viewBookingsBtn" class="btn">View My Bookings</button>
                         <button id="closeModalBtn" class="btn secondary">Close</button>
                     </div>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
         
         // Add modal HTML to the document
         const modalContainer = document.createElement('div');
@@ -125,13 +125,13 @@ function initConfirmationModal() {
         const modalStyles = document.createElement('style');
         modalStyles.textContent = `
             .booking-modal {
-                display: none;
-                position: fixed;
+                    display: none;
+                    position: fixed;
                 z-index: 1000;
-                left: 0;
+                    left: 0;
                 top: 0;
-                width: 100%;
-                height: 100%;
+                    width: 100%;
+                    height: 100%;
                 overflow: auto;
                 background-color: rgba(0, 0, 0, 0.6);
                 backdrop-filter: blur(5px);
@@ -139,11 +139,11 @@ function initConfirmationModal() {
             }
             
             .booking-modal-content {
-                background-color: #fff;
+                    background-color: #fff;
                 margin: 5% auto;
                 padding: 0;
-                width: 90%;
-                max-width: 600px;
+                    width: 90%;
+                    max-width: 600px;
                 border-radius: 12px;
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
                 animation: slideIn 0.4s ease-out;
@@ -179,28 +179,28 @@ function initConfirmationModal() {
                 padding: 15px;
                 border-radius: 8px;
                 margin-bottom: 20px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                 border-left: 4px solid #4CAF50;
             }
             
             .booking-id {
                 font-size: 18px;
-                font-weight: 600;
+                    font-weight: 600;
                 color: #4CAF50;
                 font-family: monospace;
-            }
-            
+                }
+                
             .booking-info-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 15px;
-                margin-bottom: 20px;
-            }
-            
+                    margin-bottom: 20px;
+                }
+                
             .booking-info-item {
-                display: flex;
+                    display: flex;
                 align-items: flex-start;
                 gap: 12px;
                 padding: 10px;
@@ -215,7 +215,7 @@ function initConfirmationModal() {
             }
             
             .booking-info-content {
-                display: flex;
+                    display: flex;
                 flex-direction: column;
             }
             
@@ -338,21 +338,21 @@ function calculateQuote() {
     }
     
     // Get location coordinates if available
-    const pickupInput = document.getElementById('pickupLocation');
-    const destinationInput = document.getElementById('destinationLocation');
-    
+        const pickupInput = document.getElementById('pickupLocation');
+        const destinationInput = document.getElementById('destinationLocation');
+        
     let distance = 0;
     
     // Calculate distance if we have coordinates
-    if (pickupInput && destinationInput && 
-        pickupInput.dataset.lat && pickupInput.dataset.lng && 
-        destinationInput.dataset.lat && destinationInput.dataset.lng) {
-        
-        const pickupLat = parseFloat(pickupInput.dataset.lat);
-        const pickupLng = parseFloat(pickupInput.dataset.lng);
-        const destLat = parseFloat(destinationInput.dataset.lat);
-        const destLng = parseFloat(destinationInput.dataset.lng);
-        
+            if (pickupInput && destinationInput && 
+                pickupInput.dataset.lat && pickupInput.dataset.lng &&
+                destinationInput.dataset.lat && destinationInput.dataset.lng) {
+                
+                const pickupLat = parseFloat(pickupInput.dataset.lat);
+                const pickupLng = parseFloat(pickupInput.dataset.lng);
+                const destLat = parseFloat(destinationInput.dataset.lat);
+                const destLng = parseFloat(destinationInput.dataset.lng);
+                
         // We'll get the actual distance from the route data
         // For now, use Haversine formula as an initial estimate
         distance = calculateDistance(pickupLat, pickupLng, destLat, destLng);
@@ -458,12 +458,12 @@ function calculateFare(distance, serviceType) {
  */
 function displayQuote(distance, fare, deposit) {
     // Get the quote container
-    const quoteContainer = document.getElementById('quoteContainer');
-    if (!quoteContainer) {
+        const quoteContainer = document.getElementById('quoteContainer');
+        if (!quoteContainer) {
         console.error('Quote container not found');
-        return;
-    }
-    
+            return;
+        }
+        
     // Update the quote details
     updateQuoteDisplay(distance, fare, deposit);
     
@@ -592,7 +592,7 @@ function processBooking() {
         specialRequirements: specialRequirements,
         distance: distance,
         totalPrice: fare,
-        status: 'confirmed',
+        status: 'pending',
         createdAt: new Date().toISOString()
     };
     
@@ -640,6 +640,16 @@ function showBookingConfirmation(booking) {
     document.getElementById('confirmationDistance').textContent = booking.distance + ' km';
     document.getElementById('confirmationPrice').textContent = '$' + booking.totalPrice.toFixed(2);
     
+    // 更新确认信息，表明订单已提交但需要确认
+    const confirmationNotes = document.getElementById('confirmationNotes');
+    if (confirmationNotes) {
+        confirmationNotes.innerHTML = `
+            <p>Your booking request has been <strong>submitted</strong> and is awaiting confirmation.</p>
+            <p>Our team will review and confirm your booking shortly.</p>
+            <p>Please note that 30% deposit is required to secure your booking once confirmed.</p>
+        `;
+    }
+    
     // Show the booking confirmation modal
     modal.style.display = "block";
 }
@@ -663,7 +673,7 @@ function sendBookingConfirmation(booking) {
     // Prepare email data for the API call
     const emailData = {
         to: booking.userEmail,
-        subject: 'Your Sri Lanka Stay & Explore Booking Confirmation',
+        subject: 'Your Sri Lanka Stay & Explore Booking Request',
         bookingId: booking.id,
         userName: booking.userName,
         serviceType: getServiceTypeLabel(booking.serviceType),
@@ -699,8 +709,9 @@ function sendBookingConfirmation(booking) {
         const confirmationNotes = document.getElementById('confirmationNotes');
         if (confirmationNotes) {
             confirmationNotes.innerHTML = `
-                <p>A confirmation email has been sent to <strong>${booking.userEmail}</strong>.</p>
-                <p>Please note that 30% deposit is required to secure your booking.</p>
+                <p>A booking confirmation email has been sent to <strong>${booking.userEmail}</strong>.</p>
+                <p>Your booking request is awaiting approval by our team.</p>
+                <p>Please note that 30% deposit is required to secure your booking once confirmed.</p>
             `;
         }
     })
@@ -712,8 +723,8 @@ function sendBookingConfirmation(booking) {
         if (confirmationNotes) {
             confirmationNotes.innerHTML = `
                 <p>We couldn't send the confirmation email at this time.</p>
-                <p>Please save your booking ID <strong>${booking.id}</strong> for reference.</p>
-                <p>Please note that 30% deposit is required to secure your booking.</p>
+                <p>Your booking request (ID: <strong>${booking.id}</strong>) has been submitted and is awaiting approval.</p>
+                <p>Please note that 30% deposit is required to secure your booking once confirmed.</p>
             `;
         }
     });
@@ -785,15 +796,16 @@ function saveBooking(booking) {
         const adminBooking = {
             ...booking,
             // 添加用于管理员界面的字段
-            timestamp: booking.createdAt,
-            customerName: booking.userName,
-            customerEmail: booking.userEmail,
-            fromLocation: booking.pickupLocation,
-            toLocation: booking.destinationLocation,
-            totalFare: booking.totalPrice,
-            depositAmount: booking.totalPrice * 0.3,
-            userId: booking.userEmail,
-            vehicleType: 'Standard'
+            timestamp: booking.createdAt || new Date().toISOString(),
+            customerName: booking.userName || 'N/A',
+            customerEmail: booking.userEmail || 'N/A',
+            fromLocation: booking.pickupLocation || 'N/A',
+            toLocation: booking.destinationLocation || 'N/A',
+            totalFare: booking.totalPrice || 0,
+            depositAmount: (booking.totalPrice * 0.3) || 0,
+            userId: booking.userEmail || 'guest',
+            vehicleType: 'Standard',
+            status: booking.status || 'pending' // 默认为pending而不是confirmed
         };
         
         // 获取现有bookings数组
@@ -843,8 +855,8 @@ function resetBookingForm() {
     }
     
     // Hide quote container if visible
-    const quoteContainer = document.getElementById('quoteContainer');
-    if (quoteContainer) {
+        const quoteContainer = document.getElementById('quoteContainer');
+        if (quoteContainer) {
         quoteContainer.style.display = 'none';
     }
     
@@ -1023,14 +1035,14 @@ function synchronizeBookings() {
                 depositAmount: (booking.totalPrice * 0.3) || 0,
                 userId: booking.userEmail || 'guest',
                 vehicleType: 'Standard',
-                status: booking.status || 'confirmed'
+                status: booking.status || 'pending' // 默认为pending而不是confirmed
             };
         }).filter(Boolean); // 移除null项
         
         // 合并现有和新的预订
         const mergedBookings = [...existingBookings, ...adminBookings];
-        
-        // 保存到localStorage
+    
+    // 保存到localStorage
         localStorage.setItem('bookings', JSON.stringify(mergedBookings));
         console.log('Synchronized bookings for admin panel. Total bookings:', mergedBookings.length);
         

@@ -1180,7 +1180,7 @@
                                 toLocation: booking.destinationLocation || 'N/A',
                                 totalFare: booking.totalPrice || 0,
                                 depositAmount: (booking.totalPrice * 0.3) || 0,
-                                status: booking.status || 'confirmed',
+                                status: booking.status || 'pending',
                                 vehicleType: 'Standard',
                                 specialRequests: booking.specialRequirements || '',
                                 userId: booking.userEmail || 'guest'
@@ -1217,7 +1217,7 @@
                                     toLocation: booking.destinationLocation || 'N/A',
                                     totalFare: booking.totalPrice || 0,
                                     depositAmount: (booking.totalPrice * 0.3) || 0,
-                                    status: booking.status || 'confirmed',
+                                    status: booking.status || 'pending',
                                     vehicleType: 'Standard',
                                     specialRequests: booking.specialRequirements || '',
                                     userId: booking.userEmail || 'guest'
@@ -1402,7 +1402,7 @@
                     toLocation: 'Galle',
                     totalFare: 175.00,
                     depositAmount: 52.50,
-                    status: 'confirmed',
+                    status: 'pending',
                     vehicleType: 'SUV',
                     specialRequests: 'Extra luggage space needed',
                     userId: 'sarah.johnson@example.com'
@@ -1967,7 +1967,7 @@
                             toLocation: booking.destinationLocation || 'N/A',
                             totalFare: booking.totalPrice || 0,
                             depositAmount: (booking.totalPrice * 0.3) || 0,
-                            status: booking.status || 'confirmed',
+                            status: booking.status || 'pending',
                             vehicleType: 'Standard',
                             specialRequests: booking.specialRequirements || '',
                             userId: booking.userEmail || 'guest'
