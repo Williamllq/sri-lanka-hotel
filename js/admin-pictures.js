@@ -11,7 +11,70 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化轮播图管理
     initCarouselManagement();
+    
+    // Add CSS fixes for picture display
+    addPictureStyles();
 });
+
+/**
+ * 添加图片样式修复
+ */
+function addPictureStyles() {
+    // Create a style element
+    const style = document.createElement('style');
+    
+    // Add CSS to fix image display issues
+    style.textContent = `
+        .picture-image {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+        }
+        
+        .picture-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .picture-card:hover .picture-image img {
+            transform: scale(1.05);
+        }
+        
+        .select-picture-image {
+            width: 100%;
+            height: 150px;
+            overflow: hidden;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .select-picture-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .carousel-item-image {
+            width: 120px;
+            height: 80px;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        .carousel-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    `;
+    
+    // Append the style element to the head
+    document.head.appendChild(style);
+}
 
 /**
  * 初始化图片管理功能
@@ -79,6 +142,13 @@ function loadPictures(category = 'all') {
             pictures = [];
         }
         
+        // 如果没有图片，创建示例图片（仅在Netlify上运行时）
+        if (pictures.length === 0 && window.location.href.includes('netlify')) {
+            pictures = createSamplePictures();
+            // 保存样本图片到localStorage
+            localStorage.setItem('adminPictures', JSON.stringify(pictures));
+        }
+        
         // 如果指定了分类，进行筛选
         if (category !== 'all') {
             pictures = pictures.filter(pic => pic.category === category);
@@ -90,6 +160,47 @@ function loadPictures(category = 'all') {
         console.error('加载图片时出错:', e);
         return [];
     }
+}
+
+/**
+ * 创建示例图片
+ * @returns {Array} 示例图片数组
+ */
+function createSamplePictures() {
+    return [
+        {
+            id: 'sample_pic_1',
+            name: 'Scenic Beach',
+            category: 'beach',
+            description: 'Beautiful beach in Sri Lanka',
+            imageUrl: 'https://images.unsplash.com/photo-1540202404-a2f29016b523?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            uploadDate: new Date().toISOString()
+        },
+        {
+            id: 'sample_pic_2',
+            name: 'Sri Lankan Culture',
+            category: 'culture',
+            description: 'Traditional cultural dance',
+            imageUrl: 'https://images.unsplash.com/photo-1625468228209-d76af1cc7f40?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            uploadDate: new Date().toISOString()
+        },
+        {
+            id: 'sample_pic_3',
+            name: 'Wildlife Safari',
+            category: 'wildlife',
+            description: 'Elephants in Yala National Park',
+            imageUrl: 'https://images.unsplash.com/photo-1560953222-1f5c46da5697?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            uploadDate: new Date().toISOString()
+        },
+        {
+            id: 'sample_pic_4',
+            name: 'Mountain Scenery',
+            category: 'scenery',
+            description: 'Beautiful mountains in central Sri Lanka',
+            imageUrl: 'https://images.unsplash.com/photo-1586005126644-7358e98bf2b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            uploadDate: new Date().toISOString()
+        }
+    ];
 }
 
 /**
@@ -207,9 +318,26 @@ function fixPictureUploadForm() {
             console.log('File selected for upload');
             const file = e.target.files[0];
             if (file) {
+                // Check if file is an image
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file (JPEG, PNG, GIF, etc.)');
+                    return;
+                }
+                
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Image is too large! Please select an image under 5MB.');
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    filePreview.innerHTML = `<img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 300px;">`;
+                    // Create preview with proper aspect ratio
+                    filePreview.innerHTML = `
+                        <div style="max-width: 100%; max-height: 300px; overflow: hidden; text-align: center; border-radius: 4px;">
+                            <img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                        </div>
+                    `;
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -248,16 +376,16 @@ function fixPictureUploadForm() {
             return;
         }
         
-        // 读取图片文件
-        const reader = new FileReader();
-        reader.onload = function(event) {
+        // 读取图片文件并处理图片
+        const file = pictureFile.files[0];
+        processImageFile(file, function(processedImageUrl) {
             // 创建图片对象
             const newPicture = {
                 id: 'pic_' + Date.now(),
                 name: pictureName.value.trim(),
                 category: category.value,
                 description: description.value.trim(),
-                imageUrl: event.target.result,
+                imageUrl: processedImageUrl,
                 uploadDate: new Date().toISOString()
             };
             
@@ -285,10 +413,54 @@ function fixPictureUploadForm() {
             `;
             
             alert('Image uploaded successfully!');
-        };
-        
-        reader.readAsDataURL(pictureFile.files[0]);
+        });
     });
+}
+
+/**
+ * 处理图片文件以确保正确显示
+ * @param {File} file - 图片文件
+ * @param {Function} callback - 回调函数，参数为处理后的图片URL
+ */
+function processImageFile(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            // 创建canvas元素
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置最大尺寸（保持宽高比）
+            const MAX_WIDTH = 1200;
+            const MAX_HEIGHT = 800;
+            
+            let width = img.width;
+            let height = img.height;
+            
+            // 如果图片大于最大尺寸，按比例缩小
+            if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+                width = width * ratio;
+                height = height * ratio;
+            }
+            
+            // 设置canvas尺寸
+            canvas.width = width;
+            canvas.height = height;
+            
+            // 绘制图片（保持宽高比）
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // 获取处理后的图片URL（JPEG格式，保持较好的质量和文件大小）
+            const processedImageUrl = canvas.toDataURL('image/jpeg', 0.92);
+            
+            // 调用回调函数返回处理后的图片URL
+            callback(processedImageUrl);
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
 }
 
 /**
