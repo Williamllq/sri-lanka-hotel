@@ -1,43 +1,34 @@
-const stripe = require('stripe')('YOUR_STRIPE_SECRET_KEY');
-const express = require('express');
-const cors = require('cors');
 const nodemailer = require('nodemailer');
-const bodyParser = require('body-parser');
-const path = require('path');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '.')));
-
-// Configure Nodemailer
-const transporter = nodemailer.createTransport({
-    service: 'gmail',  // Change this to your preferred email service
-    auth: {
-        user: process.env.EMAIL_USER || 'your-email@gmail.com', // Set actual email in environment variable
-        pass: process.env.EMAIL_PASS || 'your-app-password'     // Set actual password in environment variable
+exports.handler = async (event, context) => {
+    // Set CORS headers
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    };
+    
+    // Handle OPTIONS request (preflight CORS request)
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 204, // No content
+            headers: headers,
+            body: ''
+        };
     }
-});
-
-app.post('/create-payment-intent', async (req, res) => {
-    try {
-        const { amount, currency } = req.body;
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount,
-            currency
-        });
-        res.json({ clientSecret: paymentIntent.client_secret });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    
+    // Only allow POST requests for actual operations
+    if (event.httpMethod !== 'POST') {
+        return {
+            statusCode: 405,
+            headers: headers,
+            body: JSON.stringify({ error: 'Method Not Allowed' })
+        };
     }
-});
 
-// API Endpoint for sending booking confirmation emails
-app.post('/api/send-booking-confirmation', async (req, res) => {
     try {
+        // Parse request body
+        const data = JSON.parse(event.body);
         const {
             to,
             subject,
@@ -51,11 +42,25 @@ app.post('/api/send-booking-confirmation', async (req, res) => {
             distance,
             totalPrice,
             deposit
-        } = req.body;
+        } = data;
 
+        // Validate required fields
         if (!to || !bookingId) {
-            return res.status(400).json({ error: 'Missing required fields' });
+            return {
+                statusCode: 400,
+                headers: headers,
+                body: JSON.stringify({ error: 'Missing required fields' })
+            };
         }
+
+        // Configure Nodemailer transporter
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER || 'your-email@gmail.com',
+                pass: process.env.EMAIL_PASS || 'your-app-password'
+            }
+        });
 
         // Create email HTML content
         const htmlContent = `
@@ -147,14 +152,19 @@ app.post('/api/send-booking-confirmation', async (req, res) => {
         await transporter.sendMail(mailOptions);
 
         // Return success response
-        res.status(200).json({ success: true, message: 'Confirmation email sent successfully' });
+        return {
+            statusCode: 200,
+            headers: headers,
+            body: JSON.stringify({ success: true, message: 'Confirmation email sent successfully' })
+        };
     } catch (error) {
         console.error('Error sending email:', error);
-        res.status(500).json({ error: 'Failed to send confirmation email', details: error.message });
+        
+        // Return error response
+        return {
+            statusCode: 500,
+            headers: headers,
+            body: JSON.stringify({ error: 'Failed to send confirmation email', details: error.message })
+        };
     }
-});
-
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-}); 
+}; 

@@ -1,0 +1,9 @@
+{
+  "name": "sri-lanka-stay-explore-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for Sri Lanka Stay & Explore",
+  "main": "send-booking-confirmation.js",
+  "dependencies": {
+    "nodemailer": "^6.9.9"
+  }
+} 

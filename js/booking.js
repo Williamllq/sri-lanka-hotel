@@ -5,6 +5,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize booking functionality
     initBookingSystem();
+    
+    // Initialize the confirmation modal
+    initConfirmationModal();
 });
 
 /**
@@ -26,6 +29,287 @@ function initBookingSystem() {
         bookNowBtn.addEventListener('click', function(e) {
             e.preventDefault();
             processBooking();
+        });
+    }
+}
+
+/**
+ * Initialize the booking confirmation modal
+ */
+function initConfirmationModal() {
+    // Create modal container if it doesn't exist
+    if (!document.getElementById('bookingConfirmationModal')) {
+        const modalHTML = `
+            <div id="bookingConfirmationModal" class="booking-modal">
+                <div class="booking-modal-content">
+                    <span class="booking-modal-close">&times;</span>
+                    <div class="booking-modal-header">
+                        <i class="fas fa-check-circle"></i>
+                        <h2>Booking Confirmed!</h2>
+                    </div>
+                    <div class="booking-modal-body">
+                        <div class="booking-details">
+                            <div class="booking-id-container">
+                                <span>Booking ID:</span>
+                                <span id="confirmationBookingId" class="booking-id">B12345678</span>
+                            </div>
+                            <div class="booking-info-grid">
+                                <div class="booking-info-item">
+                                    <i class="fas fa-calendar-day"></i>
+                                    <div class="booking-info-content">
+                                        <span class="booking-info-label">Date & Time</span>
+                                        <span id="confirmationDateTime">2023-08-15 14:30</span>
+                                    </div>
+                                </div>
+                                <div class="booking-info-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <div class="booking-info-content">
+                                        <span class="booking-info-label">Pickup Location</span>
+                                        <span id="confirmationPickup">Colombo International Airport</span>
+                                    </div>
+                                </div>
+                                <div class="booking-info-item">
+                                    <i class="fas fa-map-pin"></i>
+                                    <div class="booking-info-content">
+                                        <span class="booking-info-label">Destination</span>
+                                        <span id="confirmationDestination">Kandy City Center</span>
+                                    </div>
+                                </div>
+                                <div class="booking-info-item">
+                                    <i class="fas fa-users"></i>
+                                    <div class="booking-info-content">
+                                        <span class="booking-info-label">Passengers</span>
+                                        <span id="confirmationPassengers">2 People</span>
+                                    </div>
+                                </div>
+                                <div class="booking-info-item">
+                                    <i class="fas fa-route"></i>
+                                    <div class="booking-info-content">
+                                        <span class="booking-info-label">Distance</span>
+                                        <span id="confirmationDistance">120 km</span>
+                                    </div>
+                                </div>
+                                <div class="booking-info-item">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <div class="booking-info-content">
+                                        <span class="booking-info-label">Total Price</span>
+                                        <span id="confirmationPrice">$85.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="booking-notes">
+                                <div id="confirmationNotes">
+                                    <p>A confirmation email has been sent to your registered email address.</p>
+                                    <p>Please note that 30% deposit is required to secure your booking.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="booking-modal-footer">
+                        <button id="viewBookingsBtn" class="btn">View My Bookings</button>
+                        <button id="closeModalBtn" class="btn secondary">Close</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add modal HTML to the document
+        const modalContainer = document.createElement('div');
+        modalContainer.innerHTML = modalHTML;
+        document.body.appendChild(modalContainer);
+        
+        // Add modal styles
+        const modalStyles = document.createElement('style');
+        modalStyles.textContent = `
+            .booking-modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(5px);
+                animation: fadeIn 0.3s ease-in-out;
+            }
+            
+            .booking-modal-content {
+                background-color: #fff;
+                margin: 5% auto;
+                padding: 0;
+                width: 90%;
+                max-width: 600px;
+                border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                animation: slideIn 0.4s ease-out;
+                overflow: hidden;
+            }
+            
+            .booking-modal-header {
+                background-color: #4CAF50;
+                color: white;
+                padding: 25px 20px;
+                text-align: center;
+                border-radius: 12px 12px 0 0;
+            }
+            
+            .booking-modal-header i {
+                font-size: 48px;
+                margin-bottom: 10px;
+                animation: bounceIn 0.6s;
+            }
+            
+            .booking-modal-header h2 {
+                margin: 0;
+                font-size: 28px;
+                font-weight: 600;
+            }
+            
+            .booking-modal-body {
+                padding: 25px;
+            }
+            
+            .booking-id-container {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-left: 4px solid #4CAF50;
+            }
+            
+            .booking-id {
+                font-size: 18px;
+                font-weight: 600;
+                color: #4CAF50;
+                font-family: monospace;
+            }
+            
+            .booking-info-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .booking-info-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 10px;
+                border-radius: 8px;
+                background-color: #f8f9fa;
+            }
+            
+            .booking-info-item i {
+                color: #4a6fa5;
+                font-size: 20px;
+                margin-top: 2px;
+            }
+            
+            .booking-info-content {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .booking-info-label {
+                font-size: 14px;
+                color: #666;
+                margin-bottom: 2px;
+            }
+            
+            .booking-notes {
+                background-color: #e9f7ef;
+                border-radius: 8px;
+                padding: 15px;
+                margin-top: 15px;
+                border-left: 4px solid #4CAF50;
+                font-size: 14px;
+                color: #2d3748;
+            }
+            
+            .booking-notes p {
+                margin: 5px 0;
+            }
+            
+            .booking-modal-footer {
+                padding: 15px 25px 25px;
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+            }
+            
+            .booking-modal-close {
+                position: absolute;
+                right: 20px;
+                top: 15px;
+                color: white;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+                z-index: 10;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes slideIn {
+                from { transform: translateY(-50px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            
+            @keyframes bounceIn {
+                0% { transform: scale(0); }
+                50% { transform: scale(1.2); }
+                100% { transform: scale(1); }
+            }
+            
+            @media (max-width: 768px) {
+                .booking-modal-content {
+                    width: 95%;
+                    margin: 10% auto;
+                }
+                
+                .booking-info-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        `;
+        document.head.appendChild(modalStyles);
+        
+        // Add event listeners for the modal
+        const modal = document.getElementById('bookingConfirmationModal');
+        const closeBtn = document.querySelector('.booking-modal-close');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const viewBookingsBtn = document.getElementById('viewBookingsBtn');
+        
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = "none";
+        });
+        
+        closeModalBtn.addEventListener('click', function() {
+            modal.style.display = "none";
+        });
+        
+        viewBookingsBtn.addEventListener('click', function() {
+            modal.style.display = "none";
+            if (typeof showMyBookings === 'function') {
+                showMyBookings();
+            } else {
+                console.error('showMyBookings function not found');
+            }
+        });
+        
+        window.addEventListener('click', function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
         });
     }
 }
@@ -314,11 +598,138 @@ function processBooking() {
     // Save booking to multiple locations for redundancy
     saveBooking(booking);
     
-    // Show confirmation
-    alert('Booking confirmed! Your booking ID is: ' + booking.id);
+    // Show confirmation modal instead of alert
+    showBookingConfirmation(booking);
+    
+    // Send confirmation email
+    sendBookingConfirmation(booking);
     
     // Reset form
     resetBookingForm();
+}
+
+/**
+ * Show the booking confirmation modal with booking details
+ */
+function showBookingConfirmation(booking) {
+    const modal = document.getElementById('bookingConfirmationModal');
+    if (!modal) {
+        console.error('Booking confirmation modal not found');
+        return;
+    }
+    
+    // Format date and time for display
+    const dateObj = new Date(booking.date + 'T' + booking.time);
+    const formattedDateTime = dateObj.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    // Update modal content with booking details
+    document.getElementById('confirmationBookingId').textContent = booking.id;
+    document.getElementById('confirmationDateTime').textContent = formattedDateTime;
+    document.getElementById('confirmationPickup').textContent = booking.pickupLocation;
+    document.getElementById('confirmationDestination').textContent = booking.destinationLocation;
+    document.getElementById('confirmationPassengers').textContent = booking.passengerCount + (booking.passengerCount === '1' ? ' Person' : ' People');
+    document.getElementById('confirmationDistance').textContent = booking.distance + ' km';
+    document.getElementById('confirmationPrice').textContent = '$' + booking.totalPrice.toFixed(2);
+    
+    // Show the booking confirmation modal
+    modal.style.display = "block";
+}
+
+/**
+ * Send booking confirmation email to the user
+ */
+function sendBookingConfirmation(booking) {
+    console.log('Sending booking confirmation email to:', booking.userEmail);
+    
+    // Format date and time for display
+    const dateObj = new Date(booking.date + 'T' + booking.time);
+    const formattedDateTime = dateObj.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    // Prepare email data for the API call
+    const emailData = {
+        to: booking.userEmail,
+        subject: 'Your Sri Lanka Stay & Explore Booking Confirmation',
+        bookingId: booking.id,
+        userName: booking.userName,
+        serviceType: getServiceTypeLabel(booking.serviceType),
+        date: formattedDateTime,
+        pickupLocation: booking.pickupLocation,
+        destinationLocation: booking.destinationLocation,
+        passengerCount: booking.passengerCount,
+        distance: booking.distance,
+        totalPrice: booking.totalPrice.toFixed(2),
+        deposit: (booking.totalPrice * 0.3).toFixed(2)
+    };
+    
+    // Log the email data
+    console.log('Email data:', emailData);
+    
+    // Call the API to send the email confirmation
+    // We determine the API URL based on the environment
+    const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:3000/api/send-booking-confirmation'
+        : '/api/send-booking-confirmation';
+    
+    // Make the API call
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Email sent successfully:', data);
+        
+        // Update the confirmation modal to indicate email was sent
+        const confirmationNotes = document.getElementById('confirmationNotes');
+        if (confirmationNotes) {
+            confirmationNotes.innerHTML = `
+                <p>A confirmation email has been sent to <strong>${booking.userEmail}</strong>.</p>
+                <p>Please note that 30% deposit is required to secure your booking.</p>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error sending email:', error);
+        
+        // Update the confirmation modal to indicate there was an issue
+        const confirmationNotes = document.getElementById('confirmationNotes');
+        if (confirmationNotes) {
+            confirmationNotes.innerHTML = `
+                <p>We couldn't send the confirmation email at this time.</p>
+                <p>Please save your booking ID <strong>${booking.id}</strong> for reference.</p>
+                <p>Please note that 30% deposit is required to secure your booking.</p>
+            `;
+        }
+    });
+}
+
+/**
+ * Get a user-friendly label for service type
+ */
+function getServiceTypeLabel(serviceType) {
+    switch(serviceType) {
+        case 'airport':
+            return 'Airport Transfer';
+        case 'city':
+            return 'City Tour';
+        case 'custom':
+            return 'Custom Journey';
+        default:
+            return serviceType;
+    }
 }
 
 /**
