@@ -33,6 +33,14 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.error('Quote container not found');
     }
+
+    console.log('booking.js: DOM fully loaded, initializing transport settings');
+    
+    // 预先加载运输设置，让报价计算器准备好
+    initializeTransportSettings();
+    
+    // 显示预算信息和测试
+    displayRateInfo();
 });
 
 // Calculate the quote based on selected locations
@@ -181,19 +189,42 @@ function calculateFare(distance, vehicleType, journeyDate, journeyTime) {
     let transportSettings;
     
     try {
-        // Get settings from localStorage with better debugging
+        // 尝试从多个存储位置获取设置
+        console.log('Attempting to retrieve transport settings...');
+        
+        // 从localStorage获取设置
         const transportSettingsStr = localStorage.getItem('transportSettings');
         console.log('Transport settings from localStorage (raw):', transportSettingsStr);
         
-        if (!transportSettingsStr) {
-            console.warn('No transport settings found in localStorage, using defaults');
+        // 尝试从sessionStorage获取设置（作为备份）
+        const sessionSettingsStr = sessionStorage.getItem('transportSettings');
+        console.log('Transport settings from sessionStorage (backup):', sessionSettingsStr);
+        
+        // 调试输出所有localStorage内容
+        console.log('All localStorage keys:', Object.keys(localStorage));
+        
+        // 决定使用哪个数据源
+        let dataSource = null;
+        let sourceType = '';
+        
+        if (transportSettingsStr) {
+            dataSource = transportSettingsStr;
+            sourceType = 'localStorage';
+        } else if (sessionSettingsStr) {
+            dataSource = sessionSettingsStr;
+            sourceType = 'sessionStorage';
+        }
+        
+        if (!dataSource) {
+            console.warn('No transport settings found in any storage, using defaults');
             transportSettings = JSON.parse(JSON.stringify(defaultSettings)); // Deep clone default settings
         } else {
             try {
-                transportSettings = JSON.parse(transportSettingsStr);
+                console.log(`Using transport settings from ${sourceType}`);
+                transportSettings = JSON.parse(dataSource);
                 console.log('Parsed transport settings:', transportSettings);
                 
-                // Verify the parsed object has all necessary fields
+                // 验证解析后的对象是否有必要的字段
                 if (typeof transportSettings !== 'object' || 
                     typeof transportSettings.baseFare !== 'number' || 
                     typeof transportSettings.ratePerKm !== 'number' || 
@@ -202,6 +233,8 @@ function calculateFare(distance, vehicleType, journeyDate, journeyTime) {
                     
                     console.warn('Transport settings invalid or missing required fields, using defaults');
                     transportSettings = JSON.parse(JSON.stringify(defaultSettings));
+                } else {
+                    console.log('Successfully loaded transport settings with baseFare:', transportSettings.baseFare);
                 }
             } catch (parseError) {
                 console.error('Error parsing transport settings JSON:', parseError);
@@ -209,7 +242,7 @@ function calculateFare(distance, vehicleType, journeyDate, journeyTime) {
             }
         }
     } catch (error) {
-        console.error('Error accessing localStorage:', error);
+        console.error('Error accessing storage:', error);
         transportSettings = JSON.parse(JSON.stringify(defaultSettings));
     }
     
@@ -956,5 +989,95 @@ function checkLocationsAndEnableQuote() {
             bookBtn.classList.remove('active');
             bookBtn.disabled = true;
         }
+    }
+}
+
+// 初始化运输设置
+function initializeTransportSettings() {
+    try {
+        // 尝试从多个存储位置获取设置
+        const transportSettingsStr = localStorage.getItem('transportSettings');
+        const sessionSettingsStr = sessionStorage.getItem('transportSettings');
+        
+        // 如果没有设置，使用默认设置
+        if (!transportSettingsStr && !sessionSettingsStr) {
+            console.warn('initializeTransportSettings: No settings found, using defaults');
+            return; // 使用默认设置
+        }
+        
+        // 优先使用localStorage，备用sessionStorage
+        const dataSource = transportSettingsStr || sessionSettingsStr;
+        const sourceType = transportSettingsStr ? 'localStorage' : 'sessionStorage';
+        
+        console.log(`initializeTransportSettings: Found settings in ${sourceType}`);
+        
+        // 解析设置
+        const parsedSettings = JSON.parse(dataSource);
+        console.log('initializeTransportSettings: Parsed settings:', parsedSettings);
+        
+        // 下次使用时会自动使用
+    } catch (error) {
+        console.error('initializeTransportSettings: Error initializing settings:', error);
+    }
+}
+
+// 显示费率信息
+function displayRateInfo() {
+    try {
+        // 获取报价容器
+        const quoteContainer = document.getElementById('quoteContainer');
+        if (!quoteContainer) {
+            console.warn('displayRateInfo: Quote container not found');
+            return;
+        }
+        
+        // 获取运输设置
+        let transportSettings;
+        try {
+            const transportSettingsStr = localStorage.getItem('transportSettings');
+            if (transportSettingsStr) {
+                transportSettings = JSON.parse(transportSettingsStr);
+            } else {
+                const sessionSettingsStr = sessionStorage.getItem('transportSettings');
+                if (sessionSettingsStr) {
+                    transportSettings = JSON.parse(sessionSettingsStr);
+                }
+            }
+        } catch (parseError) {
+            console.error('displayRateInfo: Error parsing settings:', parseError);
+        }
+        
+        // 如果没有设置或解析失败，使用默认值
+        if (!transportSettings) {
+            transportSettings = {
+                baseFare: 30,
+                ratePerKm: 0.5
+            };
+        }
+        
+        // 创建费率信息HTML
+        const rateInfoHTML = `
+            <div style="font-size: 0.85em; color: #666; margin-top: 5px;">
+                <div>Current rates: Base fare $${transportSettings.baseFare}, $${transportSettings.ratePerKm}/km</div>
+            </div>
+        `;
+        
+        // 添加到报价容器
+        const detailsDiv = quoteContainer.querySelector('.quote-details');
+        if (detailsDiv) {
+            // 移除任何现有的费率信息
+            const existingRateInfo = detailsDiv.querySelector('.rate-info');
+            if (existingRateInfo) {
+                existingRateInfo.remove();
+            }
+            
+            // 添加新的费率信息
+            const rateInfoDiv = document.createElement('div');
+            rateInfoDiv.className = 'rate-info';
+            rateInfoDiv.innerHTML = rateInfoHTML;
+            detailsDiv.appendChild(rateInfoDiv);
+        }
+    } catch (error) {
+        console.error('displayRateInfo: Error displaying rate info:', error);
     }
 }
