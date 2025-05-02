@@ -404,3 +404,62 @@ function resetBookingForm() {
         routeMapContainer.style.display = 'none';
     }
 }
+
+/**
+ * Handle mobile layout optimization for the route map
+ * This function will move the route map to appear below the quote on mobile devices
+ */
+function setupMobileRouteMap() {
+    // Check if it's mobile view (screen width < 768px)
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    
+    const routeMapContainer = document.getElementById('routeMapContainer');
+    const quoteContainer = document.getElementById('quoteContainer');
+    const bookingForm = document.querySelector('.booking-form');
+    const transportInfo = document.querySelector('.transport-info');
+    
+    if (!routeMapContainer || !quoteContainer || !bookingForm || !transportInfo) {
+        return;
+    }
+    
+    if (isMobile) {
+        // On mobile: Move the route map to display after the quote container
+        if (routeMapContainer.parentNode === transportInfo && quoteContainer.style.display !== 'none') {
+            // Remove from current position
+            transportInfo.removeChild(routeMapContainer);
+            // Insert after quote container
+            bookingForm.insertBefore(routeMapContainer, quoteContainer.nextSibling);
+            console.log('Route map moved to mobile position');
+        }
+    } else {
+        // On desktop: Move back to original position if needed
+        if (routeMapContainer.parentNode !== transportInfo) {
+            // Remove from current position
+            routeMapContainer.parentNode.removeChild(routeMapContainer);
+            // Insert back into transport info
+            transportInfo.appendChild(routeMapContainer);
+            console.log('Route map moved to desktop position');
+        }
+    }
+}
+
+// Add resize event listener to handle layout changes
+window.addEventListener('resize', function() {
+    if (document.getElementById('routeMapContainer').style.display !== 'none') {
+        setupMobileRouteMap();
+    }
+});
+
+// Add event listener to run when route map is shown
+document.addEventListener('DOMContentLoaded', function() {
+    const getQuoteBtn = document.getElementById('getQuoteBtn');
+    if (getQuoteBtn) {
+        const originalClick = getQuoteBtn.onclick;
+        getQuoteBtn.addEventListener('click', function() {
+            // Wait for the route map to be displayed
+            setTimeout(function() {
+                setupMobileRouteMap();
+            }, 500);
+        });
+    }
+});

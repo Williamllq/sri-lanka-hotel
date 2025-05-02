@@ -38,6 +38,11 @@
         display: inline-flex;
         align-items: center;
     }
+    
+    /* Improve mobile route display */
+    #routeMapContainer {
+        order: 2;
+    }
 }
 
 /* 平板电脑 (576px - 767px) */
@@ -116,6 +121,22 @@
     .payment-methods {
         grid-template-columns: 1fr;
     }
+    
+    /* Move routeMapContainer to display after quoteContainer on mobile */
+    #routeMapContainer {
+        order: 1; /* Lower order value to appear before other content */
+    }
+    
+    /* Reorder the transport info section on mobile */
+    .transport-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Force route map to appear after quote on mobile */
+    .mobile-route-map-wrapper {
+        order: 2;
+    }
 }
 
 /* 手机端 (575px 以下) */
@@ -185,6 +206,16 @@
     #myBookingsNavItem a {
         font-size: 1rem;
         padding: 0.5rem;
+    }
+    
+    /* Mobile Route Map Styles */
+    #routeMapContainer {
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+    
+    #routeMap {
+        height: 250px; /* Smaller height for very small screens */
     }
 }
 

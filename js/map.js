@@ -937,6 +937,19 @@ function showRouteMap() {
         console.log('Updating existing route map');
         updateRouteMap(pickupLat, pickupLng, destLat, destLng);
     }
+    
+    // Handle mobile layout optimization if the function exists
+    if (typeof setupMobileRouteMap === 'function') {
+        setTimeout(function() {
+            setupMobileRouteMap();
+            // Force map to recalculate size after moving
+            if (routeMap) {
+                setTimeout(function() {
+                    routeMap.invalidateSize();
+                }, 100);
+            }
+        }, 300);
+    }
 }
 
 /**
@@ -987,6 +1000,19 @@ function initializeRouteMap(pickupLat, pickupLng, destLat, destLng, centerLat, c
     setTimeout(function() {
         routeMap.invalidateSize();
     }, 100);
+    
+    // Add event listener to recalculate size on mobile layout changes
+    const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            if (entry.target === mapElement) {
+                setTimeout(function() {
+                    if (routeMap) routeMap.invalidateSize();
+                }, 100);
+            }
+        }
+    });
+    
+    resizeObserver.observe(mapElement);
 }
 
 /**
@@ -1026,10 +1052,10 @@ function updateRouteMap(pickupLat, pickupLng, destLat, destLng) {
         }
     });
     
-    // Force map to recalculate size
+    // Force map to recalculate size with a slight delay to account for DOM changes
     setTimeout(function() {
         routeMap.invalidateSize();
-    }, 100);
+    }, 300);
 }
 
 /**
