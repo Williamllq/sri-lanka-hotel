@@ -435,21 +435,61 @@ function deg2rad(deg) {
  * Calculate fare based on distance and service type
  */
 function calculateFare(distance, serviceType) {
-    // Base rates
-    const baseFare = 30; // Base fare in USD
-    const ratePerKm = 0.5; // Rate per km in USD
+    // Get transport settings from localStorage
+    let settings = {
+        baseFare: 30,          // 默认基础价格
+        ratePerKm: 0.5,        // 默认每公里价格
+        rushHourMultiplier: 1.5,
+        nightMultiplier: 1.3,
+        weekendMultiplier: 1.2,
+        sedanRate: 1.0,
+        suvRate: 1.5,
+        vanRate: 1.8,
+        luxuryRate: 2.2
+    };
     
-    // Calculate basic fare
-    let fare = baseFare + (distance * ratePerKm);
-    
-    // Apply service type multiplier
-    if (serviceType === 'airport') {
-        fare *= 1.2; // Airport transfers 20% more
-    } else if (serviceType === 'custom') {
-        fare *= 1.5; // Custom journeys 50% more
+    // 尝试从localStorage读取设置
+    try {
+        const savedSettings = localStorage.getItem('transportSettings');
+        if (savedSettings) {
+            const parsedSettings = JSON.parse(savedSettings);
+            // 使用保存的设置替换默认值
+            settings = { ...settings, ...parsedSettings };
+        }
+    } catch (error) {
+        console.error('Error loading transport settings, using defaults:', error);
     }
     
-    // Round to 2 decimal places
+    // 使用设置中的基本价格
+    let fare = settings.baseFare + (distance * settings.ratePerKm);
+    
+    // 应用服务类型倍率
+    if (serviceType === 'airport') {
+        fare *= settings.suvRate; // 机场接送使用SUV费率
+    } else if (serviceType === 'custom') {
+        fare *= settings.vanRate; // 自定义行程使用面包车费率
+    }
+    
+    // 检查是否是周末
+    const now = new Date();
+    const isWeekend = now.getDay() === 0 || now.getDay() === 6; // 0是周日，6是周六
+    
+    if (isWeekend) {
+        fare *= settings.weekendMultiplier;
+    }
+    
+    // 检查是否是高峰时段或夜间
+    const hour = now.getHours();
+    const isRushHour = (hour >= 6 && hour <= 9) || (hour >= 16 && hour <= 19);
+    const isNight = hour >= 22 || hour < 6;
+    
+    if (isRushHour) {
+        fare *= settings.rushHourMultiplier;
+    } else if (isNight) {
+        fare *= settings.nightMultiplier;
+    }
+    
+    // 四舍五入到2位小数
     return Math.round(fare * 100) / 100;
 }
 
