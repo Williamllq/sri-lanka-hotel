@@ -10,6 +10,19 @@
         console.log('User authentication system initialized');
         initAuthUI();
         checkAuthStatus();
+        
+        // 确保登录按钮绑定事件
+        const authToggleBtn = document.getElementById('authToggleBtn');
+        if (authToggleBtn) {
+            console.log('Login button found, adding click event listener');
+            authToggleBtn.addEventListener('click', function(e) {
+                e.preventDefault(); // 防止页面跳转
+                console.log('Login button clicked');
+                toggleAuthModal();
+            });
+        } else {
+            console.error('Login button not found');
+        }
     });
 
     // 初始化认证UI
@@ -336,9 +349,31 @@
 
     // 切换认证模态框
     function toggleAuthModal() {
+        console.log('Toggling auth modal');
         const modal = document.getElementById('authModal');
         if (modal) {
-            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                console.log('Auth modal hidden');
+            } else {
+                modal.style.display = 'flex';
+                console.log('Auth modal displayed');
+            }
+        } else {
+            console.error('Auth modal not found!');
+            // 如果模态框不存在，可能需要重新初始化
+            console.log('Attempting to re-initialize auth UI');
+            initAuthUI();
+            // 再试一次打开模态框
+            setTimeout(() => {
+                const newModal = document.getElementById('authModal');
+                if (newModal) {
+                    newModal.style.display = 'flex';
+                    console.log('Auth modal created and displayed');
+                } else {
+                    console.error('Failed to create auth modal');
+                }
+            }, 100);
         }
     }
 

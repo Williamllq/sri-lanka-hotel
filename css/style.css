@@ -120,6 +120,16 @@ body {
     color: var(--accent-color);
 }
 
+/* 添加导航菜单中Login按钮的样式 */
+.nav-login-btn {
+    color: white !important; /* 强制使用白色字体 */
+}
+
+/* 确保导航项鼠标悬停时保持一致的颜色变化 */
+.nav-links a:hover, .nav-login-btn:hover {
+    color: #4a6fa5 !important;
+}
+
 /* Hero Section */
 .hero {
     height: 100vh;
