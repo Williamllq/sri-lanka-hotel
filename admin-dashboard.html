@@ -772,6 +772,7 @@
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="js/map.js"></script>
+    <script src="js/order-management-fix.js"></script>
 
     <script>
     // Fix layout issues after page load
@@ -827,6 +828,534 @@
                 });
             });
         });
+    </script>
+
+    <!-- Order Management Direct Fix -->
+    <script>
+    (function() {
+        console.log('Order management direct fix loaded');
+        
+        // Add CSS styles for order management
+        const style = document.createElement('style');
+        style.textContent = `
+            .order-tab {
+                user-select: none;
+                cursor: pointer;
+                transition: all 0.3s;
+                opacity: 0.8;
+            }
+            .order-tab.active {
+                opacity: 1;
+                font-weight: bold;
+                background-color: #4a6fa5 !important;
+                color: white !important;
+            }
+            .order-tab:hover {
+                opacity: 1;
+                background-color: #e9ecef;
+            }
+            .order-tab.active:hover {
+                background-color: #3a5d8f !important;
+                color: white !important;
+            }
+            .status-badge {
+                display: inline-block;
+                padding: 4px 8px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 500;
+                text-align: center;
+                min-width: 80px;
+            }
+            .status-badge.pending {
+                background-color: #fff3cd;
+                color: #856404;
+                border: 1px solid #ffeeba;
+            }
+            .status-badge.confirmed {
+                background-color: #d1ecf1;
+                color: #0c5460;
+                border: 1px solid #bee5eb;
+            }
+            .status-badge.completed {
+                background-color: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            .status-badge.cancelled {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            .action-btn {
+                width: 32px;
+                height: 32px;
+                border-radius: 4px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+                border: 1px solid #ddd;
+                background-color: white;
+                cursor: pointer;
+            }
+            .action-btn.view-btn {
+                color: #4a6fa5;
+            }
+            .action-btn.delete-btn {
+                color: #dc3545;
+            }
+            .action-btn.view-btn:hover {
+                background-color: #e7f0ff;
+                border-color: #4a6fa5;
+            }
+            .action-btn.delete-btn:hover {
+                background-color: #fff5f5;
+                border-color: #dc3545;
+            }
+            #orderDetailsModal .modal-body {
+                padding: 0;
+            }
+            #orderDetailsModal .order-details {
+                padding: 20px;
+            }
+            #orderDetailsModal .order-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid #eee;
+            }
+            #orderDetailsModal .order-header h4 {
+                margin: 0;
+                font-size: 20px;
+                color: #333;
+            }
+            .order-info-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+            .info-group {
+                margin-bottom: 12px;
+            }
+            .info-group label {
+                display: block;
+                font-size: 12px;
+                color: #777;
+                margin-bottom: 4px;
+            }
+            .info-group span {
+                font-weight: 500;
+                color: #333;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Store orders data globally
+        let ordersData = [];
+        
+        // Function to create sample demo orders when no orders exist
+        function createDemoOrders() {
+            return [
+                {
+                    id: 'ORD-1001',
+                    customerName: 'John Smith',
+                    customerEmail: 'john.smith@example.com',
+                    customerPhone: '+1 123-456-7890',
+                    fromLocation: 'Colombo',
+                    toLocation: 'Kandy',
+                    distance: 115.5,
+                    vehicleType: 'Sedan',
+                    journeyDate: '2023-12-15',
+                    journeyTime: '09:30',
+                    price: 89.50,
+                    status: 'confirmed',
+                    createdAt: new Date('2023-12-10').toISOString()
+                },
+                {
+                    id: 'ORD-1002',
+                    customerName: 'Emma Johnson',
+                    customerEmail: 'emma.j@example.com',
+                    customerPhone: '+44 7700 900123',
+                    fromLocation: 'Galle',
+                    toLocation: 'Mirissa',
+                    distance: 45.8,
+                    vehicleType: 'SUV',
+                    journeyDate: '2023-12-18',
+                    journeyTime: '14:00',
+                    price: 65.75,
+                    status: 'pending',
+                    createdAt: new Date('2023-12-11').toISOString()
+                },
+                {
+                    id: 'ORD-1003',
+                    customerName: 'David Chen',
+                    customerEmail: 'david.c@example.com',
+                    customerPhone: '+61 4123 456789',
+                    fromLocation: 'Negombo',
+                    toLocation: 'Sigiriya',
+                    distance: 158.3,
+                    vehicleType: 'Van',
+                    journeyDate: '2023-12-12',
+                    journeyTime: '10:00',
+                    price: 175.25,
+                    status: 'completed',
+                    createdAt: new Date('2023-12-08').toISOString()
+                },
+                {
+                    id: 'ORD-1004',
+                    customerName: 'Sarah Miller',
+                    customerEmail: 'sarah.m@example.com',
+                    customerPhone: '+49 30 123456',
+                    fromLocation: 'Colombo',
+                    toLocation: 'Galle',
+                    distance: 125.7,
+                    vehicleType: 'Luxury',
+                    journeyDate: '2023-12-20',
+                    journeyTime: '08:00',
+                    price: 210.50,
+                    status: 'cancelled',
+                    createdAt: new Date('2023-12-09').toISOString()
+                }
+            ];
+        }
+
+        // Format price to display with correct currency
+        function formatPrice(price) {
+            return '$' + parseFloat(price).toFixed(2);
+        }
+
+        // Format date to a human-readable string
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Load orders based on current filter
+        function loadOrders() {
+            console.log('Loading orders...');
+            
+            // Get the active tab filter
+            const activeTab = document.querySelector('.order-tab.active');
+            const filter = activeTab ? activeTab.getAttribute('data-order-tab') : 'all';
+            console.log('Active filter:', filter);
+            
+            // Get search term
+            const searchInput = document.getElementById('orderSearchInput');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            // Try to get orders from localStorage
+            const storedOrders = localStorage.getItem('orders');
+            
+            // Use stored orders, or create demo orders if none exist
+            if (storedOrders) {
+                ordersData = JSON.parse(storedOrders);
+            } else {
+                // Create demo orders
+                ordersData = createDemoOrders();
+                // Save to localStorage
+                localStorage.setItem('orders', JSON.stringify(ordersData));
+            }
+            
+            // Filter orders based on active tab and search term
+            let filteredOrders = ordersData.filter(order => {
+                // Apply status filter
+                if (filter !== 'all' && order.status !== filter) {
+                    return false;
+                }
+                
+                // Apply search filter if there's a search term
+                if (searchTerm) {
+                    return (
+                        order.customerName.toLowerCase().includes(searchTerm) ||
+                        order.customerEmail.toLowerCase().includes(searchTerm) ||
+                        order.fromLocation.toLowerCase().includes(searchTerm) ||
+                        order.toLocation.toLowerCase().includes(searchTerm)
+                    );
+                }
+                
+                return true;
+            });
+            
+            // Sort orders by date (newest first)
+            filteredOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            // Get the table body
+            const tableBody = document.getElementById('ordersTableBody');
+            const noOrdersMessage = document.getElementById('noOrdersMessage');
+            
+            if (tableBody) {
+                // Clear existing rows
+                tableBody.innerHTML = '';
+                
+                if (filteredOrders.length === 0) {
+                    // Show no orders message
+                    if (noOrdersMessage) {
+                        noOrdersMessage.style.display = 'flex';
+                    }
+                    return;
+                }
+                
+                // Hide no orders message
+                if (noOrdersMessage) {
+                    noOrdersMessage.style.display = 'none';
+                }
+                
+                // Create table rows for each order
+                filteredOrders.forEach(order => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${order.id}</td>
+                        <td>${formatDate(order.createdAt)}</td>
+                        <td>
+                            <div>${order.customerName}</div>
+                            <small>${order.customerEmail}</small>
+                        </td>
+                        <td>Transport</td>
+                        <td>${order.fromLocation}</td>
+                        <td>${order.toLocation}</td>
+                        <td>${formatPrice(order.price)}</td>
+                        <td>
+                            <span class="status-badge ${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                        </td>
+                        <td>
+                            <button class="action-btn view-btn" data-order-id="${order.id}" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn delete-btn" data-order-id="${order.id}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                // Setup action buttons after adding to DOM
+                setupActionButtons();
+            } else {
+                console.error('Orders table body not found');
+            }
+        }
+
+        // Set up event listeners for action buttons
+        function setupActionButtons() {
+            // View order details
+            const viewButtons = document.querySelectorAll('.view-btn');
+            viewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const orderId = this.getAttribute('data-order-id');
+                    viewOrderDetails(orderId);
+                });
+            });
+            
+            // Delete order
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const orderId = this.getAttribute('data-order-id');
+                    if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+                        deleteOrder(orderId);
+                    }
+                });
+            });
+        }
+
+        // View order details in modal
+        function viewOrderDetails(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+            
+            const modal = document.getElementById('orderDetailsModal');
+            const modalContent = document.getElementById('orderDetailsContent');
+            
+            if (modal && modalContent) {
+                modalContent.innerHTML = `
+                    <div class="order-details">
+                        <div class="order-header">
+                            <h4>Order ${order.id}</h4>
+                            <span class="status-badge ${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                        </div>
+                        
+                        <h5>Customer Information</h5>
+                        <div class="order-info-grid">
+                            <div class="info-group">
+                                <label>Name</label>
+                                <span>${order.customerName}</span>
+                            </div>
+                            <div class="info-group">
+                                <label>Email</label>
+                                <span>${order.customerEmail}</span>
+                            </div>
+                            <div class="info-group">
+                                <label>Phone</label>
+                                <span>${order.customerPhone}</span>
+                            </div>
+                        </div>
+                        
+                        <h5>Journey Details</h5>
+                        <div class="order-info-grid">
+                            <div class="info-group">
+                                <label>From</label>
+                                <span>${order.fromLocation}</span>
+                            </div>
+                            <div class="info-group">
+                                <label>To</label>
+                                <span>${order.toLocation}</span>
+                            </div>
+                            <div class="info-group">
+                                <label>Distance</label>
+                                <span>${order.distance} km</span>
+                            </div>
+                            <div class="info-group">
+                                <label>Vehicle Type</label>
+                                <span>${order.vehicleType}</span>
+                            </div>
+                            <div class="info-group">
+                                <label>Journey Date</label>
+                                <span>${order.journeyDate}</span>
+                            </div>
+                            <div class="info-group">
+                                <label>Journey Time</label>
+                                <span>${order.journeyTime}</span>
+                            </div>
+                            <div class="info-group">
+                                <label>Price</label>
+                                <span>${formatPrice(order.price)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Show the modal
+                modal.style.display = 'flex';
+                
+                // Set up status buttons
+                const statusButtons = modal.querySelectorAll('.order-status-buttons button');
+                statusButtons.forEach(button => {
+                    const status = button.getAttribute('data-status');
+                    
+                    // Highlight current status button
+                    if (status === order.status) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                    
+                    // Remove existing listeners to prevent duplicates
+                    button.replaceWith(button.cloneNode(true));
+                });
+                
+                // Re-add event listeners to status buttons
+                modal.querySelectorAll('.order-status-buttons button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const status = this.getAttribute('data-status');
+                        updateOrderStatus(orderId, status);
+                        
+                        // Close the modal
+                        modal.style.display = 'none';
+                    });
+                });
+                
+                // Set up close button
+                const closeButtons = modal.querySelectorAll('.close-modal, .close-details-btn');
+                closeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        modal.style.display = 'none';
+                    });
+                });
+            }
+        }
+
+        // Update order status
+        function updateOrderStatus(orderId, status) {
+            // Find the order
+            const orderIndex = ordersData.findIndex(o => o.id === orderId);
+            if (orderIndex === -1) return;
+            
+            // Update status
+            ordersData[orderIndex].status = status;
+            
+            // Save to localStorage
+            localStorage.setItem('orders', JSON.stringify(ordersData));
+            
+            // Reload orders to update UI
+            loadOrders();
+        }
+
+        // Delete order
+        function deleteOrder(orderId) {
+            // Filter out the deleted order
+            ordersData = ordersData.filter(o => o.id !== orderId);
+            
+            // Save to localStorage
+            localStorage.setItem('orders', JSON.stringify(ordersData));
+            
+            // Reload orders to update UI
+            loadOrders();
+        }
+
+        // Initialize order manager when DOM is loaded
+        function initOrderManager() {
+            console.log('Initializing order manager...');
+            
+            // Set up event listeners for order tabs
+            const orderTabs = document.querySelectorAll('.order-tab');
+            if (orderTabs.length > 0) {
+                console.log('Found order tabs:', orderTabs.length);
+                
+                orderTabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        // Remove active class from all tabs
+                        orderTabs.forEach(t => t.classList.remove('active'));
+                        
+                        // Add active class to clicked tab
+                        this.classList.add('active');
+                        
+                        // Load orders with new filter
+                        loadOrders();
+                    });
+                });
+            } else {
+                console.error('No order tabs found!');
+            }
+            
+            // Set up search functionality
+            const orderSearchBtn = document.getElementById('orderSearchBtn');
+            const orderSearchInput = document.getElementById('orderSearchInput');
+            
+            if (orderSearchBtn) {
+                orderSearchBtn.addEventListener('click', function() {
+                    loadOrders();
+                });
+            }
+            
+            if (orderSearchInput) {
+                orderSearchInput.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        loadOrders();
+                    }
+                });
+            }
+            
+            // Initial load of orders
+            loadOrders();
+        }
+
+        // Initialize when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initOrderManager);
+        } else {
+            // DOM already loaded, initialize immediately
+            initOrderManager();
+        }
+    })();
     </script>
 
     <!-- 测试脚本已移除 -->
