@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize the confirmation modal
     initConfirmationModal();
+    
+    // Synchronize existing bookings to admin panel format
+    synchronizeBookings();
 });
 
 /**
@@ -775,6 +778,42 @@ function saveBooking(booking) {
     } catch (e) {
         console.error('Error saving individual booking:', e);
     }
+    
+    // 为管理员界面保存预订信息到"bookings"格式
+    try {
+        // 对booking对象扩展一些额外字段，以便管理员界面能够正确显示
+        const adminBooking = {
+            ...booking,
+            // 添加用于管理员界面的字段
+            timestamp: booking.createdAt,
+            customerName: booking.userName,
+            customerEmail: booking.userEmail,
+            fromLocation: booking.pickupLocation,
+            toLocation: booking.destinationLocation,
+            totalFare: booking.totalPrice,
+            depositAmount: booking.totalPrice * 0.3,
+            userId: booking.userEmail,
+            vehicleType: 'Standard'
+        };
+        
+        // 获取现有bookings数组
+        const bookingsStr = localStorage.getItem('bookings');
+        let bookings = bookingsStr ? JSON.parse(bookingsStr) : [];
+        
+        // 确保bookings是一个数组
+        if (!Array.isArray(bookings)) {
+            bookings = [];
+        }
+        
+        // 将当前预订添加到数组中
+        bookings.push(adminBooking);
+        
+        // 保存回localStorage
+        localStorage.setItem('bookings', JSON.stringify(bookings));
+        console.log('Booking saved to bookings for admin panel');
+    } catch (e) {
+        console.error('Error saving to bookings format:', e);
+    }
 }
 
 /**
@@ -874,3 +913,133 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/**
+ * Synchronize existing bookings from userBookings and bookingSystem to the bookings format
+ * for the admin panel
+ */
+function synchronizeBookings() {
+    console.log('Synchronizing bookings for admin panel...');
+    
+    // 现有的预订集合
+    let allBookings = [];
+    let bookingIds = new Set();
+    
+    // 从userBookings获取预订
+    try {
+        const userBookingsStr = localStorage.getItem('userBookings');
+        if (userBookingsStr) {
+            const userBookings = JSON.parse(userBookingsStr);
+            
+            // 遍历所有用户的预订
+            Object.values(userBookings).forEach(userBookingList => {
+                if (Array.isArray(userBookingList)) {
+                    userBookingList.forEach(booking => {
+                        if (booking && booking.id && !bookingIds.has(booking.id)) {
+                            bookingIds.add(booking.id);
+                            allBookings.push(booking);
+                        }
+                    });
+                }
+            });
+        }
+        console.log('Retrieved bookings from userBookings:', bookingIds.size);
+    } catch (e) {
+        console.error('Error retrieving bookings from userBookings:', e);
+    }
+    
+    // 从bookingSystem获取预订
+    try {
+        const bookingSystemStr = localStorage.getItem('bookingSystem');
+        if (bookingSystemStr) {
+            const bookingSystem = JSON.parse(bookingSystemStr);
+            
+            if (bookingSystem && Array.isArray(bookingSystem.bookings)) {
+                bookingSystem.bookings.forEach(booking => {
+                    if (booking && booking.id && !bookingIds.has(booking.id)) {
+                        bookingIds.add(booking.id);
+                        allBookings.push(booking);
+                    }
+                });
+            }
+        }
+        console.log('Retrieved additional bookings from bookingSystem:', bookingIds.size);
+    } catch (e) {
+        console.error('Error retrieving bookings from bookingSystem:', e);
+    }
+    
+    // 从individual booking entries获取预订
+    try {
+        // 获取所有localStorage keys
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('booking_')) {
+                try {
+                    const booking = JSON.parse(localStorage.getItem(key));
+                    if (booking && booking.id && !bookingIds.has(booking.id)) {
+                        bookingIds.add(booking.id);
+                        allBookings.push(booking);
+                    }
+                } catch (innerErr) {
+                    console.error('Error parsing individual booking:', innerErr);
+                }
+            }
+        }
+        console.log('Retrieved additional bookings from individual entries:', bookingIds.size);
+    } catch (e) {
+        console.error('Error retrieving individual bookings:', e);
+    }
+    
+    // 将所有预订转换为管理员格式并保存
+    try {
+        // 先检查现有的bookings数组
+        const bookingsStr = localStorage.getItem('bookings');
+        let existingBookings = bookingsStr ? JSON.parse(bookingsStr) : [];
+        
+        // 确保是数组
+        if (!Array.isArray(existingBookings)) {
+            existingBookings = [];
+        }
+        
+        // 提取现有预订ID
+        const existingIds = new Set(existingBookings.map(b => b.id));
+        
+        // 将新的预订转换为admin格式并添加
+        const adminBookings = allBookings.map(booking => {
+            // 跳过已存在的预订
+            if (existingIds.has(booking.id)) {
+                return null;
+            }
+            
+            // 转换为admin格式
+            return {
+                ...booking,
+                timestamp: booking.createdAt || new Date().toISOString(),
+                customerName: booking.userName || 'N/A',
+                customerEmail: booking.userEmail || 'N/A',
+                fromLocation: booking.pickupLocation || 'N/A',
+                toLocation: booking.destinationLocation || 'N/A',
+                totalFare: booking.totalPrice || 0,
+                depositAmount: (booking.totalPrice * 0.3) || 0,
+                userId: booking.userEmail || 'guest',
+                vehicleType: 'Standard',
+                status: booking.status || 'confirmed'
+            };
+        }).filter(Boolean); // 移除null项
+        
+        // 合并现有和新的预订
+        const mergedBookings = [...existingBookings, ...adminBookings];
+        
+        // 保存到localStorage
+        localStorage.setItem('bookings', JSON.stringify(mergedBookings));
+        console.log('Synchronized bookings for admin panel. Total bookings:', mergedBookings.length);
+        
+        // 更新仪表盘上的预订计数（如果在同一页面）
+        const totalBookingsElement = document.getElementById('totalBookings');
+        if (totalBookingsElement) {
+            totalBookingsElement.textContent = mergedBookings.length.toString();
+        }
+    } catch (e) {
+        console.error('Error synchronizing bookings:', e);
+    }
+}

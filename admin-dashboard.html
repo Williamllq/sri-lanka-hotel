@@ -974,27 +974,110 @@
             const searchInput = document.getElementById('orderSearchInput');
             const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
             
-            // Try to get orders from localStorage - First check 'bookings' which is used by the frontend
+            // 尝试从localStorage获取订单 - 首先检查管理员界面使用的'bookings'
             let storedOrders = localStorage.getItem('bookings');
             
-            // Use stored orders, or create demo orders
+            // 如果没有找到订单，尝试其他可能的存储位置
+            if (!storedOrders) {
+                // 尝试从userBookings中获取
+                const userBookingsStr = localStorage.getItem('userBookings');
+                if (userBookingsStr) {
+                    try {
+                        const userBookings = JSON.parse(userBookingsStr);
+                        let combinedBookings = [];
+                        
+                        // 收集所有用户的预订
+                        Object.values(userBookings).forEach(bookingArray => {
+                            if (Array.isArray(bookingArray)) {
+                                combinedBookings = combinedBookings.concat(bookingArray);
+                            }
+                        });
+                        
+                        if (combinedBookings.length > 0) {
+                            // 转换为管理员格式
+                            const adminFormatBookings = combinedBookings.map(booking => ({
+                                id: booking.id,
+                                timestamp: booking.createdAt || new Date().toISOString(),
+                                journeyDate: booking.date || 'N/A',
+                                journeyTime: booking.time || 'N/A',
+                                customerName: booking.userName || 'N/A',
+                                customerEmail: booking.userEmail || 'N/A',
+                                customerPhone: booking.customerPhone || 'N/A',
+                                fromLocation: booking.pickupLocation || 'N/A',
+                                toLocation: booking.destinationLocation || 'N/A',
+                                totalFare: booking.totalPrice || 0,
+                                depositAmount: (booking.totalPrice * 0.3) || 0,
+                                status: booking.status || 'confirmed',
+                                vehicleType: 'Standard',
+                                specialRequests: booking.specialRequirements || '',
+                                userId: booking.userEmail || 'guest'
+                            }));
+                            
+                            // 保存到bookings格式
+                            localStorage.setItem('bookings', JSON.stringify(adminFormatBookings));
+                            storedOrders = JSON.stringify(adminFormatBookings);
+                            
+                            console.log('Converted userBookings to admin format:', adminFormatBookings.length);
+                        }
+                    } catch (e) {
+                        console.error('Error processing userBookings:', e);
+                    }
+                }
+                
+                // 如果仍然没有找到订单，尝试从bookingSystem中获取
+                if (!storedOrders) {
+                    const bookingSystemStr = localStorage.getItem('bookingSystem');
+                    if (bookingSystemStr) {
+                        try {
+                            const bookingSystem = JSON.parse(bookingSystemStr);
+                            if (bookingSystem && Array.isArray(bookingSystem.bookings) && bookingSystem.bookings.length > 0) {
+                                // 转换为管理员格式
+                                const adminFormatBookings = bookingSystem.bookings.map(booking => ({
+                                    id: booking.id,
+                                    timestamp: booking.createdAt || new Date().toISOString(),
+                                    journeyDate: booking.date || 'N/A',
+                                    journeyTime: booking.time || 'N/A',
+                                    customerName: booking.userName || 'N/A',
+                                    customerEmail: booking.userEmail || 'N/A',
+                                    customerPhone: booking.customerPhone || 'N/A',
+                                    fromLocation: booking.pickupLocation || 'N/A',
+                                    toLocation: booking.destinationLocation || 'N/A',
+                                    totalFare: booking.totalPrice || 0,
+                                    depositAmount: (booking.totalPrice * 0.3) || 0,
+                                    status: booking.status || 'confirmed',
+                                    vehicleType: 'Standard',
+                                    specialRequests: booking.specialRequirements || '',
+                                    userId: booking.userEmail || 'guest'
+                                }));
+                                
+                                // 保存到bookings格式
+                                localStorage.setItem('bookings', JSON.stringify(adminFormatBookings));
+                                storedOrders = JSON.stringify(adminFormatBookings);
+                                
+                                console.log('Converted bookingSystem to admin format:', adminFormatBookings.length);
+                            }
+                        } catch (e) {
+                            console.error('Error processing bookingSystem:', e);
+                        }
+                    }
+                }
+            }
+            
+            // 使用存储的订单，或创建演示订单
             if (storedOrders) {
                 try {
                     let orders = JSON.parse(storedOrders);
                     
+                    // 确保orders是数组
+                    if (!Array.isArray(orders)) {
+                        console.warn('orders is not an array, creating empty array');
+                        orders = [];
+                    }
+                    
                     // 过滤掉无效订单
                     orders = orders.filter(order => {
-                        // 排除没有ID的订单
-                        if (!order.id || order.id === 'undefined') {
-                            return false;
-                        }
-                        
-                        // 排除显示为undefined且价格为0的订单
-                        if (
-                            (order.totalFare === 0 || order.price === 0) && 
-                            (!order.customerName || order.customerName === 'N/A') && 
-                            (!order.customerEmail || order.customerEmail === 'N/A')
-                        ) {
+                        // 确保订单有ID
+                        if (!order || !order.id || order.id === 'undefined') {
                             return false;
                         }
                         
@@ -1551,6 +1634,177 @@
             }
         }
     })();
+    </script>
+
+    <!-- 预订数据同步脚本 -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Booking synchronization script loaded');
+        
+        /**
+         * 同步前端预订数据到管理员界面使用的格式
+         */
+        function synchronizeBookingsToAdmin() {
+            console.log('Starting synchronization of frontend bookings to admin panel...');
+            
+            // 收集的预订数据
+            let allBookings = [];
+            let bookingIds = new Set();
+            
+            // 尝试从userBookings获取数据
+            try {
+                const userBookingsStr = localStorage.getItem('userBookings');
+                if (userBookingsStr) {
+                    const userBookings = JSON.parse(userBookingsStr);
+                    
+                    // 遍历所有用户的预订
+                    Object.values(userBookings).forEach(bookingsList => {
+                        if (Array.isArray(bookingsList)) {
+                            bookingsList.forEach(booking => {
+                                if (booking && booking.id && !bookingIds.has(booking.id)) {
+                                    bookingIds.add(booking.id);
+                                    allBookings.push(booking);
+                                }
+                            });
+                        }
+                    });
+                    
+                    console.log('Found userBookings:', bookingIds.size);
+                }
+            } catch (e) {
+                console.error('Error retrieving userBookings:', e);
+            }
+            
+            // 尝试从bookingSystem获取数据
+            try {
+                const bookingSystemStr = localStorage.getItem('bookingSystem');
+                if (bookingSystemStr) {
+                    const bookingSystem = JSON.parse(bookingSystemStr);
+                    
+                    if (bookingSystem && Array.isArray(bookingSystem.bookings)) {
+                        bookingSystem.bookings.forEach(booking => {
+                            if (booking && booking.id && !bookingIds.has(booking.id)) {
+                                bookingIds.add(booking.id);
+                                allBookings.push(booking);
+                            }
+                        });
+                    }
+                    
+                    console.log('Added bookingSystem entries, total:', bookingIds.size);
+                }
+            } catch (e) {
+                console.error('Error retrieving bookingSystem data:', e);
+            }
+            
+            // 尝试从individual booking entries获取数据
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('booking_')) {
+                        try {
+                            const booking = JSON.parse(localStorage.getItem(key));
+                            if (booking && booking.id && !bookingIds.has(booking.id)) {
+                                bookingIds.add(booking.id);
+                                allBookings.push(booking);
+                            }
+                        } catch (innerErr) {
+                            console.error('Error parsing individual booking:', innerErr);
+                        }
+                    }
+                }
+                
+                console.log('Added individual booking entries, total:', bookingIds.size);
+            } catch (e) {
+                console.error('Error retrieving individual bookings:', e);
+            }
+            
+            // 如果找到了预订，转换为admin格式并保存
+            if (allBookings.length > 0) {
+                try {
+                    // 查看现有的bookings数据
+                    const bookingsStr = localStorage.getItem('bookings');
+                    let existingBookings = bookingsStr ? JSON.parse(bookingsStr) : [];
+                    
+                    // 确保是数组
+                    if (!Array.isArray(existingBookings)) {
+                        existingBookings = [];
+                    }
+                    
+                    // 提取已有的预订ID
+                    const existingIds = new Set(existingBookings.map(b => b.id));
+                    
+                    // 转换为admin格式
+                    const adminBookings = allBookings.map(booking => {
+                        // 跳过已经存在的预订
+                        if (existingIds.has(booking.id)) {
+                            return null;
+                        }
+                        
+                        // 转换格式
+                        return {
+                            id: booking.id,
+                            timestamp: booking.createdAt || new Date().toISOString(),
+                            journeyDate: booking.date || 'N/A',
+                            journeyTime: booking.time || 'N/A',
+                            customerName: booking.userName || 'N/A',
+                            customerEmail: booking.userEmail || 'N/A',
+                            customerPhone: booking.customerPhone || 'N/A',
+                            fromLocation: booking.pickupLocation || 'N/A',
+                            toLocation: booking.destinationLocation || 'N/A',
+                            totalFare: booking.totalPrice || 0,
+                            depositAmount: (booking.totalPrice * 0.3) || 0,
+                            status: booking.status || 'confirmed',
+                            vehicleType: 'Standard',
+                            specialRequests: booking.specialRequirements || '',
+                            userId: booking.userEmail || 'guest'
+                        };
+                    }).filter(Boolean); // 移除null值
+                    
+                    if (adminBookings.length > 0) {
+                        // 合并现有和新的订单
+                        const mergedBookings = [...existingBookings, ...adminBookings];
+                        
+                        // 保存到localStorage
+                        localStorage.setItem('bookings', JSON.stringify(mergedBookings));
+                        
+                        console.log(`Synchronized ${adminBookings.length} new bookings. Total: ${mergedBookings.length}`);
+                        
+                        // 更新仪表盘上的订单计数
+                        const totalBookingsElement = document.getElementById('totalBookings');
+                        if (totalBookingsElement) {
+                            totalBookingsElement.textContent = mergedBookings.length.toString();
+                        }
+                        
+                        // 如果正在查看订单页面，刷新订单列表
+                        if (document.getElementById('ordersSection').classList.contains('active')) {
+                            // 尝试触发刷新
+                            const activeTab = document.querySelector('.order-tab.active');
+                            if (activeTab) {
+                                activeTab.click();
+                            } else {
+                                // 如果没有活跃标签，尝试直接调用loadOrders
+                                if (typeof loadOrders === 'function') {
+                                    loadOrders();
+                                }
+                            }
+                        }
+                    } else {
+                        console.log('No new bookings to synchronize');
+                    }
+                } catch (e) {
+                    console.error('Error converting bookings to admin format:', e);
+                }
+            } else {
+                console.log('No bookings found to synchronize');
+            }
+        }
+        
+        // 在页面加载后同步预订数据
+        setTimeout(synchronizeBookingsToAdmin, 1000);
+        
+        // 添加定期同步 (每60秒检查一次新订单)
+        setInterval(synchronizeBookingsToAdmin, 60000);
+    });
     </script>
 
     <!-- 测试脚本已移除 -->
