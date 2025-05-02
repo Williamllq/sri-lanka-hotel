@@ -41,7 +41,9 @@ A web application for booking accommodations and transportation services in Sri 
 
 - **User Interface**: https://sri-lanka-stay-explore.netlify.app/
 - **Admin Dashboard**: https://sri-lanka-stay-explore.netlify.app/admin-dashboard.html
-- **Note**: Admin credentials are stored in the GITHUB_WORKFLOW.md file for team members only
+- **Admin Username**: admin
+- **Admin Password**: rangabandara2024
+- **Important**: Please do not share admin credentials in public forums
 
 ### Branch Management
 
