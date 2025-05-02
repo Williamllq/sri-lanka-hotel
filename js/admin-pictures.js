@@ -854,6 +854,7 @@ function deletePicture(pictureId, showConfirm = true) {
  */
 function editPicture(pictureId) {
     try {
+        console.log('Editing picture with ID:', pictureId);
         // 从localStorage加载图片
         const picturesStr = localStorage.getItem('adminPictures');
         const pictures = picturesStr ? JSON.parse(picturesStr) : [];
@@ -865,66 +866,104 @@ function editPicture(pictureId) {
             return;
         }
         
-        // 检查是否有系统已有的编辑模态框
-        const existingEditModal = document.querySelector('.admin-modal[id^="edit"][id$="Modal"]');
+        console.log('Found picture to edit:', picture);
         
-        // 如果存在系统模态框，尝试使用它
-        if (existingEditModal) {
-            console.log('Using existing modal system for editing');
+        // 检查系统默认编辑模态框
+        // 这个看起来是系统的Edit Picture模态框
+        const systemModal = document.querySelector('.modal, .admin-modal');
+        const modalTitle = document.querySelector('.modal-title, .admin-modal-title');
+        const saveChangesBtn = document.querySelector('button.save-changes, button:contains("Save Changes")');
+        
+        if (systemModal && modalTitle) {
+            console.log('Using system modal for editing picture');
             
-            const modalTitle = existingEditModal.querySelector('.modal-title');
+            // 设置模态框标题
             if (modalTitle) {
                 modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Picture';
             }
             
-            const nameInput = existingEditModal.querySelector('input[name="name"]');
-            const categorySelect = existingEditModal.querySelector('select[name="category"]');
-            const descriptionTextarea = existingEditModal.querySelector('textarea[name="description"]');
+            // 查找并填充表单字段
+            const nameInput = systemModal.querySelector('input[name="name"], input[placeholder*="Name"], input[id*="Name"]');
+            const categorySelect = systemModal.querySelector('select[name="category"], select[id*="category"], select[id*="Category"]');
+            const descriptionInput = systemModal.querySelector('textarea[name="description"], textarea[id*="description"], textarea[id*="Description"]');
             
-            if (nameInput && categorySelect && descriptionTextarea) {
+            // 如果找到了对应的输入字段，填充数据
+            if (nameInput) {
+                console.log('Setting name input:', picture.name);
                 nameInput.value = picture.name;
-                categorySelect.value = picture.category;
-                descriptionTextarea.value = picture.description || '';
-                
-                // 设置确认按钮点击事件
-                const saveBtn = existingEditModal.querySelector('button[type="submit"]');
-                if (saveBtn) {
-                    // 移除所有现有的事件监听器
-                    const newSaveBtn = saveBtn.cloneNode(true);
-                    saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-                    
-                    newSaveBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        
-                        updatePicture(
-                            picture.id,
-                            nameInput.value.trim(),
-                            categorySelect.value,
-                            descriptionTextarea.value.trim(),
-                            picture.imageUrl
-                        );
-                        
-                        // 关闭模态框
-                        if (typeof closeModal === 'function') {
-                            closeModal(existingEditModal.id);
-                        } else {
-                            existingEditModal.style.display = 'none';
-                        }
-                    });
-                }
-                
-                // 显示模态框
-                if (typeof openModal === 'function') {
-                    openModal(existingEditModal.id);
-                } else {
-                    existingEditModal.style.display = 'block';
-                }
-                
-                return;
+            } else {
+                console.warn('Name input field not found in the system modal');
             }
+            
+            if (categorySelect) {
+                console.log('Setting category select:', picture.category);
+                categorySelect.value = picture.category;
+            } else {
+                console.warn('Category select field not found in the system modal');
+            }
+            
+            if (descriptionInput) {
+                console.log('Setting description textarea:', picture.description);
+                descriptionInput.value = picture.description || '';
+            } else {
+                console.warn('Description textarea not found in the system modal');
+            }
+            
+            // 保存按钮点击事件
+            // 直接查找Save Changes按钮
+            const saveBtn = systemModal.querySelector('button:last-child, button.primary, button.save-changes, button.btn-primary, button[type="submit"]');
+            
+            if (saveBtn) {
+                console.log('Found save button:', saveBtn.textContent);
+                
+                // 清除现有的所有点击事件处理程序
+                const newSaveBtn = saveBtn.cloneNode(true);
+                saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+                
+                // 添加新的点击事件处理程序
+                newSaveBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Save button clicked!');
+                    
+                    // 获取更新后的值
+                    const updatedName = nameInput ? nameInput.value.trim() : picture.name;
+                    const updatedCategory = categorySelect ? categorySelect.value : picture.category;
+                    const updatedDescription = descriptionInput ? descriptionInput.value.trim() : (picture.description || '');
+                    
+                    // 获取图片文件（如果有上传）
+                    const fileInput = systemModal.querySelector('input[type="file"]');
+                    if (fileInput && fileInput.files && fileInput.files[0]) {
+                        // 处理新上传的图片
+                        processImageFile(fileInput.files[0], function(processedImageUrl) {
+                            updatePicture(pictureId, updatedName, updatedCategory, updatedDescription, processedImageUrl);
+                            
+                            // 尝试关闭模态框
+                            tryCloseModal(systemModal);
+                        });
+                    } else {
+                        // 使用原图片
+                        updatePicture(pictureId, updatedName, updatedCategory, updatedDescription, picture.imageUrl);
+                        
+                        // 尝试关闭模态框
+                        tryCloseModal(systemModal);
+                    }
+                    
+                    return false;
+                });
+                
+                console.log('Save button click event attached');
+            } else {
+                console.warn('Save button not found in the system modal');
+            }
+            
+            // 系统可能已经显示了模态框，所以不需要额外的显示操作
+            return;
         }
         
-        // 如果没有系统模态框，或者无法使用它，则创建自定义模态框
+        // 如果没有找到系统模态框，则使用我们自定义的模态框
+        console.log('Using custom modal for editing picture');
         let editModal = document.getElementById('editPictureModal');
         if (!editModal) {
             // 创建编辑模态框
@@ -976,7 +1015,7 @@ function editPicture(pictureId) {
                         
                         <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
                             <button type="button" class="admin-btn secondary cancel-edit" style="padding: 8px 16px; background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; color: #333; cursor: pointer; font-size: 14px;">Cancel</button>
-                            <button type="submit" class="admin-btn primary" style="padding: 8px 16px; background-color: #4a6fdc; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 14px;">Save Changes</button>
+                            <button type="submit" class="admin-btn primary save-changes" style="padding: 8px 16px; background-color: #4a6fdc; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 14px;">Save Changes</button>
                         </div>
                     </form>
                 </div>
@@ -1082,6 +1121,66 @@ function editPicture(pictureId) {
 }
 
 /**
+ * 尝试关闭模态框
+ * @param {HTMLElement} modal - 模态框元素
+ */
+function tryCloseModal(modal) {
+    try {
+        // 尝试不同的方法关闭模态框
+        
+        // 1. 如果有closeModal全局函数
+        if (typeof closeModal === 'function') {
+            closeModal(modal.id);
+            return;
+        }
+        
+        // 2. Bootstrap模态框
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+                return;
+            }
+        }
+        
+        // 3. jQuery模态框
+        if (typeof $ !== 'undefined') {
+            $(modal).modal('hide');
+            return;
+        }
+        
+        // 4. 原生关闭按钮点击
+        const closeBtn = modal.querySelector('.close, .close-modal, [data-dismiss="modal"]');
+        if (closeBtn) {
+            closeBtn.click();
+            return;
+        }
+        
+        // 5. 设置display属性
+        modal.style.display = 'none';
+        
+        // 6. 移除active类
+        modal.classList.remove('active', 'show');
+        
+        // 7. 移除模态框背景
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+        
+    } catch (e) {
+        console.error('Error closing modal:', e);
+        
+        // 最后尝试直接隐藏
+        try {
+            modal.style.display = 'none';
+        } catch (err) {
+            console.error('Failed to hide modal:', err);
+        }
+    }
+}
+
+/**
  * 更新图片数据
  * @param {string} pictureId - 图片ID
  * @param {string} name - 图片名称
@@ -1091,6 +1190,8 @@ function editPicture(pictureId) {
  */
 function updatePicture(pictureId, name, category, description, imageUrl) {
     try {
+        console.log('Updating picture:', { id: pictureId, name, category, description });
+        
         // 从localStorage加载图片
         const picturesStr = localStorage.getItem('adminPictures');
         let pictures = picturesStr ? JSON.parse(picturesStr) : [];
@@ -1125,21 +1226,23 @@ function updatePicture(pictureId, name, category, description, imageUrl) {
                 localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
             }
             
-            // 关闭模态框
-            const editModal = document.getElementById('editPictureModal');
-            if (editModal) {
-                editModal.style.display = 'none';
-            }
+            // 尝试关闭所有打开的模态框
+            const openModals = document.querySelectorAll('.modal, .admin-modal');
+            openModals.forEach(modal => {
+                tryCloseModal(modal);
+            });
             
             // 重新加载图片列表
             loadAndDisplayPictures();
             
             alert('Picture updated successfully!');
+            console.log('Picture updated successfully');
         } else {
             console.error('Picture not found for update:', pictureId);
         }
     } catch (e) {
         console.error('Error updating picture:', e);
+        alert('Error updating picture: ' + e.message);
     }
 }
 
