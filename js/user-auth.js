@@ -14,14 +14,36 @@
 
     // 初始化认证UI
     function initAuthUI() {
-        // 创建登录/注册按钮
-        const authButton = document.createElement('div');
-        authButton.className = 'auth-button';
-        authButton.innerHTML = `
-            <button id="authToggleBtn" class="btn auth-toggle-btn">
-                <i class="fas fa-user"></i> <span id="authBtnText">Login</span>
-            </button>
-        `;
+        // 不再创建登录/注册按钮，使用已有的导航栏按钮
+        // 检查导航栏中是否已存在登录按钮
+        const existingAuthBtn = document.getElementById('authToggleBtn');
+        if (!existingAuthBtn) {
+            console.warn('Auth button not found in navigation');
+            // 创建登录/注册按钮 (仅在导航栏中不存在时)
+            const authButton = document.createElement('div');
+            authButton.className = 'auth-button';
+            authButton.innerHTML = `
+                <button id="authToggleBtn" class="btn auth-toggle-btn">
+                    <i class="fas fa-user"></i> <span id="authBtnText">Login</span>
+                </button>
+            `;
+            
+            // 将按钮添加到导航栏
+            const navMenu = document.querySelector('nav ul') || document.querySelector('header ul');
+            if (navMenu) {
+                const li = document.createElement('li');
+                li.className = 'auth-nav-item';
+                li.appendChild(authButton);
+                navMenu.appendChild(li);
+            } else {
+                const header = document.querySelector('header') || document.querySelector('.header');
+                if (header) {
+                    header.appendChild(authButton);
+                } else {
+                    console.warn('Could not find navigation or header to add auth button');
+                }
+            }
+        }
 
         // 创建认证模态框
         const authModal = document.createElement('div');
@@ -82,6 +104,24 @@
         // 添加样式
         const style = document.createElement('style');
         style.textContent = `
+            /* 导航菜单中登录按钮的样式 */
+            nav ul li #authToggleBtn {
+                display: inline-block;
+                text-decoration: none;
+                color: inherit;
+                background: none;
+                border: none;
+                font-size: inherit;
+                padding: 0;
+                cursor: pointer;
+                font-family: inherit;
+            }
+            
+            nav ul li #authToggleBtn:hover {
+                color: #4a6fa5;
+            }
+            
+            /* 原有样式 */
             .auth-button {
                 display: inline-block;
                 margin-left: 15px;
@@ -253,27 +293,17 @@
         `;
         document.head.appendChild(style);
 
-        // 将按钮添加到导航栏
-        const navMenu = document.querySelector('nav ul') || document.querySelector('header ul');
-        if (navMenu) {
-            const li = document.createElement('li');
-            li.className = 'auth-nav-item';
-            li.appendChild(authButton);
-            navMenu.appendChild(li);
-        } else {
-            const header = document.querySelector('header') || document.querySelector('.header');
-            if (header) {
-                header.appendChild(authButton);
-            } else {
-                console.warn('Could not find navigation or header to add auth button');
-            }
-        }
-
         // 添加模态框到body
         document.body.appendChild(authModal);
 
         // 添加事件监听器
-        document.getElementById('authToggleBtn').addEventListener('click', toggleAuthModal);
+        const authToggleBtn = document.getElementById('authToggleBtn');
+        if (authToggleBtn) {
+            authToggleBtn.addEventListener('click', toggleAuthModal);
+        } else {
+            console.error('Auth toggle button not found');
+        }
+        
         document.querySelector('.auth-close').addEventListener('click', closeAuthModal);
         
         // 标签切换
