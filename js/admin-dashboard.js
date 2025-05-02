@@ -103,6 +103,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize hotel management
     initHotelManagement();
     
+    // Initialize order management
+    initOrderManagement();
+    
     // Initialize transport settings
     initTransportSettings();
     
@@ -1010,6 +1013,645 @@ function initHotelManagement() {
     displayHotels();
 }
 
+// Order Management
+function initOrderManagement() {
+    console.log('Initializing order management...');
+    
+    // Get elements
+    const ordersTableBody = document.getElementById('ordersTableBody');
+    const orderSearchInput = document.getElementById('orderSearchInput');
+    const orderSearchBtn = document.getElementById('orderSearchBtn');
+    const noOrdersMessage = document.getElementById('noOrdersMessage');
+    const orderTabs = document.querySelectorAll('[data-order-tab]');
+    const orderDetailsModal = document.getElementById('orderDetailsModal');
+    
+    // Current filter
+    let currentOrderFilter = 'all';
+    
+    // Load orders on initialization
+    loadOrders();
+    
+    // Add event listeners
+    if (orderSearchBtn) {
+        orderSearchBtn.addEventListener('click', function() {
+            loadOrders(orderSearchInput.value);
+        });
+    }
+    
+    if (orderSearchInput) {
+        orderSearchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                loadOrders(orderSearchInput.value);
+            }
+        });
+    }
+    
+    // Tab filtering
+    orderTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active class from all tabs
+            orderTabs.forEach(t => t.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Set current filter and reload orders
+            currentOrderFilter = this.getAttribute('data-order-tab');
+            loadOrders(orderSearchInput.value);
+        });
+    });
+    
+    // Function to load orders
+    function loadOrders(searchTerm = '') {
+        console.log('Loading orders with filter:', currentOrderFilter, 'and search term:', searchTerm);
+        
+        // Clear table
+        if (ordersTableBody) {
+            ordersTableBody.innerHTML = '';
+        }
+        
+        // Get orders from localStorage
+        let orders = [];
+        try {
+            const storedOrders = localStorage.getItem('bookings');
+            if (storedOrders) {
+                orders = JSON.parse(storedOrders);
+            }
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            return;
+        }
+        
+        // Check if there are orders
+        if (!orders || orders.length === 0) {
+            if (noOrdersMessage) {
+                noOrdersMessage.style.display = 'flex';
+            }
+            if (ordersTableBody) {
+                ordersTableBody.innerHTML = '<tr><td colspan="9" class="no-data">No orders found</td></tr>';
+            }
+            return;
+        }
+        
+        // Filter orders by status
+        if (currentOrderFilter !== 'all') {
+            orders = orders.filter(order => order.status === currentOrderFilter);
+        }
+        
+        // Filter orders by search term
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            orders = orders.filter(order => 
+                (order.customerName && order.customerName.toLowerCase().includes(term)) ||
+                (order.customerEmail && order.customerEmail.toLowerCase().includes(term)) ||
+                (order.pickupLocation && order.pickupLocation.toLowerCase().includes(term)) ||
+                (order.destination && order.destination.toLowerCase().includes(term))
+            );
+        }
+        
+        // Check if filtered orders exist
+        if (orders.length === 0) {
+            if (noOrdersMessage) {
+                noOrdersMessage.style.display = 'flex';
+            }
+            if (ordersTableBody) {
+                ordersTableBody.innerHTML = '<tr><td colspan="9" class="no-data">No matching orders found</td></tr>';
+            }
+            return;
+        }
+        
+        // Hide no orders message
+        if (noOrdersMessage) {
+            noOrdersMessage.style.display = 'none';
+        }
+        
+        // Sort orders by date (newest first)
+        orders.sort((a, b) => {
+            const dateA = new Date(a.timestamp || 0);
+            const dateB = new Date(b.timestamp || 0);
+            return dateB - dateA;
+        });
+        
+        // Create table rows
+        orders.forEach((order, index) => {
+            // Create order ID if not exists
+            const orderId = order.id || `ORD-${1000 + index}`;
+            if (!order.id) {
+                order.id = orderId;
+                // Update in localStorage to persist the ID
+                updateOrderInStorage(order);
+            }
+            
+            // Determine order status if not exists
+            const status = order.status || 'pending';
+            if (!order.status) {
+                order.status = status;
+                // Update in localStorage
+                updateOrderInStorage(order);
+            }
+            
+            // Format date
+            const orderDate = order.timestamp ? new Date(order.timestamp).toLocaleDateString() : 'N/A';
+            
+            // Format amount
+            const amount = order.totalFare ? `$${parseFloat(order.totalFare).toFixed(2)}` : 'N/A';
+            
+            // Create table row
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${orderId}</td>
+                <td>${orderDate}</td>
+                <td>${order.customerName || 'Anonymous Customer'}</td>
+                <td>${order.serviceType || 'Transport'}</td>
+                <td>${order.pickupLocation || 'N/A'}</td>
+                <td>${order.destination || 'N/A'}</td>
+                <td>${amount}</td>
+                <td><span class="status-badge ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                <td>
+                    <button class="action-btn view-btn" data-id="${orderId}"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn delete-btn" data-id="${orderId}"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            
+            if (ordersTableBody) {
+                ordersTableBody.appendChild(row);
+            }
+            
+            // Add event listeners to buttons
+            const viewBtn = row.querySelector('.view-btn');
+            const deleteBtn = row.querySelector('.delete-btn');
+            
+            if (viewBtn) {
+                viewBtn.addEventListener('click', function() {
+                    viewOrderDetails(this.getAttribute('data-id'));
+                });
+            }
+            
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function() {
+                    deleteOrder(this.getAttribute('data-id'));
+                });
+            }
+        });
+    }
+    
+    // Function to view order details
+    function viewOrderDetails(orderId) {
+        console.log('Viewing order details for:', orderId);
+        
+        // Get orders from localStorage
+        let orders = [];
+        try {
+            const storedOrders = localStorage.getItem('bookings');
+            if (storedOrders) {
+                orders = JSON.parse(storedOrders);
+            }
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            return;
+        }
+        
+        // Find the specific order
+        const order = orders.find(o => o.id === orderId);
+        if (!order) {
+            alert('Order not found');
+            return;
+        }
+        
+        // Get order details content element
+        const orderDetailsContent = document.getElementById('orderDetailsContent');
+        if (!orderDetailsContent) return;
+        
+        // Format date
+        const orderDate = order.timestamp ? new Date(order.timestamp).toLocaleString() : 'N/A';
+        const journeyDate = order.journeyDate ? new Date(order.journeyDate).toLocaleDateString() : 'N/A';
+        const journeyTime = order.journeyTime || 'N/A';
+        
+        // Create HTML content for order details
+        orderDetailsContent.innerHTML = `
+            <div class="order-details">
+                <div class="order-header">
+                    <h4>Order ${order.id}</h4>
+                    <span class="status-badge ${order.status || 'pending'}">${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}</span>
+                </div>
+                
+                <div class="order-info-grid">
+                    <div class="info-group">
+                        <label>Order Date:</label>
+                        <span>${orderDate}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Journey Date:</label>
+                        <span>${journeyDate} ${journeyTime}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Service Type:</label>
+                        <span>${order.serviceType || 'Transport'}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Vehicle Type:</label>
+                        <span>${order.vehicleType ? order.vehicleType.charAt(0).toUpperCase() + order.vehicleType.slice(1) : 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Passengers:</label>
+                        <span>${order.passengerCount || 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>From:</label>
+                        <span>${order.pickupLocation || 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>To:</label>
+                        <span>${order.destination || 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Distance:</label>
+                        <span>${order.distance ? order.distance.toFixed(1) + ' km' : 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Total Fare:</label>
+                        <span>${order.totalFare ? '$' + parseFloat(order.totalFare).toFixed(2) : 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Deposit Amount:</label>
+                        <span>${order.depositAmount ? '$' + parseFloat(order.depositAmount).toFixed(2) : 'N/A'}</span>
+                    </div>
+                </div>
+                
+                <div class="customer-info">
+                    <h4>Customer Information</h4>
+                    <div class="info-group">
+                        <label>Name:</label>
+                        <span>${order.customerName || 'Anonymous Customer'}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Email:</label>
+                        <span>${order.customerEmail || 'N/A'}</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Phone:</label>
+                        <span>${order.customerPhone || 'N/A'}</span>
+                    </div>
+                </div>
+                
+                <div class="special-requirements">
+                    <h4>Special Requirements</h4>
+                    <p>${order.specialRequirements || 'None specified'}</p>
+                </div>
+            </div>
+        `;
+        
+        // Show modal
+        if (orderDetailsModal) {
+            orderDetailsModal.style.display = 'flex';
+            orderDetailsModal.classList.add('active');
+            
+            // Add event listeners to status buttons
+            const statusButtons = orderDetailsModal.querySelectorAll('.order-status-buttons button');
+            statusButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const newStatus = this.getAttribute('data-status');
+                    updateOrderStatus(orderId, newStatus);
+                });
+            });
+        }
+    }
+    
+    // Function to update order status
+    function updateOrderStatus(orderId, newStatus) {
+        console.log('Updating order status:', orderId, newStatus);
+        
+        // Get orders from localStorage
+        let orders = [];
+        try {
+            const storedOrders = localStorage.getItem('bookings');
+            if (storedOrders) {
+                orders = JSON.parse(storedOrders);
+            }
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            return;
+        }
+        
+        // Find and update the specific order
+        const orderIndex = orders.findIndex(o => o.id === orderId);
+        if (orderIndex === -1) {
+            alert('Order not found');
+            return;
+        }
+        
+        // Update status
+        orders[orderIndex].status = newStatus;
+        
+        // Save to localStorage
+        try {
+            localStorage.setItem('bookings', JSON.stringify(orders));
+            
+            // Reload orders and close modal
+            loadOrders();
+            if (orderDetailsModal) {
+                orderDetailsModal.style.display = 'none';
+                orderDetailsModal.classList.remove('active');
+            }
+        } catch (error) {
+            console.error('Error saving order status:', error);
+            alert('Failed to update order status');
+        }
+    }
+    
+    // Function to delete an order
+    function deleteOrder(orderId) {
+        if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+            return;
+        }
+        
+        console.log('Deleting order:', orderId);
+        
+        // Get orders from localStorage
+        let orders = [];
+        try {
+            const storedOrders = localStorage.getItem('bookings');
+            if (storedOrders) {
+                orders = JSON.parse(storedOrders);
+            }
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            return;
+        }
+        
+        // Remove the specific order
+        const filteredOrders = orders.filter(o => o.id !== orderId);
+        
+        // Save to localStorage
+        try {
+            localStorage.setItem('bookings', JSON.stringify(filteredOrders));
+            
+            // Reload orders
+            loadOrders();
+        } catch (error) {
+            console.error('Error deleting order:', error);
+            alert('Failed to delete order');
+        }
+    }
+    
+    // Helper function to update an order in localStorage
+    function updateOrderInStorage(updatedOrder) {
+        // Get orders from localStorage
+        let orders = [];
+        try {
+            const storedOrders = localStorage.getItem('bookings');
+            if (storedOrders) {
+                orders = JSON.parse(storedOrders);
+            }
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            return;
+        }
+        
+        // Find and update the specific order
+        const orderIndex = orders.findIndex(o => o.id === updatedOrder.id);
+        if (orderIndex !== -1) {
+            orders[orderIndex] = updatedOrder;
+        }
+        
+        // Save to localStorage
+        try {
+            localStorage.setItem('bookings', JSON.stringify(orders));
+        } catch (error) {
+            console.error('Error updating order in storage:', error);
+        }
+    }
+}
+
+// Transport Settings functionality
+function initTransportSettings() {
+    console.log('Initializing transport settings...');
+    
+    // 获取保存按钮元素
+    const saveTransportSettingsBtn = document.getElementById('saveTransportSettingsBtn');
+    
+    if (!saveTransportSettingsBtn) {
+        console.error('Save transport settings button not found');
+        return;
+    }
+    
+    // 加载现有设置
+    loadTransportSettings();
+    
+    // 为保存按钮添加点击事件监听器
+    saveTransportSettingsBtn.addEventListener('click', saveTransportSettings);
+    console.log('Event listener added to saveTransportSettingsBtn');
+    
+    // 单独的保存函数
+    function saveTransportSettings() {
+        console.log('saveTransportSettings function called');
+        try {
+            // 获取表单值并转换为数字
+            const baseFareValue = parseFloat(document.getElementById('baseFare').value);
+            const ratePerKmValue = parseFloat(document.getElementById('ratePerKm').value);
+            const rushHourValue = parseFloat(document.getElementById('rushHourMultiplier').value);
+            const nightValue = parseFloat(document.getElementById('nightMultiplier').value);
+            const weekendValue = parseFloat(document.getElementById('weekendMultiplier').value);
+            const sedanValue = parseFloat(document.getElementById('sedanRate').value);
+            const suvValue = parseFloat(document.getElementById('suvRate').value);
+            const vanValue = parseFloat(document.getElementById('vanRate').value);
+            const luxuryValue = parseFloat(document.getElementById('luxuryRate').value);
+            
+            // 输出当前获取的值用于调试
+            console.log('Form values:', {
+                baseFare: baseFareValue,
+                ratePerKm: ratePerKmValue,
+                rushHour: rushHourValue,
+                night: nightValue,
+                weekend: weekendValue,
+                sedan: sedanValue,
+                suv: suvValue,
+                van: vanValue,
+                luxury: luxuryValue
+            });
+            
+            // 验证表单值是否有效
+            if (isNaN(baseFareValue) || isNaN(ratePerKmValue) || isNaN(rushHourValue) ||
+                isNaN(nightValue) || isNaN(weekendValue) || isNaN(sedanValue) ||
+                isNaN(suvValue) || isNaN(vanValue) || isNaN(luxuryValue)) {
+                throw new Error('无效的数值输入');
+            }
+            
+            // 创建设置对象
+            const transportSettings = {
+                baseFare: baseFareValue,
+                ratePerKm: ratePerKmValue,
+                rushHourMultiplier: rushHourValue,
+                nightMultiplier: nightValue,
+                weekendMultiplier: weekendValue,
+                vehicleRates: {
+                    sedan: sedanValue,
+                    suv: suvValue,
+                    van: vanValue,
+                    luxury: luxuryValue
+                },
+                lastUpdated: new Date().toISOString()
+            };
+            
+            console.log('Saving transport settings:', transportSettings);
+            
+            // 先尝试清除旧数据（解决可能的缓存问题）
+            try {
+                localStorage.removeItem('transportSettings');
+            } catch (e) {
+                console.warn('Failed to remove old settings:', e);
+            }
+            
+            // 保存到localStorage
+            try {
+                const settingsJSON = JSON.stringify(transportSettings);
+                console.log('Settings JSON:', settingsJSON);
+                localStorage.setItem('transportSettings', settingsJSON);
+                
+                // 同时保存到sessionStorage作为备份
+                sessionStorage.setItem('transportSettings', settingsJSON);
+                
+                // 验证保存结果
+                const savedData = localStorage.getItem('transportSettings');
+                console.log('Saved data retrieved:', savedData);
+                
+                if (savedData) {
+                    console.log('Transport settings saved successfully');
+                    alert('Transport settings saved successfully!');
+                } else {
+                    console.error('Failed to verify saved settings');
+                    alert('Failed to save settings. Please try again.');
+                }
+            } catch (e) {
+                console.error('Error saving to localStorage:', e);
+                alert('Error saving settings: ' + e.message);
+            }
+        } catch (error) {
+            console.error('Error in saveTransportSettings:', error);
+            alert('Error saving settings: ' + error.message);
+        }
+    }
+    
+    // 修复loadTransportSettings函数
+    function loadTransportSettings() {
+        console.log('Loading transport settings...');
+        
+        try {
+            // 获取form表单元素
+            const baseFare = document.getElementById('baseFare');
+            const ratePerKm = document.getElementById('ratePerKm');
+            const rushHourMultiplier = document.getElementById('rushHourMultiplier');
+            const nightMultiplier = document.getElementById('nightMultiplier');
+            const weekendMultiplier = document.getElementById('weekendMultiplier');
+            const sedanRate = document.getElementById('sedanRate');
+            const suvRate = document.getElementById('suvRate');
+            const vanRate = document.getElementById('vanRate');
+            const luxuryRate = document.getElementById('luxuryRate');
+            
+            // 检查元素是否存在
+            if (!baseFare || !ratePerKm || !rushHourMultiplier || !nightMultiplier || 
+                !weekendMultiplier || !sedanRate || !suvRate || !vanRate || !luxuryRate) {
+                console.error('One or more form elements not found');
+                return;
+            }
+            
+            // 尝试从多个来源获取设置
+            let settingsStr = localStorage.getItem('transportSettings');
+            
+            // 如果localStorage没有，尝试从sessionStorage获取
+            if (!settingsStr) {
+                settingsStr = sessionStorage.getItem('transportSettings');
+                console.log('Using settings from sessionStorage');
+            }
+            
+            console.log('Raw settings:', settingsStr);
+            
+            // 设置默认值（以防localStorage中没有值）
+            const defaultSettings = {
+                baseFare: 30,
+                ratePerKm: 0.5,
+                rushHourMultiplier: 1.5,
+                nightMultiplier: 1.3,
+                weekendMultiplier: 1.2,
+                vehicleRates: {
+                    sedan: 1.0,
+                    suv: 1.5,
+                    van: 1.8,
+                    luxury: 2.2
+                }
+            };
+            
+            if (!settingsStr) {
+                console.log('No settings found, using defaults');
+                // 使用默认值
+                baseFare.value = defaultSettings.baseFare;
+                ratePerKm.value = defaultSettings.ratePerKm;
+                rushHourMultiplier.value = defaultSettings.rushHourMultiplier;
+                nightMultiplier.value = defaultSettings.nightMultiplier;
+                weekendMultiplier.value = defaultSettings.weekendMultiplier;
+                sedanRate.value = defaultSettings.vehicleRates.sedan;
+                suvRate.value = defaultSettings.vehicleRates.suv;
+                vanRate.value = defaultSettings.vehicleRates.van;
+                luxuryRate.value = defaultSettings.vehicleRates.luxury;
+                
+                // 保存默认值到localStorage
+                try {
+                    localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
+                    console.log('Default settings saved to localStorage');
+                } catch (e) {
+                    console.warn('Failed to save default settings:', e);
+                }
+                return;
+            }
+            
+            try {
+                // 解析JSON
+                const settings = JSON.parse(settingsStr);
+                console.log('Parsed settings:', settings);
+                
+                // 设置表单值（带有回退默认值）
+                baseFare.value = settings.baseFare || defaultSettings.baseFare;
+                ratePerKm.value = settings.ratePerKm || defaultSettings.ratePerKm;
+                rushHourMultiplier.value = settings.rushHourMultiplier || defaultSettings.rushHourMultiplier;
+                nightMultiplier.value = settings.nightMultiplier || defaultSettings.nightMultiplier;
+                weekendMultiplier.value = settings.weekendMultiplier || defaultSettings.weekendMultiplier;
+                
+                // 处理车辆费率
+                const vehicleRates = settings.vehicleRates || defaultSettings.vehicleRates;
+                
+                sedanRate.value = vehicleRates.sedan || defaultSettings.vehicleRates.sedan;
+                suvRate.value = vehicleRates.suv || defaultSettings.vehicleRates.suv;
+                vanRate.value = vehicleRates.van || defaultSettings.vehicleRates.van;
+                luxuryRate.value = vehicleRates.luxury || defaultSettings.vehicleRates.luxury;
+                
+                console.log('Transport settings loaded successfully');
+            } catch (error) {
+                console.error('Error parsing transport settings:', error);
+                // 出错时使用默认值
+                baseFare.value = defaultSettings.baseFare;
+                ratePerKm.value = defaultSettings.ratePerKm;
+                rushHourMultiplier.value = defaultSettings.rushHourMultiplier;
+                nightMultiplier.value = defaultSettings.nightMultiplier;
+                weekendMultiplier.value = defaultSettings.weekendMultiplier;
+                sedanRate.value = defaultSettings.vehicleRates.sedan;
+                suvRate.value = defaultSettings.vehicleRates.suv;
+                vanRate.value = defaultSettings.vehicleRates.van;
+                luxuryRate.value = defaultSettings.vehicleRates.luxury;
+                
+                // 保存默认值到localStorage
+                try {
+                    localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
+                    console.log('Default settings saved to localStorage after error');
+                } catch (e) {
+                    console.warn('Failed to save default settings after error:', e);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading transport settings:', error);
+        }
+    }
+}
+
 // Settings Management functionality
 function initSettings() {
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
@@ -1640,234 +2282,5 @@ function initLinksManagement() {
         links = links.filter(l => l.id !== id);
         localStorage.setItem('siteLinks', JSON.stringify(links));
         loadLinks();
-    }
-}
-
-// Transport Settings functionality
-function initTransportSettings() {
-    console.log('Initializing transport settings...');
-    
-    // 获取保存按钮元素
-    const saveTransportSettingsBtn = document.getElementById('saveTransportSettingsBtn');
-    
-    if (!saveTransportSettingsBtn) {
-        console.error('Save transport settings button not found');
-        return;
-    }
-    
-    // 加载现有设置
-    loadTransportSettings();
-    
-    // 为保存按钮添加点击事件监听器
-    saveTransportSettingsBtn.addEventListener('click', saveTransportSettings);
-    console.log('Event listener added to saveTransportSettingsBtn');
-    
-    // 单独的保存函数
-    function saveTransportSettings() {
-        console.log('saveTransportSettings function called');
-        try {
-            // 获取表单值并转换为数字
-            const baseFareValue = parseFloat(document.getElementById('baseFare').value);
-            const ratePerKmValue = parseFloat(document.getElementById('ratePerKm').value);
-            const rushHourValue = parseFloat(document.getElementById('rushHourMultiplier').value);
-            const nightValue = parseFloat(document.getElementById('nightMultiplier').value);
-            const weekendValue = parseFloat(document.getElementById('weekendMultiplier').value);
-            const sedanValue = parseFloat(document.getElementById('sedanRate').value);
-            const suvValue = parseFloat(document.getElementById('suvRate').value);
-            const vanValue = parseFloat(document.getElementById('vanRate').value);
-            const luxuryValue = parseFloat(document.getElementById('luxuryRate').value);
-            
-            // 输出当前获取的值用于调试
-            console.log('Form values:', {
-                baseFare: baseFareValue,
-                ratePerKm: ratePerKmValue,
-                rushHour: rushHourValue,
-                night: nightValue,
-                weekend: weekendValue,
-                sedan: sedanValue,
-                suv: suvValue,
-                van: vanValue,
-                luxury: luxuryValue
-            });
-            
-            // 验证表单值是否有效
-            if (isNaN(baseFareValue) || isNaN(ratePerKmValue) || isNaN(rushHourValue) ||
-                isNaN(nightValue) || isNaN(weekendValue) || isNaN(sedanValue) ||
-                isNaN(suvValue) || isNaN(vanValue) || isNaN(luxuryValue)) {
-                throw new Error('无效的数值输入');
-            }
-            
-            // 创建设置对象
-            const transportSettings = {
-                baseFare: baseFareValue,
-                ratePerKm: ratePerKmValue,
-                rushHourMultiplier: rushHourValue,
-                nightMultiplier: nightValue,
-                weekendMultiplier: weekendValue,
-                vehicleRates: {
-                    sedan: sedanValue,
-                    suv: suvValue,
-                    van: vanValue,
-                    luxury: luxuryValue
-                },
-                lastUpdated: new Date().toISOString()
-            };
-            
-            console.log('Saving transport settings:', transportSettings);
-            
-            // 先尝试清除旧数据（解决可能的缓存问题）
-            try {
-                localStorage.removeItem('transportSettings');
-            } catch (e) {
-                console.warn('Failed to remove old settings:', e);
-            }
-            
-            // 保存到localStorage
-            try {
-                const settingsJSON = JSON.stringify(transportSettings);
-                console.log('Settings JSON:', settingsJSON);
-                localStorage.setItem('transportSettings', settingsJSON);
-                
-                // 同时保存到sessionStorage作为备份
-                sessionStorage.setItem('transportSettings', settingsJSON);
-                
-                // 验证保存结果
-                const savedData = localStorage.getItem('transportSettings');
-                console.log('Saved data retrieved:', savedData);
-                
-                if (savedData) {
-                    console.log('Transport settings saved successfully');
-                    alert('Transport settings saved successfully!');
-                } else {
-                    console.error('Failed to verify saved settings');
-                    alert('Failed to save settings. Please try again.');
-                }
-            } catch (e) {
-                console.error('Error saving to localStorage:', e);
-                alert('Error saving settings: ' + e.message);
-            }
-        } catch (error) {
-            console.error('Error in saveTransportSettings:', error);
-            alert('Error saving settings: ' + error.message);
-        }
-    }
-    
-    // 修复loadTransportSettings函数
-    function loadTransportSettings() {
-        console.log('Loading transport settings...');
-        
-        try {
-            // 获取form表单元素
-            const baseFare = document.getElementById('baseFare');
-            const ratePerKm = document.getElementById('ratePerKm');
-            const rushHourMultiplier = document.getElementById('rushHourMultiplier');
-            const nightMultiplier = document.getElementById('nightMultiplier');
-            const weekendMultiplier = document.getElementById('weekendMultiplier');
-            const sedanRate = document.getElementById('sedanRate');
-            const suvRate = document.getElementById('suvRate');
-            const vanRate = document.getElementById('vanRate');
-            const luxuryRate = document.getElementById('luxuryRate');
-            
-            // 检查元素是否存在
-            if (!baseFare || !ratePerKm || !rushHourMultiplier || !nightMultiplier || 
-                !weekendMultiplier || !sedanRate || !suvRate || !vanRate || !luxuryRate) {
-                console.error('One or more form elements not found');
-                return;
-            }
-            
-            // 尝试从多个来源获取设置
-            let settingsStr = localStorage.getItem('transportSettings');
-            
-            // 如果localStorage没有，尝试从sessionStorage获取
-            if (!settingsStr) {
-                settingsStr = sessionStorage.getItem('transportSettings');
-                console.log('Using settings from sessionStorage');
-            }
-            
-            console.log('Raw settings:', settingsStr);
-            
-            // 设置默认值（以防localStorage中没有值）
-            const defaultSettings = {
-                baseFare: 30,
-                ratePerKm: 0.5,
-                rushHourMultiplier: 1.5,
-                nightMultiplier: 1.3,
-                weekendMultiplier: 1.2,
-                vehicleRates: {
-                    sedan: 1.0,
-                    suv: 1.5,
-                    van: 1.8,
-                    luxury: 2.2
-                }
-            };
-            
-            if (!settingsStr) {
-                console.log('No settings found, using defaults');
-                // 使用默认值
-                baseFare.value = defaultSettings.baseFare;
-                ratePerKm.value = defaultSettings.ratePerKm;
-                rushHourMultiplier.value = defaultSettings.rushHourMultiplier;
-                nightMultiplier.value = defaultSettings.nightMultiplier;
-                weekendMultiplier.value = defaultSettings.weekendMultiplier;
-                sedanRate.value = defaultSettings.vehicleRates.sedan;
-                suvRate.value = defaultSettings.vehicleRates.suv;
-                vanRate.value = defaultSettings.vehicleRates.van;
-                luxuryRate.value = defaultSettings.vehicleRates.luxury;
-                
-                // 保存默认值到localStorage
-                try {
-                    localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
-                    console.log('Default settings saved to localStorage');
-                } catch (e) {
-                    console.warn('Failed to save default settings:', e);
-                }
-                return;
-            }
-            
-            try {
-                // 解析JSON
-                const settings = JSON.parse(settingsStr);
-                console.log('Parsed settings:', settings);
-                
-                // 设置表单值（带有回退默认值）
-                baseFare.value = settings.baseFare || defaultSettings.baseFare;
-                ratePerKm.value = settings.ratePerKm || defaultSettings.ratePerKm;
-                rushHourMultiplier.value = settings.rushHourMultiplier || defaultSettings.rushHourMultiplier;
-                nightMultiplier.value = settings.nightMultiplier || defaultSettings.nightMultiplier;
-                weekendMultiplier.value = settings.weekendMultiplier || defaultSettings.weekendMultiplier;
-                
-                // 处理车辆费率
-                const vehicleRates = settings.vehicleRates || defaultSettings.vehicleRates;
-                
-                sedanRate.value = vehicleRates.sedan || defaultSettings.vehicleRates.sedan;
-                suvRate.value = vehicleRates.suv || defaultSettings.vehicleRates.suv;
-                vanRate.value = vehicleRates.van || defaultSettings.vehicleRates.van;
-                luxuryRate.value = vehicleRates.luxury || defaultSettings.vehicleRates.luxury;
-                
-                console.log('Transport settings loaded successfully');
-            } catch (error) {
-                console.error('Error parsing transport settings:', error);
-                // 出错时使用默认值
-                baseFare.value = defaultSettings.baseFare;
-                ratePerKm.value = defaultSettings.ratePerKm;
-                rushHourMultiplier.value = defaultSettings.rushHourMultiplier;
-                nightMultiplier.value = defaultSettings.nightMultiplier;
-                weekendMultiplier.value = defaultSettings.weekendMultiplier;
-                sedanRate.value = defaultSettings.vehicleRates.sedan;
-                suvRate.value = defaultSettings.vehicleRates.suv;
-                vanRate.value = defaultSettings.vehicleRates.van;
-                luxuryRate.value = defaultSettings.vehicleRates.luxury;
-                
-                // 保存默认值到localStorage
-                try {
-                    localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
-                    console.log('Default settings saved to localStorage after error');
-                } catch (e) {
-                    console.warn('Failed to save default settings after error:', e);
-                }
-            }
-        } catch (error) {
-            console.error('Error loading transport settings:', error);
-        }
     }
 } 

@@ -47,6 +47,9 @@
                 <li data-section="hotels">
                     <a href="#hotels"><i class="fas fa-hotel"></i> Hotel Recommendations</a>
                 </li>
+                <li data-section="orders">
+                    <a href="#orders"><i class="fas fa-shopping-cart"></i> Order Management</a>
+                </li>
                 <li data-section="transport">
                     <a href="#transport"><i class="fas fa-car"></i> Transport Settings</a>
                 </li>
@@ -291,6 +294,77 @@
                     
                     <div class="content-list" id="linksList">
                         <!-- Links will be listed here dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Orders Management Section -->
+            <div class="admin-section" id="ordersSection">
+                <h2><i class="fas fa-shopping-cart"></i> Order Management</h2>
+                
+                <div class="section-description">
+                    <p>View and manage transport bookings and customer orders.</p>
+                </div>
+                
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-order-tab="all">All Orders</button>
+                    <button class="admin-tab" data-order-tab="pending">Pending</button>
+                    <button class="admin-tab" data-order-tab="confirmed">Confirmed</button>
+                    <button class="admin-tab" data-order-tab="completed">Completed</button>
+                    <button class="admin-tab" data-order-tab="cancelled">Cancelled</button>
+                </div>
+                
+                <div class="orders-search">
+                    <input type="text" id="orderSearchInput" placeholder="Search by customer name, email, or location...">
+                    <button id="orderSearchBtn"><i class="fas fa-search"></i></button>
+                </div>
+                
+                <div class="orders-table-container">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Service</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Orders will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- No Orders Message -->
+                <div id="noOrdersMessage" class="no-orders-message" style="display: none;">
+                    <i class="fas fa-info-circle"></i>
+                    <p>No orders found. As customers make bookings, they will appear here.</p>
+                </div>
+                
+                <!-- Order Details Modal -->
+                <div id="orderDetailsModal" class="admin-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3><i class="fas fa-info-circle"></i> Order Details</h3>
+                            <button class="close-modal">&times;</button>
+                        </div>
+                        <div class="modal-body" id="orderDetailsContent">
+                            <!-- Order details will be loaded here -->
+                        </div>
+                        <div class="modal-footer">
+                            <div class="order-status-buttons">
+                                <button class="admin-btn" data-status="pending">Mark as Pending</button>
+                                <button class="admin-btn success" data-status="confirmed">Confirm Order</button>
+                                <button class="admin-btn primary" data-status="completed">Mark as Completed</button>
+                                <button class="admin-btn danger" data-status="cancelled">Cancel Order</button>
+                            </div>
+                            <button class="admin-btn secondary close-modal">Close</button>
+                        </div>
                     </div>
                 </div>
             </div>

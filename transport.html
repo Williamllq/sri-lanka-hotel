@@ -25,6 +25,7 @@
                 <li><a href="index.html#testimonials">Testimonials</a></li>
                 <li><a href="hotels.html">Hotels</a></li>
                 <li class="active"><a href="transport.html">Transport</a></li>
+                <li><a href="#" id="myBookingsBtn">My Bookings</a></li>
                 <li><a href="index.html#contact">Contact</a></li>
             </ul>
             <div class="mobile-nav-toggle" id="mobileNavToggle">
@@ -318,6 +319,26 @@
                     </div>
                     <h3>4. Enjoy Your Ride</h3>
                     <p>Your driver will pick you up at the scheduled time.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- My Bookings Section -->
+    <section class="section my-bookings" id="myBookingsSection" style="display: none;">
+        <div class="container">
+            <h2>My Bookings</h2>
+            <p class="section-intro">View and manage your transport bookings.</p>
+            
+            <div class="booking-history-container" id="bookingHistoryContainer">
+                <!-- Booking history will be loaded here dynamically -->
+                <div class="booking-search">
+                    <input type="email" id="bookingSearchEmail" placeholder="Enter your email to view your bookings">
+                    <button id="searchBookingsBtn" class="btn secondary">Search</button>
+                </div>
+                
+                <div id="bookingsListContainer">
+                    <!-- Bookings list will be displayed here -->
                 </div>
             </div>
         </div>
