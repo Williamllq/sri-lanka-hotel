@@ -178,14 +178,42 @@ function calculateFare(distance, vehicleType, journeyDate, journeyTime) {
         }
     };
     
-    const transportSettings = JSON.parse(localStorage.getItem('transportSettings') || JSON.stringify(defaultSettings));
+    let transportSettings;
+    
+    try {
+        // 尝试从localStorage获取设置
+        const transportSettingsStr = localStorage.getItem('transportSettings');
+        console.log('Transport settings from localStorage:', transportSettingsStr);
+        
+        if (!transportSettingsStr) {
+            console.log('No transport settings found in localStorage, using defaults');
+            transportSettings = defaultSettings;
+        } else {
+            transportSettings = JSON.parse(transportSettingsStr);
+            console.log('Parsed transport settings:', transportSettings);
+            
+            // 验证解析后的对象是否有必要的字段
+            if (!transportSettings.baseFare || !transportSettings.ratePerKm || 
+                !transportSettings.vehicleRates || !transportSettings.vehicleRates.sedan) {
+                console.warn('Transport settings missing required fields, using defaults');
+                transportSettings = defaultSettings;
+            }
+        }
+    } catch (error) {
+        console.error('Error reading transport settings:', error);
+        transportSettings = defaultSettings;
+    }
     
     // Calculate base fare
     let baseFare = transportSettings.baseFare;
     let ratePerKm = transportSettings.ratePerKm;
     
+    console.log(`Using baseFare: $${baseFare}, ratePerKm: $${ratePerKm}`);
+    
     // Apply vehicle multiplier
-    const vehicleMultiplier = transportSettings.vehicleRates[vehicleType] || transportSettings.vehicleRates.sedan;
+    const vehicleMultiplier = (transportSettings.vehicleRates && transportSettings.vehicleRates[vehicleType]) 
+        ? transportSettings.vehicleRates[vehicleType] 
+        : defaultSettings.vehicleRates[vehicleType] || defaultSettings.vehicleRates.sedan;
     
     // Calculate time-based multipliers if needed
     let timeMultiplier = 1.0;

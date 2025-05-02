@@ -1654,24 +1654,62 @@ function initTransportSettings() {
     
     // Save settings
     saveTransportSettingsBtn.addEventListener('click', function() {
-        const transportSettings = {
-            baseFare: parseFloat(document.getElementById('baseFare').value),
-            ratePerKm: parseFloat(document.getElementById('ratePerKm').value),
-            rushHourMultiplier: parseFloat(document.getElementById('rushHourMultiplier').value),
-            nightMultiplier: parseFloat(document.getElementById('nightMultiplier').value),
-            weekendMultiplier: parseFloat(document.getElementById('weekendMultiplier').value),
-            vehicleRates: {
-                sedan: parseFloat(document.getElementById('sedanRate').value),
-                suv: parseFloat(document.getElementById('suvRate').value),
-                van: parseFloat(document.getElementById('vanRate').value),
-                luxury: parseFloat(document.getElementById('luxuryRate').value)
+        try {
+            // 获取表单值并转换为数字
+            const baseFareValue = parseFloat(document.getElementById('baseFare').value);
+            const ratePerKmValue = parseFloat(document.getElementById('ratePerKm').value);
+            const rushHourValue = parseFloat(document.getElementById('rushHourMultiplier').value);
+            const nightValue = parseFloat(document.getElementById('nightMultiplier').value);
+            const weekendValue = parseFloat(document.getElementById('weekendMultiplier').value);
+            const sedanValue = parseFloat(document.getElementById('sedanRate').value);
+            const suvValue = parseFloat(document.getElementById('suvRate').value);
+            const vanValue = parseFloat(document.getElementById('vanRate').value);
+            const luxuryValue = parseFloat(document.getElementById('luxuryRate').value);
+            
+            // 验证表单值是否有效
+            if (isNaN(baseFareValue) || isNaN(ratePerKmValue) || isNaN(rushHourValue) ||
+                isNaN(nightValue) || isNaN(weekendValue) || isNaN(sedanValue) ||
+                isNaN(suvValue) || isNaN(vanValue) || isNaN(luxuryValue)) {
+                throw new Error('无效的数值输入');
             }
-        };
-        
-        // Save to localStorage
-        localStorage.setItem('transportSettings', JSON.stringify(transportSettings));
-        
-        alert('Transport settings saved successfully');
+            
+            // 创建设置对象
+            const transportSettings = {
+                baseFare: baseFareValue,
+                ratePerKm: ratePerKmValue,
+                rushHourMultiplier: rushHourValue,
+                nightMultiplier: nightValue,
+                weekendMultiplier: weekendValue,
+                vehicleRates: {
+                    sedan: sedanValue,
+                    suv: suvValue,
+                    van: vanValue,
+                    luxury: luxuryValue
+                }
+            };
+            
+            console.log('Saving transport settings:', transportSettings);
+            
+            // 保存到localStorage
+            localStorage.setItem('transportSettings', JSON.stringify(transportSettings));
+            console.log('Transport settings saved to localStorage');
+            
+            // 验证保存的数据
+            const savedData = localStorage.getItem('transportSettings');
+            console.log('Verification - Raw saved data:', savedData);
+            const parsedData = JSON.parse(savedData);
+            console.log('Verification - Parsed saved data:', parsedData);
+            
+            // 额外的验证步骤：确保设置值与表单值匹配
+            if (parsedData.baseFare !== baseFareValue || parsedData.ratePerKm !== ratePerKmValue) {
+                console.warn('警告：保存的数据与表单值不匹配，可能存在localStorage问题');
+            }
+            
+            alert('Transport settings saved successfully');
+        } catch (error) {
+            console.error('Error saving transport settings:', error);
+            alert('Error saving settings: ' + error.message);
+        }
     });
     
     // Load transport settings from localStorage
