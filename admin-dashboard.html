@@ -971,9 +971,9 @@
                     vehicleType: 'Sedan',
                     journeyDate: '2023-12-15',
                     journeyTime: '09:30',
-                    price: 89.50,
+                    totalFare: 89.50,
                     status: 'confirmed',
-                    createdAt: new Date('2023-12-10').toISOString()
+                    timestamp: new Date('2023-12-10').toISOString()
                 },
                 {
                     id: 'ORD-1002',
@@ -986,9 +986,9 @@
                     vehicleType: 'SUV',
                     journeyDate: '2023-12-18',
                     journeyTime: '14:00',
-                    price: 65.75,
+                    totalFare: 65.75,
                     status: 'pending',
-                    createdAt: new Date('2023-12-11').toISOString()
+                    timestamp: new Date('2023-12-11').toISOString()
                 },
                 {
                     id: 'ORD-1003',
@@ -1001,9 +1001,9 @@
                     vehicleType: 'Van',
                     journeyDate: '2023-12-12',
                     journeyTime: '10:00',
-                    price: 175.25,
+                    totalFare: 175.25,
                     status: 'completed',
-                    createdAt: new Date('2023-12-08').toISOString()
+                    timestamp: new Date('2023-12-08').toISOString()
                 },
                 {
                     id: 'ORD-1004',
@@ -1016,9 +1016,9 @@
                     vehicleType: 'Luxury',
                     journeyDate: '2023-12-20',
                     journeyTime: '08:00',
-                    price: 210.50,
+                    totalFare: 210.50,
                     status: 'cancelled',
-                    createdAt: new Date('2023-12-09').toISOString()
+                    timestamp: new Date('2023-12-09').toISOString()
                 }
             ];
         }
@@ -1051,15 +1051,17 @@
             const searchInput = document.getElementById('orderSearchInput');
             const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
             
-            // Try to get orders from localStorage
-            const storedOrders = localStorage.getItem('orders');
+            // Try to get orders from localStorage - First check 'bookings' which is used by the frontend
+            let storedOrders = localStorage.getItem('bookings');
             
             // Use stored orders, or create demo orders if none exist
             if (storedOrders) {
                 ordersData = JSON.parse(storedOrders);
+                console.log('User bookings found:', ordersData.length);
             } else {
-                // Create demo orders
+                // Create demo orders if no real bookings
                 ordersData = createDemoOrders();
+                console.log('No user bookings found, using demo data');
                 // Save to localStorage
                 localStorage.setItem('orders', JSON.stringify(ordersData));
             }
@@ -1074,10 +1076,10 @@
                 // Apply search filter if there's a search term
                 if (searchTerm) {
                     return (
-                        order.customerName.toLowerCase().includes(searchTerm) ||
-                        order.customerEmail.toLowerCase().includes(searchTerm) ||
-                        order.fromLocation.toLowerCase().includes(searchTerm) ||
-                        order.toLocation.toLowerCase().includes(searchTerm)
+                        (order.customerName || '').toLowerCase().includes(searchTerm) ||
+                        (order.customerEmail || '').toLowerCase().includes(searchTerm) ||
+                        (order.pickupLocation || order.fromLocation || '').toLowerCase().includes(searchTerm) ||
+                        (order.destination || order.toLocation || '').toLowerCase().includes(searchTerm)
                     );
                 }
                 
@@ -1085,7 +1087,7 @@
             });
             
             // Sort orders by date (newest first)
-            filteredOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            filteredOrders.sort((a, b) => new Date(b.timestamp || b.createdAt || 0) - new Date(a.timestamp || a.createdAt || 0));
             
             // Get the table body
             const tableBody = document.getElementById('ordersTableBody');
@@ -1110,20 +1112,26 @@
                 
                 // Create table rows for each order
                 filteredOrders.forEach(order => {
+                    // Handle different field naming between booking.js and our order structure
+                    const fromLocation = order.pickupLocation || order.fromLocation || 'N/A';
+                    const toLocation = order.destination || order.toLocation || 'N/A';
+                    const price = order.totalFare || order.price || 0;
+                    const createdDate = order.timestamp || order.createdAt || new Date().toISOString();
+                    
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${order.id}</td>
-                        <td>${formatDate(order.createdAt)}</td>
+                        <td>${formatDate(createdDate)}</td>
                         <td>
-                            <div>${order.customerName}</div>
-                            <small>${order.customerEmail}</small>
+                            <div>${order.customerName || 'N/A'}</div>
+                            <small>${order.customerEmail || 'N/A'}</small>
                         </td>
                         <td>Transport</td>
-                        <td>${order.fromLocation}</td>
-                        <td>${order.toLocation}</td>
-                        <td>${formatPrice(order.price)}</td>
+                        <td>${fromLocation}</td>
+                        <td>${toLocation}</td>
+                        <td>${formatPrice(price)}</td>
                         <td>
-                            <span class="status-badge ${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                            <span class="status-badge ${order.status || 'pending'}">${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}</span>
                         </td>
                         <td>
                             <button class="action-btn view-btn" data-order-id="${order.id}" title="View Details">
@@ -1176,26 +1184,34 @@
             const modalContent = document.getElementById('orderDetailsContent');
             
             if (modal && modalContent) {
+                // Handle different field naming between booking.js and our order structure
+                const fromLocation = order.pickupLocation || order.fromLocation || 'N/A';
+                const toLocation = order.destination || order.toLocation || 'N/A';
+                const price = order.totalFare || order.price || 0;
+                const createdDate = order.timestamp || order.createdAt || new Date().toISOString();
+                const distance = order.distance || 'N/A';
+                const vehicleType = order.vehicleType || 'Standard';
+                
                 modalContent.innerHTML = `
                     <div class="order-details">
                         <div class="order-header">
                             <h4>Order ${order.id}</h4>
-                            <span class="status-badge ${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                            <span class="status-badge ${order.status || 'pending'}">${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}</span>
                         </div>
                         
                         <h5>Customer Information</h5>
                         <div class="order-info-grid">
                             <div class="info-group">
                                 <label>Name</label>
-                                <span>${order.customerName}</span>
+                                <span>${order.customerName || 'N/A'}</span>
                             </div>
                             <div class="info-group">
                                 <label>Email</label>
-                                <span>${order.customerEmail}</span>
+                                <span>${order.customerEmail || 'N/A'}</span>
                             </div>
                             <div class="info-group">
                                 <label>Phone</label>
-                                <span>${order.customerPhone}</span>
+                                <span>${order.customerPhone || 'N/A'}</span>
                             </div>
                         </div>
                         
@@ -1203,31 +1219,31 @@
                         <div class="order-info-grid">
                             <div class="info-group">
                                 <label>From</label>
-                                <span>${order.fromLocation}</span>
+                                <span>${fromLocation}</span>
                             </div>
                             <div class="info-group">
                                 <label>To</label>
-                                <span>${order.toLocation}</span>
+                                <span>${toLocation}</span>
                             </div>
                             <div class="info-group">
                                 <label>Distance</label>
-                                <span>${order.distance} km</span>
+                                <span>${distance} km</span>
                             </div>
                             <div class="info-group">
                                 <label>Vehicle Type</label>
-                                <span>${order.vehicleType}</span>
+                                <span>${vehicleType}</span>
                             </div>
                             <div class="info-group">
                                 <label>Journey Date</label>
-                                <span>${order.journeyDate}</span>
+                                <span>${order.journeyDate || 'N/A'}</span>
                             </div>
                             <div class="info-group">
                                 <label>Journey Time</label>
-                                <span>${order.journeyTime}</span>
+                                <span>${order.journeyTime || 'N/A'}</span>
                             </div>
                             <div class="info-group">
                                 <label>Price</label>
-                                <span>${formatPrice(order.price)}</span>
+                                <span>${formatPrice(price)}</span>
                             </div>
                         </div>
                     </div>
@@ -1283,7 +1299,7 @@
             ordersData[orderIndex].status = status;
             
             // Save to localStorage
-            localStorage.setItem('orders', JSON.stringify(ordersData));
+            localStorage.setItem('bookings', JSON.stringify(ordersData));
             
             // Reload orders to update UI
             loadOrders();
@@ -1295,7 +1311,7 @@
             ordersData = ordersData.filter(o => o.id !== orderId);
             
             // Save to localStorage
-            localStorage.setItem('orders', JSON.stringify(ordersData));
+            localStorage.setItem('bookings', JSON.stringify(ordersData));
             
             // Reload orders to update UI
             loadOrders();
