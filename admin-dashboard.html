@@ -36,6 +36,7 @@
             background-color: rgba(0,0,0,0.4);
             align-items: center;
             justify-content: center;
+            pointer-events: auto;
         }
         
         .admin-modal.active {
@@ -50,6 +51,7 @@
             height: 100%;
             background-color: rgba(0,0,0,0.5);
             z-index: 1040;
+            pointer-events: auto;
         }
         
         body.modal-open {
@@ -66,6 +68,40 @@
             max-height: 90vh;
             overflow-y: auto;
             z-index: 1060;
+            position: relative;
+            pointer-events: auto;
+        }
+        
+        /* 修复模态框内容区域的交互 */
+        .admin-modal .modal-body,
+        .admin-modal .modal-footer,
+        .admin-modal .modal-header,
+        .admin-modal form,
+        .admin-modal input,
+        .admin-modal select,
+        .admin-modal textarea,
+        .admin-modal button {
+            position: relative;
+            z-index: 2002;
+            pointer-events: auto;
+        }
+        
+        .admin-modal .close-modal {
+            cursor: pointer;
+            z-index: 2003;
+            position: relative;
+        }
+        
+        /* 修复文件上传预览区域 */
+        .file-preview {
+            margin-top: 10px;
+            border: 1px dashed #ccc;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            z-index: 2002;
+            pointer-events: auto;
+            background-color: #f9f9f9;
         }
     </style>
 </head>
