@@ -83,8 +83,32 @@
     <!-- User Authentication Script -->
     <script src="js/user-auth.js" defer></script>
     
+    <!-- My Bookings Script -->
+    <script src="js/my-bookings.js" defer></script>
+    
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <style>
+    /* Ensure My Bookings nav item aligns with other menu items */
+    #myBookingsNavItem {
+        display: none; /* Initially hidden, will show on login */
+    }
+    
+    #myBookingsNavItem a {
+        color: var(--light-text);
+        text-decoration: none;
+        font-weight: 300;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+    }
+    
+    #myBookingsNavItem a:hover {
+        color: var(--accent-color);
+    }
+    </style>
 </head>
 <body>
     <header>
@@ -95,7 +119,7 @@
                 <li><a href="#explore">Explore</a></li>
                 <li><a href="#contact">Contact</a></li>
                 <li><a href="#" id="authToggleBtn" class="nav-login-btn"><i class="fas fa-user"></i> <span id="authBtnText">Login</span></a></li>
-                <li id="myBookingsNavItem" style="display: none;"><a href="#" id="navMyBookingsBtn"><i class="fas fa-receipt"></i> My Bookings</a></li>
+                <li id="myBookingsNavItem"><a href="#" id="navMyBookingsBtn"><i class="fas fa-receipt"></i> My Bookings</a></li>
             </ul>
             <div class="logo">
                 <a href="#home">

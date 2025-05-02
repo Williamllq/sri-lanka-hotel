@@ -46,6 +46,18 @@
         padding: 1rem 0;
         gap: 1rem;
     }
+    
+    /* Ensure My Bookings aligns with other navigation items on smaller screens */
+    #myBookingsNavItem {
+        text-align: center;
+        width: 100%;
+    }
+    
+    #myBookingsNavItem a {
+        display: inline-block;
+        width: 100%;
+        padding: 0.6rem 0;
+    }
 
     .hero-content h2 {
         font-size: 2rem;
@@ -123,6 +135,21 @@
 
     #map {
         height: 300px;
+    }
+    
+    /* Adjust My Bookings modal for small screens */
+    .bookings-container {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .booking-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .booking-actions {
+        flex-direction: column;
+        gap: 8px;
     }
 }
 
