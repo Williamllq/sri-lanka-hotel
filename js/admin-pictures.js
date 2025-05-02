@@ -874,22 +874,22 @@ function editPicture(pictureId) {
             editModal.className = 'admin-modal';
             
             editModal.innerHTML = `
-                <div class="admin-modal-content">
-                    <div class="admin-modal-header">
-                        <h3 class="modal-title"><i class="fas fa-edit"></i> Edit Picture</h3>
-                        <button class="close-modal">&times;</button>
+                <div class="admin-modal-content" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+                    <div class="admin-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #e3e3e3; background-color: #f8f9fa;">
+                        <h3 class="modal-title" style="margin: 0; font-size: 18px; color: #333;"><i class="fas fa-edit"></i> Edit Picture</h3>
+                        <button class="close-modal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #666;">&times;</button>
                     </div>
-                    <form id="editPictureForm" class="admin-form">
+                    <form id="editPictureForm" class="admin-form" style="padding: 20px;">
                         <input type="hidden" id="editPictureId">
                         
-                        <div class="form-row">
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                             <div class="form-group">
-                                <label for="editPictureName">Image Name</label>
-                                <input type="text" id="editPictureName" required>
+                                <label for="editPictureName" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Image Name</label>
+                                <input type="text" id="editPictureName" required style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
                             </div>
                             <div class="form-group">
-                                <label for="editCategory">Category</label>
-                                <select id="editCategory" required>
+                                <label for="editCategory" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Category</label>
+                                <select id="editCategory" required style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background-color: white;">
                                     <option value="scenery">Scenery</option>
                                     <option value="wildlife">Wildlife</option>
                                     <option value="culture">Culture</option>
@@ -899,29 +899,41 @@ function editPicture(pictureId) {
                             </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="editPictureDescription">Description</label>
-                            <textarea id="editPictureDescription" rows="3"></textarea>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label for="editPictureDescription" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Description</label>
+                            <textarea id="editPictureDescription" rows="3" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical;"></textarea>
                         </div>
                         
-                        <div class="form-group">
-                            <label>Current Image</label>
-                            <div id="editImagePreview" class="image-preview"></div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #444;">Current Image</label>
+                            <div id="editImagePreview" class="image-preview" style="max-width: 300px; margin: 0 auto; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"></div>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="editPictureFile">Replace Image (Optional)</label>
-                            <input type="file" id="editPictureFile" accept="image/*">
-                            <div id="editFilePreview" class="file-preview"></div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="editPictureFile" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Replace Image (Optional)</label>
+                            <input type="file" id="editPictureFile" accept="image/*" style="display: block; width: 100%; padding: 8px 0;">
+                            <div id="editFilePreview" class="file-preview" style="margin-top: 10px; max-width: 300px; margin: 10px auto 0;"></div>
                         </div>
                         
-                        <div class="form-actions">
-                            <button type="button" class="admin-btn secondary cancel-edit">Cancel</button>
-                            <button type="submit" class="admin-btn primary">Save Changes</button>
+                        <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                            <button type="button" class="admin-btn secondary cancel-edit" style="padding: 8px 16px; background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; color: #333; cursor: pointer; font-size: 14px;">Cancel</button>
+                            <button type="submit" class="admin-btn primary" style="padding: 8px 16px; background-color: #4a6fdc; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 14px;">Save Changes</button>
                         </div>
                     </form>
                 </div>
             `;
+            
+            // 设置模态框样式
+            editModal.style.position = 'fixed';
+            editModal.style.top = '0';
+            editModal.style.left = '0';
+            editModal.style.width = '100%';
+            editModal.style.height = '100%';
+            editModal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            editModal.style.display = 'flex';
+            editModal.style.justifyContent = 'center';
+            editModal.style.alignItems = 'center';
+            editModal.style.zIndex = '1000';
             
             document.body.appendChild(editModal);
             
@@ -974,8 +986,8 @@ function editPicture(pictureId) {
                     const reader = new FileReader();
                     reader.onload = function(event) {
                         editFilePreview.innerHTML = `
-                            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px;">
-                                <img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain;">
+                            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                <img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain; display: block;">
                             </div>
                         `;
                     };
@@ -994,7 +1006,7 @@ function editPicture(pictureId) {
         const editImagePreview = document.getElementById('editImagePreview');
         editImagePreview.innerHTML = `
             <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px;">
-                <img src="${picture.imageUrl}" alt="${picture.name}" style="max-width: 100%; max-height: 200px; object-fit: contain;">
+                <img src="${picture.imageUrl}" alt="${picture.name}" style="max-width: 100%; max-height: 200px; object-fit: contain; display: block; margin: 0 auto;">
             </div>
         `;
         
