@@ -257,13 +257,139 @@ function initDashboardStats() {
 
 // Picture Management functionality
 function initPictureManagement() {
-    console.log('Initializing picture management');
+    console.log('Initializing picture management from admin-dashboard.js');
     
     const pictureGrid = document.getElementById('pictureGrid');
     const pictureCategory = document.getElementById('pictureCategory');
     const uploadPictureForm = document.getElementById('uploadPictureForm');
-    const pictureFile = document.getElementById('pictureFile');
-    const filePreview = document.getElementById('filePreview');
+    
+    // Check if upload form is already being handled by admin-pictures.js
+    if (uploadPictureForm && uploadPictureForm.getAttribute('data-handler') === 'admin-pictures') {
+        console.log('Picture upload form is already being handled by admin-pictures.js');
+        // Skip form setup but continue with displaying pictures if needed
+    } else if (uploadPictureForm) {
+        const pictureFile = document.getElementById('pictureFile');
+        const filePreview = document.getElementById('filePreview');
+        
+        console.log('Setting up picture upload form from admin-dashboard.js');
+        
+        // Handle picture file selection for preview
+        if (pictureFile) {
+            pictureFile.addEventListener('change', function(e) {
+                if (!filePreview) {
+                    console.error('File preview element not found');
+                    return;
+                }
+                
+                const file = e.target.files[0];
+                if (file) {
+                const reader = new FileReader();
+                    reader.onload = function(event) {
+                        filePreview.innerHTML = `<img src="${event.target.result}" alt="Selected Image Preview">`;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    filePreview.innerHTML = '';
+                }
+            });
+        } else {
+            console.error('Picture file input element not found');
+        }
+        
+        // Handle picture upload form submission
+        uploadPictureForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const pictureName = document.getElementById('pictureName');
+            const uploadCategory = document.getElementById('uploadCategory');
+            const pictureDescription = document.getElementById('pictureDescription');
+            
+            if (!pictureName || !uploadCategory || !pictureFile) {
+                console.error('One or more form elements not found');
+                return;
+            }
+                
+            const file = pictureFile.files[0];
+            if (!file) {
+                alert('Please select an image file');
+                return;
+            }
+                
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // In a real application, this would upload to a server
+                // For now, we'll just store it in localStorage
+                const imageUrl = event.target.result;
+                
+                // Compress image before storing (optional)
+                compressImage(imageUrl).then(compressedUrl => {
+                    // Add new picture
+                    const newPicture = {
+                        id: Date.now(), // Use timestamp as unique ID
+                        name: pictureName.value,
+                        category: uploadCategory.value,
+                        description: pictureDescription ? pictureDescription.value : '',
+                        url: compressedUrl
+                    };
+                    
+                    pictures.push(newPicture);
+                    savePictures();
+                    
+                    // Reset form
+                    uploadPictureForm.reset();
+                    if (filePreview) {
+                        filePreview.innerHTML = '';
+                    }
+                    
+                    // Close modal
+                    const uploadModal = document.getElementById('uploadModal');
+                    if (uploadModal) {
+                        uploadModal.style.display = 'none';
+                        uploadModal.classList.remove('active');
+                    }
+                    
+                    // Refresh picture grid
+                    displayPictures(uploadCategory.value);
+                    
+                    alert('Picture uploaded successfully!');
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+    } else {
+        console.log('Upload picture form not found - may be handled by another script');
+    }
+    
+    // Compress image function
+    async function compressImage(dataURL, maxWidth = 1200, quality = 0.8) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.src = dataURL;
+            
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                let width = img.width;
+                let height = img.height;
+                
+                // Calculate new dimensions if image is wider than maxWidth
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw image on canvas with new dimensions
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Get compressed data URL
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+        });
+    }
     
     if (!pictureGrid) {
         console.error('Picture grid element not found in the DOM');
@@ -305,130 +431,11 @@ function initPictureManagement() {
         savePictures();
     }
     
-    // Handle picture file selection for preview
-    if (pictureFile) {
-        pictureFile.addEventListener('change', function(e) {
-            if (!filePreview) {
-                console.error('File preview element not found');
-                return;
-            }
-            
-            const file = e.target.files[0];
-            if (file) {
-            const reader = new FileReader();
-                reader.onload = function(event) {
-                    filePreview.innerHTML = `<img src="${event.target.result}" alt="Selected Image Preview">`;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                filePreview.innerHTML = '';
-            }
-        });
-    } else {
-        console.error('Picture file input element not found');
-    }
-    
-    // Handle picture upload form submission
-    if (uploadPictureForm) {
-        uploadPictureForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-            const pictureName = document.getElementById('pictureName');
-            const uploadCategory = document.getElementById('uploadCategory');
-            const pictureDescription = document.getElementById('pictureDescription');
-        
-            if (!pictureName || !uploadCategory || !pictureFile) {
-                console.error('One or more form elements not found');
-                return;
-            }
-            
-            const file = pictureFile.files[0];
-            if (!file) {
-            alert('Please select an image file');
-            return;
-        }
-            
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                // In a real application, this would upload to a server
-                // For now, we'll just store it in localStorage
-                const imageUrl = event.target.result;
-                
-                // Compress image before storing (optional)
-                compressImage(imageUrl).then(compressedUrl => {
-                    // Add new picture
-                    const newPicture = {
-                        id: Date.now(), // Use timestamp as unique ID
-                        name: pictureName.value,
-                        category: uploadCategory.value,
-                        description: pictureDescription ? pictureDescription.value : '',
-                        url: compressedUrl
-                    };
-                    
-                    pictures.push(newPicture);
-                    savePictures();
-                    
-                    // Reset form
-                    uploadPictureForm.reset();
-                    if (filePreview) {
-                    filePreview.innerHTML = '';
-                    }
-                    
-                    // Close modal
-                    const uploadModal = document.getElementById('uploadModal');
-                    if (uploadModal) {
-                    uploadModal.style.display = 'none';
-                        uploadModal.classList.remove('active');
-                    }
-                    
-                    // Refresh picture grid
-                    displayPictures(uploadCategory.value);
-                    
-                        alert('Picture uploaded successfully!');
-                });
-            };
-            reader.readAsDataURL(file);
-        });
-    } else {
-        console.error('Upload picture form not found');
-    }
-    
-    // Compress image function
-    async function compressImage(dataURL, maxWidth = 1200, quality = 0.8) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.src = dataURL;
-            
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                let width = img.width;
-                let height = img.height;
-                
-                // Calculate new dimensions if image is wider than maxWidth
-                if (width > maxWidth) {
-                    height = (height * maxWidth) / width;
-                    width = maxWidth;
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                
-                // Draw image on canvas with new dimensions
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                // Get compressed data URL
-                resolve(canvas.toDataURL('image/jpeg', quality));
-            };
-    });
-    }
-    
     // Handle picture category filtering
     if (pictureCategory) {
-    pictureCategory.addEventListener('change', function() {
+        pictureCategory.addEventListener('change', function() {
             displayPictures(this.value);
-    });
+        });
     } else {
         console.error('Picture category dropdown not found');
     }
@@ -449,58 +456,83 @@ function initPictureManagement() {
             return;
         }
         
-        // Clear current grid
-        pictureGrid.innerHTML = '';
-        
-        // Filter pictures by category
-        const filteredPictures = category === 'all' ? 
-            pictures : 
-            pictures.filter(pic => pic.category === category);
-        
-        if (filteredPictures.length === 0) {
-            pictureGrid.innerHTML = '<div class="no-pictures">No pictures found in this category</div>';
+        // Let admin-pictures.js handle the picture grid if it's available
+        if (typeof loadAndDisplayPictures === 'function') {
+            console.log('Using loadAndDisplayPictures from admin-pictures.js');
+            loadAndDisplayPictures(category);
             return;
         }
         
-        // Create picture cards
-        filteredPictures.forEach(pic => {
+        console.log('Displaying pictures with category:', category);
+        
+        // Clear the grid
+        pictureGrid.innerHTML = '';
+        
+        // Filter pictures by category
+        const filteredPictures = category === 'all' 
+            ? pictures 
+            : pictures.filter(pic => pic.category === category);
+        
+        // If no pictures, show a message
+        if (filteredPictures.length === 0) {
+            pictureGrid.innerHTML = `
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i> No pictures found in this category. Upload some!
+                </div>
+            `;
+            return;
+        }
+        
+        // Add each picture to the grid
+        filteredPictures.forEach(picture => {
             const pictureCard = document.createElement('div');
-            pictureCard.classList.add('picture-card');
-            
+            pictureCard.className = 'picture-card';
             pictureCard.innerHTML = `
-                <div class="picture-img">
-                    <img src="${pic.url}" alt="${pic.name}">
+                <div class="picture-image">
+                    <img src="${picture.url}" alt="${picture.name}">
                 </div>
                 <div class="picture-info">
-                    <h4>${pic.name}</h4>
-                    <p class="picture-category">${pic.category}</p>
-                    <p class="picture-description">${pic.description || ''}</p>
+                    <h3>${picture.name}</h3>
+                    <div class="picture-category">
+                        <span class="${picture.category}">${picture.category}</span>
+                    </div>
+                    <p class="picture-description">${picture.description || ''}</p>
                 </div>
                 <div class="picture-actions">
-                    <button class="picture-action-btn edit-btn" data-id="${pic.id}">
+                    <button class="edit-picture" data-id="${picture.id}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="picture-action-btn delete-btn" data-id="${pic.id}">
-                        <i class="fas fa-trash-alt"></i>
+                    <button class="delete-picture" data-id="${picture.id}">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
             `;
             
             pictureGrid.appendChild(pictureCard);
             
-            // Add delete event listener
-            const deleteBtn = pictureCard.querySelector('.delete-btn');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function() {
-                    const id = parseInt(this.getAttribute('data-id'));
-                    deletePicture(id);
-                });
-            }
+            // Add event listeners to buttons
+            pictureCard.querySelector('.delete-picture').addEventListener('click', () => {
+                deletePicture(picture.id);
+            });
+            
+            pictureCard.querySelector('.edit-picture').addEventListener('click', () => {
+                // Edit functionality (not implemented)
+                alert('Edit functionality not implemented yet');
+            });
         });
-                    }
-                    
-    // Initial display of pictures
-    displayPictures('all');
+    }
+    
+    // Initialize picture display
+    if (pictureGrid) {
+        // Check if this function should handle the display
+        // or if admin-pictures.js will do it
+        if (typeof loadAndDisplayPictures !== 'function') {
+            console.log('Displaying pictures from admin-dashboard.js');
+            displayPictures('all');
+        } else {
+            console.log('Picture display will be handled by admin-pictures.js');
+        }
+    }
 }
 
 // Carousel Management functionality

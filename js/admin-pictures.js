@@ -17,7 +17,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add CSS fixes for picture display
     addPictureStyles();
+    
+    // Prevent duplicate form handling by marking forms as initialized
+    preventDuplicateHandling();
 });
+
+/**
+ * 防止重复处理表单提交
+ * Prevent duplicate form handling between admin-pictures.js and admin-dashboard.js
+ */
+function preventDuplicateHandling() {
+    // Mark all forms that we handle exclusively in this file
+    const uploadPictureForm = document.getElementById('uploadPictureForm');
+    if (uploadPictureForm) {
+        uploadPictureForm.setAttribute('data-handler', 'admin-pictures');
+        console.log('Upload form marked as handled by admin-pictures.js');
+        
+        // Remove any existing listeners that might be from admin-dashboard.js
+        const oldForm = uploadPictureForm.cloneNode(true);
+        uploadPictureForm.parentNode.replaceChild(oldForm, uploadPictureForm);
+        
+        // Call our initialization function on the new form
+        fixPictureUploadForm(oldForm);
+    }
+}
 
 /**
  * 同步管理员界面和前端界面的图片存储
@@ -37,6 +60,22 @@ function synchronizeImageStorage() {
         // Ensure they are arrays
         if (!Array.isArray(adminPictures)) adminPictures = [];
         if (!Array.isArray(sitePictures)) sitePictures = [];
+        
+        // Remove any duplicate entries that might already exist in adminPictures
+        const uniqueAdminPictures = removeDuplicates(adminPictures);
+        if (uniqueAdminPictures.length !== adminPictures.length) {
+            console.log(`Removed ${adminPictures.length - uniqueAdminPictures.length} duplicates from admin pictures`);
+            adminPictures = uniqueAdminPictures;
+            localStorage.setItem('adminPictures', JSON.stringify(adminPictures));
+        }
+        
+        // Remove any duplicate entries that might already exist in sitePictures
+        const uniqueSitePictures = removeDuplicates(sitePictures);
+        if (uniqueSitePictures.length !== sitePictures.length) {
+            console.log(`Removed ${sitePictures.length - uniqueSitePictures.length} duplicates from site pictures`);
+            sitePictures = uniqueSitePictures;
+            localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
+        }
         
         console.log(`Found ${adminPictures.length} admin pictures and ${sitePictures.length} site pictures`);
         
@@ -111,6 +150,21 @@ function synchronizeImageStorage() {
 }
 
 /**
+ * 移除数组中的重复项
+ * @param {Array} array - 要处理的数组
+ * @returns {Array} - 去重后的数组
+ */
+function removeDuplicates(array) {
+    const seen = new Set();
+    return array.filter(item => {
+        const key = item.id ? item.id : (item.name + (item.url || item.imageUrl));
+        const duplicate = seen.has(key);
+        seen.add(key);
+        return !duplicate;
+    });
+}
+
+/**
  * 添加图片样式修复
  */
 function addPictureStyles() {
@@ -123,7 +177,7 @@ function addPictureStyles() {
             width: 100%;
             height: 200px;
             overflow: hidden;
-            border-radius: 4px 4px 0 0;
+            border-radius: 8px 8px 0 0;
             position: relative;
         }
         
@@ -134,8 +188,87 @@ function addPictureStyles() {
             transition: transform 0.3s ease;
         }
         
+        .picture-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            background: white;
+            overflow: hidden;
+        }
+        
+        .picture-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
         .picture-card:hover .picture-image img {
             transform: scale(1.05);
+        }
+        
+        .picture-info {
+            padding: 15px;
+        }
+        
+        .picture-info h3 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .picture-category {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .picture-category.scenery { background-color: #4CAF50; }
+        .picture-category.wildlife { background-color: #FF9800; }
+        .picture-category.culture { background-color: #9C27B0; }
+        .picture-category.food { background-color: #F44336; }
+        .picture-category.beach { background-color: #03A9F4; }
+        
+        .picture-description {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+            height: 40px;
+            overflow: hidden;
+        }
+        
+        .picture-actions {
+            padding: 0 15px 15px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .picture-actions button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        
+        .picture-actions button:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+        
+        .picture-actions .edit-picture {
+            color: #2196F3;
+        }
+        
+        .picture-actions .delete-picture {
+            color: #F44336;
         }
         
         .select-picture-image {
@@ -163,6 +296,26 @@ function addPictureStyles() {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+        
+        #pictureGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+        
+        .no-pictures-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        
+        .no-pictures-message i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ccc;
         }
     `;
     
@@ -402,9 +555,10 @@ function setupPictureFilter() {
 
 /**
  * 修复图片上传表单提交功能
+ * @param {HTMLElement} form - 表单元素，默认为null时会自动查找
  */
-function fixPictureUploadForm() {
-    const uploadForm = document.getElementById('uploadPictureForm');
+function fixPictureUploadForm(form = null) {
+    const uploadForm = form || document.getElementById('uploadPictureForm');
     if (!uploadForm) {
         console.error('Upload form not found');
         return;
@@ -416,8 +570,8 @@ function fixPictureUploadForm() {
     uploadForm.setAttribute('data-handler', 'admin-pictures');
     
     // 修复文件上传预览
-    const pictureFile = document.getElementById('pictureFile');
-    const filePreview = document.getElementById('filePreview');
+    const pictureFile = uploadForm.querySelector('#pictureFile');
+    const filePreview = uploadForm.querySelector('#filePreview');
     
     if (pictureFile && filePreview) {
         pictureFile.addEventListener('change', function(e) {
@@ -461,10 +615,10 @@ function fixPictureUploadForm() {
     uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const pictureFile = document.getElementById('pictureFile');
-        const pictureName = document.getElementById('pictureName');
-        const category = document.getElementById('uploadCategory');
-        const description = document.getElementById('pictureDescription');
+        const pictureFile = uploadForm.querySelector('#pictureFile');
+        const pictureName = uploadForm.querySelector('#pictureName');
+        const category = uploadForm.querySelector('#uploadCategory');
+        const description = uploadForm.querySelector('#pictureDescription');
         
         // 验证表单
         if (!pictureFile.files[0]) {
@@ -485,15 +639,37 @@ function fixPictureUploadForm() {
         // 读取图片文件并处理图片
         const file = pictureFile.files[0];
         processImageFile(file, function(processedImageUrl) {
+            // Generate unique ID with timestamp to avoid duplicates
+            const uniqueId = 'pic_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            
             // 创建图片对象
             const newPicture = {
-                id: 'pic_' + Date.now(),
+                id: uniqueId,
                 name: pictureName.value.trim(),
                 category: category.value,
                 description: description.value.trim(),
                 imageUrl: processedImageUrl,
                 uploadDate: new Date().toISOString()
             };
+            
+            // 检查是否已存在相同名称的图片（防止重复）
+            const adminPicturesStr = localStorage.getItem('adminPictures');
+            const adminPictures = adminPicturesStr ? JSON.parse(adminPicturesStr) : [];
+            
+            const duplicateImage = adminPictures.find(pic => 
+                pic.name === newPicture.name && 
+                pic.category === newPicture.category
+            );
+            
+            if (duplicateImage) {
+                // 询问用户是否要覆盖
+                if (confirm(`A picture with the name "${newPicture.name}" already exists. Do you want to replace it?`)) {
+                    // 删除旧图片
+                    deletePicture(duplicateImage.id, false); // 静默删除，不显示提示
+                } else {
+                    return; // 用户取消，不保存
+                }
+            }
             
             // 保存图片
             savePicture(newPicture);
@@ -633,9 +809,10 @@ function savePictureToSite(adminPicture) {
 /**
  * 删除图片
  * @param {string} pictureId - 图片ID
+ * @param {boolean} showConfirm - 是否显示确认对话框
  */
-function deletePicture(pictureId) {
-    if (!confirm('Are you sure you want to delete this picture? This action cannot be undone.')) {
+function deletePicture(pictureId, showConfirm = true) {
+    if (showConfirm && !confirm('Are you sure you want to delete this picture? This action cannot be undone.')) {
         return;
     }
     
@@ -660,10 +837,14 @@ function deletePicture(pictureId) {
         loadAndDisplayPictures();
         
         console.log('Picture deleted:', pictureId);
-        alert('Picture deleted successfully');
+        if (showConfirm) {
+            alert('Picture deleted successfully');
+        }
     } catch (e) {
         console.error('Error deleting picture:', e);
-        alert('Failed to delete picture');
+        if (showConfirm) {
+            alert('Failed to delete picture');
+        }
     }
 }
 
