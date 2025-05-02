@@ -424,10 +424,14 @@
         // 关闭模态框并更新UI
         closeAuthModal();
         updateAuthUI();
+        
+        // 分发用户认证状态变化事件
+        dispatchAuthChangedEvent(true, sessionUser);
+        
         alert('Login successful! Welcome back, ' + user.name);
         
         // 刷新页面
-        window.location.reload();
+        // window.location.reload(); // 移除页面刷新，让事件正常分发
     }
 
     // 处理注册
@@ -478,20 +482,29 @@
         // 关闭模态框并更新UI
         closeAuthModal();
         updateAuthUI();
+        
+        // 分发用户认证状态变化事件
+        dispatchAuthChangedEvent(true, sessionUser);
+        
         alert('Registration successful! Welcome, ' + name);
         
         // 刷新页面
-        window.location.reload();
+        // window.location.reload(); // 移除页面刷新，让事件正常分发
     }
 
     // 退出登录
     function logout() {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         localStorage.removeItem('currentUser');
         updateAuthUI();
+        
+        // 分发用户认证状态变化事件
+        dispatchAuthChangedEvent(false, null);
+        
         alert('You have been logged out.');
         
         // 刷新页面
-        window.location.reload();
+        // window.location.reload(); // 移除页面刷新，让事件正常分发
     }
 
     // 检查认证状态
@@ -584,4 +597,16 @@
             }
         }
     };
+    
+    // 分发用户认证状态变化事件
+    function dispatchAuthChangedEvent(isLoggedIn, user) {
+        console.log('Dispatching userAuthChanged event:', isLoggedIn);
+        const event = new CustomEvent('userAuthChanged', {
+            detail: {
+                isLoggedIn: isLoggedIn,
+                user: user
+            }
+        });
+        window.dispatchEvent(event);
+    }
 })(); 

@@ -51,6 +51,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 显示预算信息和测试
     displayRateInfo();
+    
+    // 添加我的订单按钮 (仅当用户登录时显示)
+    if (window.UserAuth && window.UserAuth.isLoggedIn()) {
+        createMyBookingsButton();
+    }
+    
+    // 监听用户登录状态变化
+    window.addEventListener('userAuthChanged', function(event) {
+        console.log('Booking.js received userAuthChanged event:', event.detail);
+        // 当用户登录状态变化时，检查是否需要添加或移除我的订单按钮
+        const userLoggedIn = event.detail.isLoggedIn;
+        const myBookingsBtn = document.getElementById('myBookingsBtn');
+        
+        if (userLoggedIn && !myBookingsBtn) {
+            createMyBookingsButton();
+        } else if (!userLoggedIn && myBookingsBtn) {
+            myBookingsBtn.remove();
+        }
+    });
 });
 
 // Calculate the quote based on selected locations
@@ -464,6 +483,9 @@ function processBooking() {
 function showCustomerInfoForm() {
     console.log('Showing customer information form');
     
+    // 检查用户是否已登录
+    const currentUser = window.UserAuth && window.UserAuth.getCurrentUser ? window.UserAuth.getCurrentUser() : null;
+    
     // Get the quote container
     const quoteContainer = document.getElementById('quoteContainer');
     if (!quoteContainer) {
@@ -473,6 +495,13 @@ function showCustomerInfoForm() {
     
     // Check if the form already exists
     if (document.getElementById('customerInfoForm')) {
+        // 如果表单已存在，更新表单内容
+        if (currentUser) {
+            // 自动填充已登录用户的信息
+            document.getElementById('customerName').value = currentUser.name || '';
+            document.getElementById('customerEmail').value = currentUser.email || '';
+            // 电话和国籍可能需要从用户的其他属性中获取，如果有的话
+        }
         document.getElementById('customerInfoForm').style.display = 'block';
         return;
     }
@@ -546,24 +575,53 @@ function showCustomerInfoForm() {
                 color: #666;
                 margin-top: 5px;
             }
+            
+            .user-signed-in-message {
+                background-color: #e8f5e9;
+                padding: 10px 15px;
+                border-radius: 4px;
+                margin-bottom: 15px;
+                color: #2e7d32;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .user-signed-in-message i {
+                font-size: 18px;
+            }
         `;
         document.head.appendChild(style);
     }
     
+    // 根据用户是否登录显示不同内容
+    let formHeader = `<h3>Your Information</h3>
+        <p class="form-note">Please provide your details to complete the booking. Fields marked with * are required.</p>`;
+        
+    if (currentUser) {
+        formHeader = `
+            <div class="user-signed-in-message">
+                <i class="fas fa-user-check"></i>
+                <span>You are signed in as ${currentUser.name}. Your information has been pre-filled.</span>
+            </div>
+            <h3>Your Information</h3>
+        `;
+    }
+    
     // Set the form HTML
     customerInfoForm.innerHTML = `
-        <h3>Your Information</h3>
-        <p class="form-note">Please provide your details to complete the booking. Fields marked with * are required.</p>
+        ${formHeader}
         
         <div class="form-row">
             <div class="form-group">
                 <label for="customerName" class="required-field">Full Name</label>
-                <input type="text" id="customerName" required placeholder="Your full name">
+                <input type="text" id="customerName" required placeholder="Your full name" value="${currentUser ? currentUser.name : ''}">
             </div>
             
             <div class="form-group">
                 <label for="customerEmail" class="required-field">Email</label>
-                <input type="email" id="customerEmail" required placeholder="Your email address">
+                <input type="email" id="customerEmail" required placeholder="Your email address" value="${currentUser ? currentUser.email : ''}">
             </div>
         </div>
         
@@ -2362,4 +2420,607 @@ function showBookingConfirmation(bookingData) {
     document.getElementById('backToHomeBtn').addEventListener('click', function() {
         window.location.href = 'index.html';
     });
+}
+
+// 创建我的订单按钮
+function createMyBookingsButton() {
+    // 查找现有按钮
+    if (document.getElementById('myBookingsBtn')) {
+        return;
+    }
+    
+    // 创建按钮
+    const myBookingsBtn = document.createElement('button');
+    myBookingsBtn.id = 'myBookingsBtn';
+    myBookingsBtn.className = 'btn my-bookings-btn';
+    myBookingsBtn.innerHTML = '<i class="fas fa-receipt"></i> My Bookings';
+    
+    // 添加样式
+    if (!document.getElementById('my-bookings-styles')) {
+        const style = document.createElement('style');
+        style.id = 'my-bookings-styles';
+        style.textContent = `
+            .my-bookings-btn {
+                position: fixed;
+                bottom: 2rem;
+                right: 12rem; /* 定位在AI助手按钮的左侧 */
+                background: #4a6fa5;
+                color: white;
+                border: none;
+                border-radius: 50px;
+                padding: 0.8rem 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 0.8rem;
+                cursor: pointer;
+                box-shadow: 0 5px 15px rgba(74, 111, 165, 0.2);
+                transition: all 0.3s ease;
+                z-index: 998;
+                font-size: 0.9rem;
+            }
+            
+            .my-bookings-btn:hover {
+                background: #385a8a;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            }
+            
+            .my-bookings-modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 1001;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .my-bookings-modal.active {
+                display: flex;
+            }
+            
+            .my-bookings-content {
+                background-color: white;
+                width: 90%;
+                max-width: 800px;
+                max-height: 90vh;
+                border-radius: 8px;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+                display: flex;
+                flex-direction: column;
+                animation: modalFadeIn 0.3s ease-out;
+                overflow: hidden;
+            }
+            
+            .my-bookings-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 16px 20px;
+                border-bottom: 1px solid #e0e0e0;
+                background-color: #f8f9fa;
+            }
+            
+            .my-bookings-header h3 {
+                margin: 0;
+                color: #333;
+                font-size: 18px;
+                font-weight: 600;
+            }
+            
+            .close-bookings-btn {
+                background: none;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: #777;
+                transition: color 0.2s;
+            }
+            
+            .close-bookings-btn:hover {
+                color: #333;
+            }
+            
+            .my-bookings-body {
+                padding: 20px;
+                overflow-y: auto;
+                flex: 1;
+                min-height: 300px;
+            }
+            
+            .booking-list {
+                list-style-type: none;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .booking-item {
+                margin-bottom: 15px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            
+            .booking-header {
+                padding: 12px 15px;
+                background-color: #f5f5f5;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                cursor: pointer;
+            }
+            
+            .booking-title {
+                font-weight: 600;
+                font-size: 16px;
+                color: #333;
+            }
+            
+            .booking-date {
+                color: #666;
+                font-size: 14px;
+            }
+            
+            .booking-details {
+                padding: 15px;
+                border-top: 1px solid #e0e0e0;
+                display: none;
+            }
+            
+            .booking-details.active {
+                display: block;
+            }
+            
+            .booking-detail-row {
+                display: flex;
+                margin-bottom: 8px;
+            }
+            
+            .booking-detail-label {
+                flex: 0 0 150px;
+                font-weight: 500;
+                color: #555;
+            }
+            
+            .booking-detail-value {
+                flex: 1;
+                color: #333;
+            }
+            
+            .booking-actions {
+                margin-top: 15px;
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+            }
+            
+            .booking-action-btn {
+                padding: 8px 12px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                transition: background-color 0.3s;
+            }
+            
+            .booking-cancel-btn {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
+            
+            .booking-cancel-btn:hover {
+                background-color: #f1b0b7;
+            }
+            
+            .booking-view-receipt-btn {
+                background-color: #d4edda;
+                color: #155724;
+            }
+            
+            .booking-view-receipt-btn:hover {
+                background-color: #b1dfbb;
+            }
+            
+            .no-bookings-message {
+                text-align: center;
+                padding: 40px 20px;
+                color: #666;
+                font-style: italic;
+            }
+            
+            .no-bookings-message i {
+                font-size: 48px;
+                color: #ccc;
+                display: block;
+                margin-bottom: 15px;
+            }
+            
+            @media (max-width: 768px) {
+                .my-bookings-btn {
+                    right: 6rem;
+                    padding: 0.7rem 1.2rem;
+                    font-size: 0.8rem;
+                }
+                
+                .my-bookings-content {
+                    width: 95%;
+                }
+                
+                .booking-detail-row {
+                    flex-direction: column;
+                }
+                
+                .booking-detail-label {
+                    flex: 0 0 auto;
+                    margin-bottom: 3px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // 添加事件监听器
+    myBookingsBtn.addEventListener('click', showMyBookings);
+    
+    // 添加到页面
+    document.body.appendChild(myBookingsBtn);
+}
+
+// 显示我的订单
+function showMyBookings() {
+    console.log('Showing my bookings');
+    
+    // 检查用户是否已登录
+    if (!window.UserAuth || !window.UserAuth.isLoggedIn()) {
+        alert('Please log in to view your bookings');
+        if (window.UserAuth && window.UserAuth.showLoginModal) {
+            window.UserAuth.showLoginModal();
+        }
+        return;
+    }
+    
+    // 获取当前用户
+    const currentUser = window.UserAuth.getCurrentUser();
+    if (!currentUser || !currentUser.email) {
+        alert('User information not found');
+        return;
+    }
+    
+    // 获取我的订单模态框
+    let myBookingsModal = document.getElementById('myBookingsModal');
+    
+    // 如果不存在，则创建
+    if (!myBookingsModal) {
+        myBookingsModal = document.createElement('div');
+        myBookingsModal.id = 'myBookingsModal';
+        myBookingsModal.className = 'my-bookings-modal';
+        
+        myBookingsModal.innerHTML = `
+            <div class="my-bookings-content">
+                <div class="my-bookings-header">
+                    <h3>My Bookings</h3>
+                    <button class="close-bookings-btn">&times;</button>
+                </div>
+                <div class="my-bookings-body" id="bookingsContainer">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading your bookings...</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(myBookingsModal);
+        
+        // 添加事件监听器关闭模态框
+        myBookingsModal.querySelector('.close-bookings-btn').addEventListener('click', function() {
+            myBookingsModal.classList.remove('active');
+        });
+        
+        // 点击模态框背景关闭
+        myBookingsModal.addEventListener('click', function(event) {
+            if (event.target === myBookingsModal) {
+                myBookingsModal.classList.remove('active');
+            }
+        });
+    }
+    
+    // 显示模态框
+    myBookingsModal.classList.add('active');
+    
+    // 加载用户订单
+    loadUserBookings(currentUser.email);
+}
+
+// 加载用户订单
+function loadUserBookings(userEmail) {
+    const bookingsContainer = document.getElementById('bookingsContainer');
+    if (!bookingsContainer) return;
+    
+    // 从localStorage获取订单数据
+    const allBookings = JSON.parse(localStorage.getItem('bookings')) || [];
+    
+    // 过滤出当前用户的订单
+    const userBookings = allBookings.filter(booking => booking.email === userEmail);
+    
+    // 更新DOM
+    if (userBookings.length === 0) {
+        bookingsContainer.innerHTML = `
+            <div class="no-bookings-message">
+                <i class="fas fa-calendar-times"></i>
+                <p>You don't have any bookings yet.</p>
+                <p>When you make a booking, it will appear here.</p>
+                <button class="btn primary" onclick="window.location.href='#transport'">Book Now</button>
+            </div>
+        `;
+        return;
+    }
+    
+    // 创建订单列表
+    bookingsContainer.innerHTML = `<ul class="booking-list" id="bookingsList"></ul>`;
+    const bookingsList = document.getElementById('bookingsList');
+    
+    // 按日期排序订单（最新的在前面）
+    userBookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    // 添加每个订单
+    userBookings.forEach((booking, index) => {
+        const li = document.createElement('li');
+        li.className = 'booking-item';
+        li.dataset.bookingId = booking.id || index;
+        
+        // 确定订单状态
+        const statusClass = getStatusClass(booking.status);
+        const statusText = getStatusText(booking.status);
+        
+        // 格式化日期
+        const bookingDate = booking.journeyDate ? new Date(booking.journeyDate) : new Date(booking.createdAt);
+        const formattedDate = bookingDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+        
+        // 订单标题
+        let title = 'Transport Booking';
+        if (booking.serviceType) {
+            if (booking.serviceType === 'airport') title = 'Airport Transfer';
+            else if (booking.serviceType === 'city') title = 'City Tour';
+            else if (booking.serviceType === 'custom') title = 'Custom Journey';
+        }
+        
+        // 订单摘要
+        let summary = '';
+        if (booking.pickupLocation && booking.destinationLocation) {
+            const pickup = booking.pickupLocation.address || 'Unknown location';
+            const destination = booking.destinationLocation.address || 'Unknown destination';
+            summary = `${pickup} to ${destination}`;
+        }
+        
+        // 创建订单项HTML
+        li.innerHTML = `
+            <div class="booking-header" onclick="toggleBookingDetails(this)">
+                <div class="booking-title">${title}</div>
+                <div class="booking-date">${formattedDate} <span class="booking-status ${statusClass}">${statusText}</span></div>
+            </div>
+            <div class="booking-details">
+                <div class="booking-detail-row">
+                    <div class="booking-detail-label">Booking ID:</div>
+                    <div class="booking-detail-value">${booking.id || `BOOK-${(index + 1).toString().padStart(4, '0')}`}</div>
+                </div>
+                <div class="booking-detail-row">
+                    <div class="booking-detail-label">Service Type:</div>
+                    <div class="booking-detail-value">${booking.serviceType || 'Transport'}</div>
+                </div>
+                <div class="booking-detail-row">
+                    <div class="booking-detail-label">Journey Date:</div>
+                    <div class="booking-detail-value">${booking.journeyDate ? new Date(booking.journeyDate).toLocaleString() : 'Not specified'}</div>
+                </div>
+                <div class="booking-detail-row">
+                    <div class="booking-detail-label">Pickup:</div>
+                    <div class="booking-detail-value">${booking.pickupLocation ? booking.pickupLocation.address : 'Not specified'}</div>
+                </div>
+                <div class="booking-detail-row">
+                    <div class="booking-detail-label">Destination:</div>
+                    <div class="booking-detail-value">${booking.destinationLocation ? booking.destinationLocation.address : 'Not specified'}</div>
+                </div>
+                <div class="booking-detail-row">
+                    <div class="booking-detail-label">Distance:</div>
+                    <div class="booking-detail-value">${booking.distance || 'Not calculated'}</div>
+                </div>
+                <div class="booking-detail-row">
+                    <div class="booking-detail-label">Total Fare:</div>
+                    <div class="booking-detail-value">$${booking.fare ? parseFloat(booking.fare).toFixed(2) : '0.00'}</div>
+                </div>
+                ${booking.specialRequirements ? `
+                <div class="booking-detail-row">
+                    <div class="booking-detail-label">Special Requirements:</div>
+                    <div class="booking-detail-value">${booking.specialRequirements}</div>
+                </div>` : ''}
+                <div class="booking-actions">
+                    ${booking.status !== 'cancelled' ? `
+                    <button class="booking-action-btn booking-cancel-btn" onclick="cancelBooking('${booking.id || index}')">
+                        <i class="fas fa-times"></i> Cancel Booking
+                    </button>` : ''}
+                    <button class="booking-action-btn booking-view-receipt-btn" onclick="viewBookingReceipt('${booking.id || index}')">
+                        <i class="fas fa-receipt"></i> View Receipt
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        bookingsList.appendChild(li);
+    });
+    
+    // 添加切换订单详情的全局函数
+    window.toggleBookingDetails = function(headerElement) {
+        const details = headerElement.nextElementSibling;
+        if (details) {
+            details.classList.toggle('active');
+        }
+    };
+    
+    // 添加取消订单的全局函数
+    window.cancelBooking = function(bookingId) {
+        if (confirm('Are you sure you want to cancel this booking?')) {
+            // 获取所有订单
+            const allBookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            
+            // 更新订单状态
+            const updatedBookings = allBookings.map(booking => {
+                if ((booking.id && booking.id === bookingId) || (!booking.id && bookingId === allBookings.indexOf(booking).toString())) {
+                    return { ...booking, status: 'cancelled' };
+                }
+                return booking;
+            });
+            
+            // 保存更新后的订单
+            localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+            
+            // 重新加载订单列表
+            const currentUser = window.UserAuth.getCurrentUser();
+            if (currentUser && currentUser.email) {
+                loadUserBookings(currentUser.email);
+            }
+            
+            alert('Your booking has been cancelled');
+        }
+    };
+    
+    // 添加查看订单收据的全局函数
+    window.viewBookingReceipt = function(bookingId) {
+        alert('Receipt feature will be implemented in future updates');
+        // TODO: 实现查看收据的功能
+    };
+}
+
+// 获取状态CSS类
+function getStatusClass(status) {
+    switch (status) {
+        case 'confirmed':
+            return 'status-confirmed';
+        case 'pending':
+            return 'status-pending';
+        case 'completed':
+            return 'status-completed';
+        case 'cancelled':
+            return 'status-cancelled';
+        default:
+            return 'status-pending';
+    }
+}
+
+// 获取状态文本
+function getStatusText(status) {
+    switch (status) {
+        case 'confirmed':
+            return 'Confirmed';
+        case 'pending':
+            return 'Pending';
+        case 'completed':
+            return 'Completed';
+        case 'cancelled':
+            return 'Cancelled';
+        default:
+            return 'Pending';
+    }
+}
+
+// 修改submitBooking函数，确保订单与用户关联
+function submitBooking() {
+    console.log('Submitting booking');
+    
+    // 检查用户是否已登录
+    if (!window.UserAuth || !window.UserAuth.isLoggedIn()) {
+        if (confirm('You need to be logged in to make a booking. Would you like to login now?')) {
+            if (window.UserAuth && window.UserAuth.showLoginModal) {
+                window.UserAuth.showLoginModal();
+            }
+        }
+        return;
+    }
+    
+    // 获取当前用户
+    const currentUser = window.UserAuth.getCurrentUser();
+    if (!currentUser || !currentUser.email) {
+        alert('User information not found');
+        return;
+    }
+    
+    // 获取表单数据
+    const name = document.getElementById('customerName').value;
+    const email = document.getElementById('customerEmail').value;
+    const phone = document.getElementById('customerPhone').value;
+    const nationality = document.getElementById('customerNationality').value;
+    const specialRequirements = document.getElementById('specialRequirements').value;
+    
+    // 验证必填字段
+    if (!name || !email || !phone) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    // 创建订单对象
+    const booking = {
+        id: generateBookingId(),
+        name: name,
+        email: email, // 确保与用户邮箱匹配
+        phone: phone,
+        nationality: nationality,
+        specialRequirements: specialRequirements,
+        
+        // 添加行程详情
+        serviceType: document.getElementById('serviceType').value,
+        journeyDate: document.getElementById('journeyDate').value,
+        journeyTime: document.getElementById('journeyTime').value,
+        passengerCount: document.getElementById('passengerCount').value,
+        pickupLocation: pickupLocation,
+        destinationLocation: destinationLocation,
+        
+        // 添加费用详情
+        distance: document.getElementById('quotedDistance').textContent,
+        fare: document.getElementById('quotedFare').textContent.replace('$', ''),
+        deposit: document.getElementById('quotedDeposit').textContent.replace('$', ''),
+        
+        // 添加状态和时间戳
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        
+        // 添加用户ID
+        userId: currentUser.email
+    };
+    
+    // 获取已有订单
+    const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+    
+    // 添加新订单
+    bookings.push(booking);
+    
+    // 保存到localStorage
+    localStorage.setItem('bookings', JSON.stringify(bookings));
+    
+    // 显示确认
+    alert('Your booking has been submitted successfully! Booking ID: ' + booking.id);
+    
+    // 隐藏表单
+    document.getElementById('customerInfoForm').style.display = 'none';
+    
+    // 重置表单
+    document.getElementById('bookingForm')?.reset();
+    
+    // 清除地图
+    resetMap();
+}
+
+// 生成订单ID
+function generateBookingId() {
+    const timestamp = new Date().getTime().toString().substr(-6);
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `BK-${timestamp}-${random}`;
 }
