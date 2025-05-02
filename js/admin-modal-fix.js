@@ -9,6 +9,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 修复文件上传功能
     setTimeout(fixFileUpload, 600);
+    
+    // 添加委托事件监听器，用于处理动态生成的编辑按钮
+    document.addEventListener('click', function(e) {
+        // 检查是否点击了编辑图片按钮
+        if (e.target.classList.contains('edit-picture') || 
+            (e.target.parentElement && e.target.parentElement.classList.contains('edit-picture'))) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // 获取图片ID
+            const button = e.target.classList.contains('edit-picture') ? e.target : e.target.parentElement;
+            const pictureId = button.getAttribute('data-id');
+            
+            if (pictureId) {
+                console.log('编辑图片按钮被点击，图片ID:', pictureId);
+                // 调用editPicture函数
+                if (typeof editPicture === 'function') {
+                    editPicture(pictureId);
+                }
+            }
+        }
+    });
 });
 
 /**
@@ -51,7 +73,7 @@ function fixModals() {
     });
 
     // 设置关闭按钮事件处理程序
-    const closeButtons = document.querySelectorAll('.close-modal, .admin-btn.secondary.cancel-upload, .cancel-btn');
+    const closeButtons = document.querySelectorAll('.close-modal, .admin-btn.secondary.cancel-upload, .cancel-btn, .cancel-edit');
     closeButtons.forEach(button => {
         // 移除可能的现有事件监听器
         const newButton = button.cloneNode(true);
@@ -77,6 +99,69 @@ function fixModals() {
             }
         });
     });
+    
+    // 检查并修复保存更改按钮
+    fixSaveChangesButtons();
+}
+
+/**
+ * 修复保存更改按钮
+ */
+function fixSaveChangesButtons() {
+    // 尝试查找编辑图片模态框的保存按钮
+    const editPictureModal = document.getElementById('editPictureModal');
+    if (editPictureModal) {
+        const saveButton = editPictureModal.querySelector('.save-changes, #saveEditButton, button.primary');
+        if (saveButton) {
+            console.log('设置编辑图片模态框保存按钮事件');
+            
+            // 克隆按钮以移除旧事件
+            const newSaveButton = saveButton.cloneNode(true);
+            saveButton.parentNode.replaceChild(newSaveButton, saveButton);
+            
+            // 添加新事件处理程序
+            newSaveButton.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('保存按钮被点击');
+                
+                // 获取表单数据
+                const pictureId = document.getElementById('editPictureId').value;
+                const pictureName = document.getElementById('editPictureName').value;
+                const category = document.getElementById('editCategory').value;
+                const description = document.getElementById('editPictureDescription').value;
+                const pictureFile = document.getElementById('editPictureFile').files[0];
+                
+                // 检查是否存在并可调用外部函数
+                if (typeof updatePicture === 'function') {
+                    if (pictureFile && typeof processImageFile === 'function') {
+                        processImageFile(pictureFile, function(processedImageUrl) {
+                            updatePicture(pictureId, pictureName, category, description, processedImageUrl);
+                        });
+                    } else {
+                        // 查找原图片URL
+                        const picturesStr = localStorage.getItem('adminPictures');
+                        const pictures = picturesStr ? JSON.parse(picturesStr) : [];
+                        const picture = pictures.find(pic => pic.id === pictureId);
+                        
+                        if (picture) {
+                            updatePicture(pictureId, pictureName, category, description, picture.imageUrl);
+                        }
+                    }
+                } else {
+                    console.error('updatePicture 函数不存在');
+                    alert('保存失败: 更新函数未定义');
+                }
+                
+                // 关闭模态框
+                closeModal('editPictureModal');
+                
+                return false;
+            };
+            
+            console.log('保存按钮事件绑定成功');
+        }
+    }
 }
 
 /**

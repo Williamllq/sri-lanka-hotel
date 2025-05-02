@@ -854,40 +854,30 @@ function deletePicture(pictureId, showConfirm = true) {
  */
 function editPicture(pictureId) {
     try {
-        console.log('Editing picture with ID:', pictureId);
-        // 从localStorage加载图片
+        // 从localStorage加载图片数据
         const picturesStr = localStorage.getItem('adminPictures');
         const pictures = picturesStr ? JSON.parse(picturesStr) : [];
         
-        // 查找指定图片
+        // 查找要编辑的图片
         const picture = pictures.find(pic => pic.id === pictureId);
         if (!picture) {
             console.error('Picture not found:', pictureId);
             return;
         }
         
-        console.log('Found picture to edit:', picture);
+        console.log('Editing picture:', picture);
         
-        // 检查系统默认编辑模态框
-        // 这个看起来是系统的Edit Picture模态框
-        const systemModal = document.querySelector('.modal, .admin-modal');
-        const modalTitle = document.querySelector('.modal-title, .admin-modal-title');
-        const saveChangesBtn = document.querySelector('button.save-changes, button:contains("Save Changes")');
+        // 检查是否已有系统模态框可用
+        const systemModal = document.querySelector('#pictureEditModal, #editImageModal, .admin-modal.image-edit, .admin-modal.edit-picture, #editPictureModal');
         
-        if (systemModal && modalTitle) {
-            console.log('Using system modal for editing picture');
+        if (systemModal) {
+            console.log('Using system modal for editing picture:', systemModal.id);
             
-            // 设置模态框标题
-            if (modalTitle) {
-                modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Picture';
-            }
+            // 填充表单数据
+            const nameInput = systemModal.querySelector('#pictureName, #name, #editName, #editPictureName, input[name="name"]');
+            const categorySelect = systemModal.querySelector('#category, #editCategory, #pictureCategory, select[name="category"]');
+            const descriptionInput = systemModal.querySelector('#description, #pictureDescription, #editDescription, #editPictureDescription, textarea[name="description"]');
             
-            // 查找并填充表单字段
-            const nameInput = systemModal.querySelector('input[name="name"], input[placeholder*="Name"], input[id*="Name"]');
-            const categorySelect = systemModal.querySelector('select[name="category"], select[id*="category"], select[id*="Category"]');
-            const descriptionInput = systemModal.querySelector('textarea[name="description"], textarea[id*="description"], textarea[id*="Description"]');
-            
-            // 如果找到了对应的输入字段，填充数据
             if (nameInput) {
                 console.log('Setting name input:', picture.name);
                 nameInput.value = picture.name;
@@ -920,8 +910,8 @@ function editPicture(pictureId) {
                 const newSaveBtn = saveBtn.cloneNode(true);
                 saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
                 
-                // 添加新的点击事件处理程序
-                newSaveBtn.addEventListener('click', function(e) {
+                // 添加新的点击事件处理程序，使用更稳健的方法
+                newSaveBtn.onclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     
@@ -951,7 +941,7 @@ function editPicture(pictureId) {
                     }
                     
                     return false;
-                });
+                };
                 
                 console.log('Save button click event attached');
             } else {
@@ -1015,7 +1005,7 @@ function editPicture(pictureId) {
                         
                         <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
                             <button type="button" class="admin-btn secondary cancel-edit" style="padding: 8px 16px; background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; color: #333; cursor: pointer; font-size: 14px;">Cancel</button>
-                            <button type="submit" class="admin-btn primary save-changes" style="padding: 8px 16px; background-color: #4a6fdc; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 14px;">Save Changes</button>
+                            <button type="button" class="admin-btn primary save-changes" id="saveEditButton" style="padding: 8px 16px; background-color: #4a6fdc; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 14px;">Save Changes</button>
                         </div>
                     </form>
                 </div>
@@ -1047,10 +1037,11 @@ function editPicture(pictureId) {
                 editModal.style.display = 'none';
             });
             
-            // 设置表单提交事件
-            const editForm = document.getElementById('editPictureForm');
-            editForm.addEventListener('submit', function(e) {
+            // 设置表单提交事件 - 改用保存按钮点击事件
+            const saveBtn = editModal.querySelector('.save-changes');
+            saveBtn.onclick = function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 
                 const pictureId = document.getElementById('editPictureId').value;
                 const pictureName = document.getElementById('editPictureName').value;
@@ -1073,7 +1064,12 @@ function editPicture(pictureId) {
                         updatePicture(pictureId, pictureName, category, description, picture.imageUrl);
                     }
                 }
-            });
+                
+                // 关闭模态框
+                editModal.style.display = 'none';
+                
+                return false;
+            };
             
             // 设置文件上传预览
             const editPictureFile = document.getElementById('editPictureFile');
