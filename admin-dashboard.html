@@ -19,7 +19,53 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+        }
+        
+        /* 模态框样式修复 */
+        .admin-modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .admin-modal.active {
+            display: flex !important;
+        }
+        
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1040;
+        }
+        
+        body.modal-open {
+            overflow: hidden;
+        }
+        
+        .admin-modal .modal-content {
+            background-color: #fff;
+            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1060;
         }
     </style>
 </head>
@@ -783,6 +829,7 @@
     <script src="js/map.js"></script>
     <script src="js/order-management-fix.js"></script>
     <script src="js/transport-settings.js"></script>
+    <script src="js/admin-modal-fix.js"></script>
 
     <script>
     // Fix layout issues after page load
