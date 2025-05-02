@@ -317,7 +317,7 @@ function displayQuote(quoteData) {
     }
     
     // Show the quote container
-    quoteContainer.style.display = 'block';
+        quoteContainer.style.display = 'block';
     quoteContainer.classList.add('visible');
     
     // Enable Book Now button
@@ -610,203 +610,119 @@ function showCustomerInfoForm() {
     }
 }
 
-// Submit booking with customer information
+// Handle the booking form submission
 function submitBooking() {
     console.log('Submitting booking');
     
-    // Validate form
-    const customerName = document.getElementById('customerName');
-    const customerEmail = document.getElementById('customerEmail');
-    const customerPhone = document.getElementById('customerPhone');
+    // Get form values
+    const customerName = document.getElementById('customerName').value;
+    const customerEmail = document.getElementById('customerEmail').value;
+    const customerPhone = document.getElementById('customerPhone').value;
+    const specialRequests = document.getElementById('specialRequirements').value;
     
-    if (!customerName || !customerName.value.trim()) {
-        showMessage('Please enter your full name', 'error');
-        return;
+    // Check if required fields are filled
+    if (!customerName || !customerEmail || !customerPhone) {
+        alert('Please fill in all required fields.');
+        return false;
     }
     
-    if (!customerEmail || !customerEmail.value.trim() || !isValidEmail(customerEmail.value)) {
-        showMessage('Please enter a valid email address', 'error');
-        return;
-    }
+    // 检查用户是否已登录
+    const currentUser = window.UserAuth && window.UserAuth.getCurrentUser ? window.UserAuth.getCurrentUser() : null;
     
-    if (!customerPhone || !customerPhone.value.trim()) {
-        showMessage('Please enter your phone number', 'error');
-        return;
-    }
-    
-    // Save booking data with customer information
-    saveBookingData();
-    
-    // Hide customer form
-    const customerInfoForm = document.getElementById('customerInfoForm');
-    if (customerInfoForm) {
-        customerInfoForm.style.display = 'none';
-    }
-    
-    // Show success message with redirect option to view bookings
-    const successHtml = `
-        <div class="booking-success">
-            <h3><i class="fas fa-check-circle"></i> Booking Successful!</h3>
-            <p>Thank you for your booking! We have sent a confirmation email to ${customerEmail.value}.</p>
-            <p>A 30% deposit is required to confirm your booking. Our team will contact you shortly with payment instructions.</p>
-            <div class="booking-actions">
-                <button id="viewBookingsBtn" class="btn secondary">View My Bookings</button>
-                <button id="backToHomeBtn" class="btn primary">Back to Home</button>
-            </div>
-        </div>
-    `;
-    
-    // Create success container if not exists
-    let successContainer = document.getElementById('bookingSuccessContainer');
-    if (!successContainer) {
-        successContainer = document.createElement('div');
-        successContainer.id = 'bookingSuccessContainer';
-        successContainer.className = 'booking-success-container';
-        
-        // Add styles
-        if (!document.getElementById('booking-success-styles')) {
-            const style = document.createElement('style');
-            style.id = 'booking-success-styles';
-            style.textContent = `
-                .booking-success-container {
-                    margin-top: 20px;
-                    padding: 20px;
-                    background-color: #d4edda;
-                    border-radius: 8px;
-                    border: 1px solid #c3e6cb;
-                    color: #155724;
-                    text-align: center;
-                }
-                
-                .booking-success h3 {
-                    color: #155724;
-                    margin-top: 0;
-                }
-                
-                .booking-success i {
-                    font-size: 32px;
-                    margin-bottom: 10px;
-                    color: #28a745;
-                }
-                
-                .booking-actions {
-                    margin-top: 20px;
-                    display: flex;
-                    justify-content: center;
-                    gap: 15px;
-                }
-            `;
-            document.head.appendChild(style);
+    // 如果用户未登录，询问是否要登录
+    if (!currentUser) {
+        const shouldLogin = confirm('Would you like to create an account or login to manage your bookings easily in the future?');
+        if (shouldLogin && window.UserAuth && window.UserAuth.showLoginModal) {
+            // 在form中自动填入用户输入的信息
+            const loginEmail = document.getElementById('loginEmail');
+            const registerEmail = document.getElementById('registerEmail');
+            const registerName = document.getElementById('registerName');
+            
+            if (loginEmail) loginEmail.value = customerEmail;
+            if (registerEmail) registerEmail.value = customerEmail;
+            if (registerName) registerName.value = customerName;
+            
+            window.UserAuth.showLoginModal();
+            
+            // 我们需要中断预订流程，让用户先登录
+            alert('Please login or register first, then you can continue with your booking.');
+            return false;
+        }
+    } else {
+        // 如果用户已登录，但表单中的邮箱与当前用户不一致，更新表单
+        if (customerEmail !== currentUser.email) {
+            if (confirm(`Your form email (${customerEmail}) is different from your login email (${currentUser.email}). Would you like to use your login email instead?`)) {
+                document.getElementById('customerEmail').value = currentUser.email;
+                customerEmail = currentUser.email;
+            }
         }
         
-        // Find where to insert the success message
-        const quoteContainer = document.getElementById('quoteContainer');
-        if (quoteContainer) {
-            quoteContainer.parentNode.insertBefore(successContainer, quoteContainer.nextSibling);
-        } else {
-            const bookingForm = document.querySelector('.booking-form');
-            if (bookingForm) {
-                bookingForm.appendChild(successContainer);
+        // 如果用户已登录，但表单中的姓名与当前用户不一致，更新表单
+        if (customerName !== currentUser.name) {
+            if (confirm(`Your form name (${customerName}) is different from your login name (${currentUser.name}). Would you like to use your login name instead?`)) {
+                document.getElementById('customerName').value = currentUser.name;
+                customerName = currentUser.name;
             }
         }
     }
     
-    // Set success content
-    successContainer.innerHTML = successHtml;
-    successContainer.style.display = 'block';
+    // Get quote data
+    const quoteData = JSON.parse(localStorage.getItem('currentQuote'));
     
-    // Add event listeners to success buttons
-    const viewBookingsBtn = document.getElementById('viewBookingsBtn');
-    const backToHomeBtn = document.getElementById('backToHomeBtn');
-    
-    if (viewBookingsBtn) {
-        viewBookingsBtn.addEventListener('click', function() {
-            showMyBookings();
-        });
+    if (!quoteData) {
+        alert('Error: No quote found. Please get a new quote.');
+        return false;
     }
     
-    if (backToHomeBtn) {
-        backToHomeBtn.addEventListener('click', function() {
-            window.location.href = 'index.html';
-        });
-    }
-}
-
-// Save booking data to localStorage
-function saveBookingData() {
-    // Get quote information
-    const distanceElement = document.getElementById('quotedDistance');
-    const vehicleTypeElement = document.getElementById('quotedVehicle');
-    const fareElement = document.getElementById('quotedFare');
-    const depositElement = document.getElementById('quotedDeposit');
-    
-    // Get form inputs
-    const serviceType = document.getElementById('serviceType')?.value || '';
-    const journeyDate = document.getElementById('journeyDate')?.value || '';
-    const journeyTime = document.getElementById('journeyTime')?.value || '';
-    const passengerCount = document.getElementById('passengerCount')?.value || '';
-    const pickupLocation = document.getElementById('pickupLocation')?.value || '';
-    const destination = document.getElementById('destinationLocation')?.value || '';
-    const specialRequirements = document.getElementById('specialRequirements')?.value || '';
-    const vehicleType = getSelectedVehicleType();
-    
-    // Get customer information
-    const customerName = document.getElementById('customerName')?.value || '';
-    const customerEmail = document.getElementById('customerEmail')?.value || '';
-    const customerPhone = document.getElementById('customerPhone')?.value || '';
-    const customerNationality = document.getElementById('customerNationality')?.value || '';
-    
-    // Extract distance and fare values
-    const distanceText = distanceElement ? distanceElement.textContent : '';
-    const distance = distanceText ? parseFloat(distanceText.replace(/[^0-9.]/g, '')) : 0;
-    
-    const fareText = fareElement ? fareElement.textContent : '';
-    const totalFare = fareText ? parseFloat(fareText.replace(/[^0-9.]/g, '')) : 0;
-    
-    const depositText = depositElement ? depositElement.textContent : '';
-    const depositAmount = depositText ? parseFloat(depositText.replace(/[^0-9.]/g, '')) : 0;
-    
-    // Create the booking data object
+    // Create booking object
     const bookingData = {
-        id: 'ORD-' + Date.now(), // Unique ID based on timestamp
-        serviceType: serviceType,
-        journeyDate: journeyDate,
-        journeyTime: journeyTime,
-        passengerCount: passengerCount,
-        pickupLocation: pickupLocation,
-        destination: destination,
-        specialRequirements: specialRequirements,
-        vehicleType: vehicleType,
-        distance: distance,
-        totalFare: totalFare,
-        depositAmount: depositAmount,
+        id: 'ORD-' + Math.floor(Math.random() * 1000000000000).toString(),
+        timestamp: new Date().toISOString(),
         customerName: customerName,
         customerEmail: customerEmail,
         customerPhone: customerPhone,
-        customerNationality: customerNationality,
-        status: 'pending', // Initial status
-        timestamp: new Date().toISOString(),
-        lastUpdated: new Date().toISOString()
+        specialRequests: specialRequests,
+        journeyDate: quoteData.journeyDate,
+        journeyTime: quoteData.journeyTime,
+        pickupLocation: quoteData.pickupLocation,
+        pickupCoords: quoteData.pickupCoords,
+        destination: quoteData.destination,
+        destinationCoords: quoteData.destinationCoords,
+        distance: quoteData.distance,
+        vehicleType: quoteData.vehicleType,
+        numberOfPassengers: quoteData.numberOfPassengers,
+        totalFare: quoteData.totalFare,
+        depositAmount: quoteData.depositAmount,
+        status: 'pending',
+        // 关联当前登录用户
+        userId: currentUser ? currentUser.email : null
     };
     
-    try {
-        // Get existing bookings or create new array
-        let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
-        bookings.push(bookingData);
-        localStorage.setItem('bookings', JSON.stringify(bookings));
-        console.log('Booking saved to localStorage:', bookingData);
-        
-        // Also store in user bookings (filtered by email)
-        let userBookings = JSON.parse(localStorage.getItem('userBookings')) || {};
-        if (customerEmail) {
-            if (!userBookings[customerEmail]) {
-                userBookings[customerEmail] = [];
-            }
-            userBookings[customerEmail].push(bookingData);
-            localStorage.setItem('userBookings', JSON.stringify(userBookings));
+    // Save booking data to localStorage
+    saveBookingData(bookingData);
+    
+    // Show booking confirmation
+    showBookingConfirmation(bookingData);
+    
+    return true;
+}
+
+// Save booking data to localStorage
+function saveBookingData(bookingData) {
+    // Get existing bookings or create new array
+    let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+    bookings.push(bookingData);
+    localStorage.setItem('bookings', JSON.stringify(bookings));
+    console.log('Booking saved to localStorage:', bookingData);
+    
+    // Also store in user bookings (filtered by email)
+    let userBookings = JSON.parse(localStorage.getItem('userBookings')) || {};
+    if (bookingData.customerEmail) {
+        if (!userBookings[bookingData.customerEmail]) {
+            userBookings[bookingData.customerEmail] = [];
         }
-    } catch (error) {
-        console.error('Error saving booking to localStorage:', error);
+        userBookings[bookingData.customerEmail].push(bookingData);
+        localStorage.setItem('userBookings', JSON.stringify(userBookings));
     }
 }
 
@@ -820,6 +736,21 @@ function isValidEmail(email) {
 function showMyBookings() {
     console.log('Showing user bookings');
     
+    // 检查用户是否已登录
+    const currentUser = window.UserAuth && window.UserAuth.getCurrentUser ? window.UserAuth.getCurrentUser() : null;
+    
+    // 如果用户未登录，提示登录
+    if (!currentUser) {
+        console.log('User not logged in, showing login prompt');
+        if (window.UserAuth && window.UserAuth.showLoginModal) {
+            window.UserAuth.showLoginModal();
+            alert('Please login to view your bookings');
+        } else {
+            alert('Please login to view your bookings');
+        }
+        return;
+    }
+        
     // Create booking history container if not exists
     let bookingHistoryContainer = document.getElementById('bookingHistoryContainer');
     if (!bookingHistoryContainer) {
@@ -967,8 +898,9 @@ function showMyBookings() {
         </div>
     `;
     
-    // Get user email from the form
-    const userEmail = document.getElementById('customerEmail')?.value;
+    // 使用当前登录用户的电子邮件
+    const userEmail = currentUser.email;
+    console.log('Getting bookings for user:', userEmail);
     
     // Try to get user's bookings
     let userBookings = [];
@@ -978,16 +910,37 @@ function showMyBookings() {
         const allUserBookings = JSON.parse(localStorage.getItem('userBookings')) || {};
         if (userEmail && allUserBookings[userEmail]) {
             userBookings = allUserBookings[userEmail];
+            console.log('Found bookings in userBookings:', userBookings.length);
         } else {
             // If not found or no email, search through all bookings for matching email
             const allBookings = JSON.parse(localStorage.getItem('bookings')) || [];
             if (userEmail) {
                 userBookings = allBookings.filter(booking => booking.customerEmail === userEmail);
+                console.log('Found bookings in allBookings:', userBookings.length);
             }
         }
     } catch (error) {
         console.error('Error loading user bookings:', error);
     }
+    
+    // 过滤掉无效订单数据
+    userBookings = userBookings.filter(booking => {
+        // 排除没有ID的订单
+        if (!booking.id || booking.id === 'undefined') {
+            return false;
+        }
+        
+        // 排除显示为undefined且价格为0的订单
+        if (
+            (booking.totalFare === 0 || booking.price === 0) && 
+            (!booking.customerName || booking.customerName === 'N/A') && 
+            (!booking.customerEmail || booking.customerEmail === 'N/A')
+        ) {
+            return false;
+        }
+        
+        return true;
+    });
     
     // Check if user has any bookings
     if (userBookings.length === 0) {
@@ -999,86 +952,89 @@ function showMyBookings() {
         `;
     } else {
         // Sort bookings by date (newest first)
-        userBookings.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        userBookings.sort((a, b) => {
+            const dateA = new Date(a.timestamp || a.journeyDate || 0);
+            const dateB = new Date(b.timestamp || b.journeyDate || 0);
+            return dateB - dateA;
+        });
         
-        // Add each booking card
+        // Display each booking
+        bookingHistoryHTML += '<div class="bookings-list">';
         userBookings.forEach(booking => {
-            const bookingDate = new Date(booking.timestamp).toLocaleDateString();
-            const journeyDate = booking.journeyDate ? new Date(booking.journeyDate).toLocaleDateString() : 'N/A';
+            const status = booking.status || 'pending';
+            const journeyDate = booking.journeyDate || 'N/A';
+            const journeyTime = booking.journeyTime || 'N/A';
+            const fromLocation = booking.pickupLocation || booking.fromLocation || 'N/A';
+            const toLocation = booking.destination || booking.toLocation || 'N/A';
+            const totalFare = booking.totalFare || booking.price || 0;
             
             bookingHistoryHTML += `
                 <div class="booking-card">
                     <div class="booking-header">
-                        <span class="booking-id">${booking.id}</span>
-                        <span class="booking-status ${booking.status || 'pending'}">${(booking.status || 'pending').charAt(0).toUpperCase() + (booking.status || 'pending').slice(1)}</span>
+                        <div class="booking-id">Booking #${booking.id}</div>
+                        <div class="booking-status ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</div>
                     </div>
-                    
                     <div class="booking-details">
                         <div class="booking-detail">
-                            <strong>Booking Date:</strong>
-                            <span>${bookingDate}</span>
-                        </div>
-                        <div class="booking-detail">
                             <strong>Journey Date:</strong>
-                            <span>${journeyDate} ${booking.journeyTime || ''}</span>
+                            <span>${journeyDate} at ${journeyTime}</span>
                         </div>
                         <div class="booking-detail">
                             <strong>From:</strong>
-                            <span>${booking.pickupLocation || 'N/A'}</span>
+                            <span>${fromLocation}</span>
                         </div>
                         <div class="booking-detail">
                             <strong>To:</strong>
-                            <span>${booking.destination || 'N/A'}</span>
+                            <span>${toLocation}</span>
                         </div>
                         <div class="booking-detail">
                             <strong>Vehicle Type:</strong>
-                            <span>${booking.vehicleType ? booking.vehicleType.charAt(0).toUpperCase() + booking.vehicleType.slice(1) : 'N/A'}</span>
+                            <span>${booking.vehicleType || 'Standard'}</span>
                         </div>
                         <div class="booking-detail">
                             <strong>Total Fare:</strong>
-                            <span>$${booking.totalFare ? parseFloat(booking.totalFare).toFixed(2) : 'N/A'}</span>
+                            <span>$${parseFloat(totalFare).toFixed(2)}</span>
                         </div>
                     </div>
-                    
                     <div class="booking-actions">
-                        <button class="view-details-btn" data-id="${booking.id}">View Details</button>
-                        ${booking.status === 'pending' ? `<button class="cancel-booking-btn" data-id="${booking.id}">Cancel Booking</button>` : ''}
+                        <button class="view-details-btn" data-booking-id="${booking.id}">View Details</button>
+                        ${status === 'pending' ? `<button class="cancel-booking-btn" data-booking-id="${booking.id}">Cancel Booking</button>` : ''}
                     </div>
                 </div>
             `;
         });
+        bookingHistoryHTML += '</div>';
     }
     
-    // Set the HTML content
+    // Update container with content
     bookingHistoryContainer.innerHTML = bookingHistoryHTML;
     bookingHistoryContainer.style.display = 'block';
     
-    // Scroll to the booking history container
-    bookingHistoryContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
-    // Add event listeners
-    const closeBtn = document.getElementById('closeBookingHistoryBtn');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
+    // Add event listeners to buttons
+    const closeButton = document.getElementById('closeBookingHistoryBtn');
+    if (closeButton) {
+        closeButton.addEventListener('click', function() {
             bookingHistoryContainer.style.display = 'none';
         });
     }
     
-    // Add event listeners to detail buttons
-    const viewDetailsBtns = document.querySelectorAll('.view-details-btn');
-    viewDetailsBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const bookingId = this.getAttribute('data-id');
+    // View details buttons
+    const viewDetailsButtons = document.querySelectorAll('.view-details-btn');
+    viewDetailsButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const bookingId = this.getAttribute('data-booking-id');
             viewBookingDetails(bookingId);
         });
     });
     
-    // Add event listeners to cancel buttons
-    const cancelBtns = document.querySelectorAll('.cancel-booking-btn');
-    cancelBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const bookingId = this.getAttribute('data-id');
-            cancelBooking(bookingId);
+    // Cancel booking buttons
+    const cancelButtons = document.querySelectorAll('.cancel-booking-btn');
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const bookingId = this.getAttribute('data-booking-id');
+            if (confirm('Are you sure you want to cancel this booking?')) {
+                cancelBooking(bookingId);
+            }
         });
     });
 }
@@ -2218,5 +2174,192 @@ function displayUserBookings(bookings) {
                 cancelBooking(bookingId);
             }
         });
+    });
+}
+
+// Show booking confirmation after successful booking
+function showBookingConfirmation(bookingData) {
+    console.log('Showing booking confirmation for:', bookingData.id);
+    
+    // Hide customer form
+    const customerInfoForm = document.getElementById('customerInfoForm');
+    if (customerInfoForm) {
+        customerInfoForm.style.display = 'none';
+    }
+    
+    // Create success message HTML
+    const successHtml = `
+        <div class="booking-success">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>Booking Successful!</h3>
+            <p>Thank you for your booking! We have sent a confirmation email to ${bookingData.customerEmail}.</p>
+            <div class="booking-details-summary">
+                <div class="booking-detail-item">
+                    <strong>Booking ID:</strong>
+                    <span>${bookingData.id}</span>
+                </div>
+                <div class="booking-detail-item">
+                    <strong>Journey Date:</strong>
+                    <span>${bookingData.journeyDate} at ${bookingData.journeyTime}</span>
+                </div>
+                <div class="booking-detail-item">
+                    <strong>From:</strong>
+                    <span>${bookingData.pickupLocation}</span>
+                </div>
+                <div class="booking-detail-item">
+                    <strong>To:</strong>
+                    <span>${bookingData.destination}</span>
+                </div>
+                <div class="booking-detail-item">
+                    <strong>Total Fare:</strong>
+                    <span>$${parseFloat(bookingData.totalFare).toFixed(2)}</span>
+                </div>
+            </div>
+            <div class="payment-info">
+                <p>A 30% deposit ($${parseFloat(bookingData.depositAmount).toFixed(2)}) is required to confirm your booking.</p>
+                <p>Our team will contact you shortly with payment instructions.</p>
+            </div>
+            <div class="booking-actions">
+                <button id="viewMyBookingsBtn" class="btn secondary">View My Bookings</button>
+                <button id="backToHomeBtn" class="btn primary">Back to Home</button>
+            </div>
+        </div>
+    `;
+    
+    // Create or find the success container
+    let successContainer = document.getElementById('bookingSuccessContainer');
+    if (!successContainer) {
+        successContainer = document.createElement('div');
+        successContainer.id = 'bookingSuccessContainer';
+        successContainer.className = 'booking-success-container';
+        
+        // Add success styles if not already added
+        if (!document.getElementById('booking-success-styles')) {
+            const style = document.createElement('style');
+            style.id = 'booking-success-styles';
+            style.textContent = `
+                .booking-success-container {
+                    margin-top: 20px;
+                    padding: 25px;
+                    background-color: #d4edda;
+                    border-radius: 8px;
+                    border: 1px solid #c3e6cb;
+                    color: #155724;
+                    text-align: center;
+                    max-width: 600px;
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+                
+                .success-icon {
+                    margin-bottom: 15px;
+                }
+                
+                .success-icon i {
+                    font-size: 48px;
+                    color: #28a745;
+                }
+                
+                .booking-success h3 {
+                    color: #155724;
+                    margin-top: 0;
+                    font-size: 24px;
+                    margin-bottom: 15px;
+                }
+                
+                .booking-details-summary {
+                    background-color: rgba(255, 255, 255, 0.5);
+                    border-radius: 6px;
+                    padding: 15px;
+                    margin: 15px 0;
+                    text-align: left;
+                }
+                
+                .booking-detail-item {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 8px;
+                    padding-bottom: 8px;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                }
+                
+                .booking-detail-item:last-child {
+                    border-bottom: none;
+                    margin-bottom: 0;
+                    padding-bottom: 0;
+                }
+                
+                .payment-info {
+                    margin: 15px 0;
+                    padding: 10px;
+                    background-color: rgba(255, 255, 255, 0.7);
+                    border-radius: 6px;
+                }
+                
+                .booking-actions {
+                    margin-top: 20px;
+                    display: flex;
+                    justify-content: center;
+                    gap: 15px;
+                }
+                
+                .booking-actions button {
+                    padding: 10px 20px;
+                    border-radius: 4px;
+                    border: none;
+                    cursor: pointer;
+                    font-weight: 500;
+                    transition: all 0.2s ease;
+                }
+                
+                .booking-actions .btn.primary {
+                    background-color: #4a6fa5;
+                    color: white;
+                }
+                
+                .booking-actions .btn.secondary {
+                    background-color: #f8f9fa;
+                    color: #333;
+                    border: 1px solid #ddd;
+                }
+                
+                .booking-actions .btn:hover {
+                    opacity: 0.9;
+                    transform: translateY(-2px);
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Find where to insert the success message
+        const quoteContainer = document.getElementById('quoteContainer');
+        if (quoteContainer) {
+            quoteContainer.parentNode.insertBefore(successContainer, quoteContainer.nextSibling);
+        } else {
+            const bookingForm = document.querySelector('.booking-form');
+            if (bookingForm) {
+                bookingForm.appendChild(successContainer);
+            } else {
+                document.body.appendChild(successContainer);
+            }
+        }
+    }
+    
+    // Set success content
+    successContainer.innerHTML = successHtml;
+    successContainer.style.display = 'block';
+    
+    // Scroll to show the success message
+    successContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Add event listeners to success buttons
+    document.getElementById('viewMyBookingsBtn').addEventListener('click', function() {
+        showMyBookings();
+    });
+    
+    document.getElementById('backToHomeBtn').addEventListener('click', function() {
+        window.location.href = 'index.html';
     });
 }

@@ -302,33 +302,42 @@
             <div class="admin-section" id="ordersSection">
                 <h2><i class="fas fa-shopping-cart"></i> Order Management</h2>
                 
-                <div class="section-description">
-                    <p>View and manage transport bookings and customer orders.</p>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="mb-0">Orders Management</h5>
+                        <p class="mb-0 text-muted">Manage all customer orders</p>
+                    </div>
+                    <div class="d-flex">
+                        <input type="text" id="orderSearchInput" class="form-control me-2" placeholder="Search orders...">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Filter by User
+                            </button>
+                            <ul class="dropdown-menu" id="userFilterMenu" aria-labelledby="userFilterDropdown">
+                                <li><a class="dropdown-item active" href="#" data-user-id="all">All Users</a></li>
+                                <!-- 用户列表将动态添加 -->
+                            </ul>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="order-filters">
-                    <div class="order-tabs">
-                        <button class="order-tab active" data-order-tab="all">All Orders</button>
-                        <button class="order-tab" data-order-tab="pending">Pending</button>
-                        <button class="order-tab" data-order-tab="confirmed">Confirmed</button>
-                        <button class="order-tab" data-order-tab="completed">Completed</button>
-                        <button class="order-tab" data-order-tab="cancelled">Cancelled</button>
-                    </div>
-                    
-                    <div class="order-search">
-                        <input type="text" id="orderSearchInput" placeholder="Search by customer name, email, or location...">
-                        <button id="orderSearchBtn"><i class="fas fa-search"></i></button>
+                <div class="order-tabs mb-3">
+                    <div class="btn-group w-100">
+                        <button class="btn btn-outline-primary order-tab active" data-order-tab="all">All Orders</button>
+                        <button class="btn btn-outline-primary order-tab" data-order-tab="pending">Pending</button>
+                        <button class="btn btn-outline-primary order-tab" data-order-tab="confirmed">Confirmed</button>
+                        <button class="btn btn-outline-primary order-tab" data-order-tab="completed">Completed</button>
+                        <button class="btn btn-outline-primary order-tab" data-order-tab="cancelled">Cancelled</button>
                     </div>
                 </div>
                 
-                <div class="orders-table-container">
-                    <table class="orders-table">
+                <div class="table-responsive" id="ordersTableContainer">
+                    <table class="table table-hover">
                         <thead>
                             <tr>
                                 <th>Order ID</th>
-                                <th>Date</th>
                                 <th>Customer</th>
-                                <th>Service</th>
+                                <th>Date</th>
                                 <th>From</th>
                                 <th>To</th>
                                 <th>Amount</th>
@@ -337,14 +346,12 @@
                             </tr>
                         </thead>
                         <tbody id="ordersTableBody">
-                            <!-- Orders will be loaded here dynamically -->
+                            <!-- Orders will be loaded here -->
+                            <tr>
+                                <td colspan="8" class="text-center">Loading orders...</td>
+                            </tr>
                         </tbody>
                     </table>
-                    
-                    <div id="noOrdersMessage" class="no-orders-message">
-                        <i class="fas fa-shopping-cart"></i>
-                        <p>No orders found. As customers make bookings, they will appear here.</p>
-                    </div>
                 </div>
                 
                 <!-- Order Details Modal -->
@@ -858,186 +865,102 @@
                 background-color: #3a5d8f !important;
                 color: white !important;
             }
-            .status-badge {
+            .order-status {
                 display: inline-block;
-                padding: 4px 8px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 500;
+                padding: 0.25em 0.6em;
+                font-size: 75%;
+                font-weight: 700;
+                line-height: 1;
                 text-align: center;
-                min-width: 80px;
+                white-space: nowrap;
+                vertical-align: baseline;
+                border-radius: 0.25rem;
+                color: white;
             }
-            .status-badge.pending {
-                background-color: #fff3cd;
-                color: #856404;
-                border: 1px solid #ffeeba;
+            .order-status.pending {
+                background-color: #ffc107;
+                color: #212529;
             }
-            .status-badge.confirmed {
-                background-color: #d1ecf1;
-                color: #0c5460;
-                border: 1px solid #bee5eb;
+            .order-status.confirmed {
+                background-color: #17a2b8;
             }
-            .status-badge.completed {
-                background-color: #d4edda;
-                color: #155724;
-                border: 1px solid #c3e6cb;
+            .order-status.completed {
+                background-color: #28a745;
             }
-            .status-badge.cancelled {
-                background-color: #f8d7da;
-                color: #721c24;
-                border: 1px solid #f5c6cb;
+            .order-status.cancelled {
+                background-color: #dc3545;
             }
-            .action-btn {
-                width: 32px;
-                height: 32px;
-                border-radius: 4px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s;
-                border: 1px solid #ddd;
-                background-color: white;
-                cursor: pointer;
+            .order-details-modal .modal-body {
+                max-height: 60vh;
+                overflow-y: auto;
             }
-            .action-btn.view-btn {
-                color: #4a6fa5;
+            .dropdown-menu {
+                max-height: 300px;
+                overflow-y: auto;
             }
-            .action-btn.delete-btn {
-                color: #dc3545;
-            }
-            .action-btn.view-btn:hover {
-                background-color: #e7f0ff;
-                border-color: #4a6fa5;
-            }
-            .action-btn.delete-btn:hover {
-                background-color: #fff5f5;
-                border-color: #dc3545;
-            }
-            #orderDetailsModal .modal-body {
-                padding: 0;
-            }
-            #orderDetailsModal .order-details {
-                padding: 20px;
-            }
-            #orderDetailsModal .order-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #eee;
-            }
-            #orderDetailsModal .order-header h4 {
-                margin: 0;
-                font-size: 20px;
-                color: #333;
-            }
-            .order-info-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 15px;
-                margin-bottom: 20px;
-            }
-            .info-group {
-                margin-bottom: 12px;
-            }
-            .info-group label {
+            .user-email-filter {
+                font-size: 0.85rem;
+                color: #6c757d;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 200px;
                 display: block;
-                font-size: 12px;
-                color: #777;
-                margin-bottom: 4px;
-            }
-            .info-group span {
-                font-weight: 500;
-                color: #333;
             }
         `;
         document.head.appendChild(style);
         
-        // Store orders data globally
-        let ordersData = [];
+        // Variables
+        let allOrders = [];
+        let filteredOrders = [];
+        let currentFilter = 'all';
+        let currentUserFilter = 'all';
+        let searchTerm = '';
         
-        // Function to create sample demo orders when no orders exist
-        function createDemoOrders() {
-            return [
-                {
-                    id: 'ORD-1001',
-                    customerName: 'John Smith',
-                    customerEmail: 'john.smith@example.com',
-                    customerPhone: '+1 123-456-7890',
-                    fromLocation: 'Colombo',
-                    toLocation: 'Kandy',
-                    distance: 115.5,
-                    vehicleType: 'Sedan',
-                    journeyDate: '2023-12-15',
-                    journeyTime: '09:30',
-                    totalFare: 89.50,
-                    status: 'confirmed',
-                    timestamp: new Date('2023-12-10').toISOString()
-                },
-                {
-                    id: 'ORD-1002',
-                    customerName: 'Emma Johnson',
-                    customerEmail: 'emma.j@example.com',
-                    customerPhone: '+44 7700 900123',
-                    fromLocation: 'Galle',
-                    toLocation: 'Mirissa',
-                    distance: 45.8,
-                    vehicleType: 'SUV',
-                    journeyDate: '2023-12-18',
-                    journeyTime: '14:00',
-                    totalFare: 65.75,
-                    status: 'pending',
-                    timestamp: new Date('2023-12-11').toISOString()
-                },
-                {
-                    id: 'ORD-1003',
-                    customerName: 'David Chen',
-                    customerEmail: 'david.c@example.com',
-                    customerPhone: '+61 4123 456789',
-                    fromLocation: 'Negombo',
-                    toLocation: 'Sigiriya',
-                    distance: 158.3,
-                    vehicleType: 'Van',
-                    journeyDate: '2023-12-12',
-                    journeyTime: '10:00',
-                    totalFare: 175.25,
-                    status: 'completed',
-                    timestamp: new Date('2023-12-08').toISOString()
-                },
-                {
-                    id: 'ORD-1004',
-                    customerName: 'Sarah Miller',
-                    customerEmail: 'sarah.m@example.com',
-                    customerPhone: '+49 30 123456',
-                    fromLocation: 'Colombo',
-                    toLocation: 'Galle',
-                    distance: 125.7,
-                    vehicleType: 'Luxury',
-                    journeyDate: '2023-12-20',
-                    journeyTime: '08:00',
-                    totalFare: 210.50,
-                    status: 'cancelled',
-                    timestamp: new Date('2023-12-09').toISOString()
-                }
-            ];
-        }
-
-        // Format price to display with correct currency
-        function formatPrice(price) {
-            return '$' + parseFloat(price).toFixed(2);
-        }
-
-        // Format date to a human-readable string
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+        // Elements
+        const orderTabs = document.querySelectorAll('.order-tab');
+        const searchInput = document.getElementById('orderSearchInput');
+        const orderTableBody = document.getElementById('ordersTableBody');
+        const userFilterMenu = document.getElementById('userFilterMenu');
+        
+        // Init
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing order management');
+            
+            // Attach events to order tabs
+            orderTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    orderTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.getAttribute('data-order-tab');
+                    applyFilters();
+                });
             });
+            
+            // Attach search event
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    searchTerm = this.value.toLowerCase();
+                    applyFilters();
+                });
+            }
+            
+            // Load orders on page load
+            loadOrders();
+        });
+        
+        // Format date strings
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            } catch (e) {
+                return dateStr;
+            }
         }
-
+        
         // Load orders based on current filter
         function loadOrders() {
             console.log('Loading orders...');
@@ -1054,140 +977,352 @@
             // Try to get orders from localStorage - First check 'bookings' which is used by the frontend
             let storedOrders = localStorage.getItem('bookings');
             
-            // Use stored orders, or create demo orders if none exist
+            // Use stored orders, or create demo orders
             if (storedOrders) {
-                ordersData = JSON.parse(storedOrders);
-                console.log('User bookings found:', ordersData.length);
-                
-                // 过滤掉无效订单数据
-                ordersData = ordersData.filter(order => {
-                    // 排除没有ID的订单
-                    if (!order.id || order.id === 'undefined') {
-                        console.log('过滤掉无效ID订单:', order);
-                        return false;
-                    }
+                try {
+                    let orders = JSON.parse(storedOrders);
                     
-                    // 排除显示为undefined且价格为0的订单
-                    if (
-                        (order.totalFare === 0 || order.price === 0) && 
-                        (!order.customerName || order.customerName === 'N/A') && 
-                        (!order.customerEmail || order.customerEmail === 'N/A')
-                    ) {
-                        console.log('过滤掉无效测试订单:', order);
-                        return false;
-                    }
+                    // 过滤掉无效订单
+                    orders = orders.filter(order => {
+                        // 排除没有ID的订单
+                        if (!order.id || order.id === 'undefined') {
+                            return false;
+                        }
+                        
+                        // 排除显示为undefined且价格为0的订单
+                        if (
+                            (order.totalFare === 0 || order.price === 0) && 
+                            (!order.customerName || order.customerName === 'N/A') && 
+                            (!order.customerEmail || order.customerEmail === 'N/A')
+                        ) {
+                            return false;
+                        }
+                        
+                        return true;
+                    });
                     
-                    return true;
-                });
-                
+                    console.log('Found orders in localStorage:', orders.length);
+                    
+                    // Process and standardize order data
+                    allOrders = orders.map(order => {
+                        // Normalize field names
+                        return {
+                            id: order.id,
+                            timestamp: order.timestamp || new Date().toISOString(),
+                            journeyDate: order.journeyDate || 'N/A',
+                            journeyTime: order.journeyTime || 'N/A',
+                            customerName: order.customerName || 'N/A',
+                            customerEmail: order.customerEmail || 'N/A',
+                            customerPhone: order.customerPhone || 'N/A',
+                            fromLocation: order.pickupLocation || order.fromLocation || 'N/A',
+                            toLocation: order.destination || order.toLocation || 'N/A',
+                            totalFare: order.totalFare || order.price || 0,
+                            depositAmount: order.depositAmount || (order.totalFare * 0.3) || 0,
+                            status: order.status || 'pending',
+                            vehicleType: order.vehicleType || 'Standard',
+                            specialRequests: order.specialRequests || '',
+                            userId: order.userId || order.customerEmail || 'guest'
+                        };
+                    });
+                    
+                    // 填充用户筛选下拉菜单
+                    populateUserFilter(allOrders);
+                    
+                    // Apply initial filters
+                    applyFilters();
+                } catch (error) {
+                    console.error('Error parsing orders from localStorage:', error);
+                    createDemoOrders();
+                }
             } else {
-                // Create demo orders if no real bookings
-                ordersData = createDemoOrders();
-                console.log('No user bookings found, using demo data');
-                // Save to localStorage
-                localStorage.setItem('orders', JSON.stringify(ordersData));
+                console.log('No orders found in localStorage, using demo data');
+                createDemoOrders();
+            }
+        }
+        
+        // 填充用户筛选下拉菜单
+        function populateUserFilter(orders) {
+            if (!userFilterMenu) return;
+            
+            // 获取所有唯一的用户ID
+            const uniqueUsers = new Map();
+            
+            orders.forEach(order => {
+                // 用户ID优先级：userId > customerEmail > customerName
+                const userId = order.userId || order.customerEmail || 'guest';
+                const userEmail = order.customerEmail || 'N/A';
+                const userName = order.customerName || 'Guest';
+                
+                // 如果这个用户ID不存在于Map中，添加它
+                if (!uniqueUsers.has(userId)) {
+                    uniqueUsers.set(userId, {
+                        id: userId,
+                        name: userName,
+                        email: userEmail
+                    });
+                }
+            });
+            
+            // 清除现有的用户选项，但保留"所有用户"选项
+            const allUsersOption = userFilterMenu.querySelector('[data-user-id="all"]');
+            userFilterMenu.innerHTML = '';
+            
+            if (allUsersOption) {
+                userFilterMenu.appendChild(allUsersOption.parentNode.cloneNode(true));
+            } else {
+                const allUsersLi = document.createElement('li');
+                allUsersLi.innerHTML = '<a class="dropdown-item active" href="#" data-user-id="all">All Users</a>';
+                userFilterMenu.appendChild(allUsersLi);
             }
             
-            // Filter orders based on active tab and search term
-            let filteredOrders = ordersData.filter(order => {
-                // Apply status filter
-                if (filter !== 'all' && order.status !== filter) {
+            // 添加用户选项
+            Array.from(uniqueUsers.values())
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .forEach(user => {
+                    const userLi = document.createElement('li');
+                    userLi.innerHTML = `
+                        <a class="dropdown-item" href="#" data-user-id="${user.id}">
+                            ${user.name}
+                            <span class="user-email-filter">${user.email}</span>
+                        </a>
+                    `;
+                    userFilterMenu.appendChild(userLi);
+                });
+            
+            // 添加点击事件处理程序
+            userFilterMenu.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // 更新活动样式
+                    userFilterMenu.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 更新筛选
+                    currentUserFilter = this.getAttribute('data-user-id');
+                    
+                    // 更新下拉按钮文本
+                    const userName = this.textContent.trim().split('\n')[0];
+                    document.getElementById('userFilterDropdown').textContent = 
+                        currentUserFilter === 'all' ? 'Filter by User' : `User: ${userName}`;
+                    
+                    // 应用筛选
+                    applyFilters();
+                });
+            });
+        }
+        
+        // Create demo orders if no real orders exist
+        function createDemoOrders() {
+            console.log('Creating demo orders');
+            
+            const demoOrders = [
+                {
+                    id: 'ORD-' + Math.floor(Math.random() * 1000000000000).toString(),
+                    timestamp: new Date(new Date().getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+                    journeyDate: new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                    journeyTime: '09:00 AM',
+                    customerName: 'John Smith',
+                    customerEmail: 'john.smith@example.com',
+                    customerPhone: '+1 (555) 123-4567',
+                    fromLocation: 'Colombo Airport',
+                    toLocation: 'Kandy',
+                    totalFare: 120.50,
+                    depositAmount: 36.15,
+                    status: 'pending',
+                    vehicleType: 'Sedan',
+                    specialRequests: 'Need child seat',
+                    userId: 'john.smith@example.com'
+                },
+                {
+                    id: 'ORD-' + Math.floor(Math.random() * 1000000000000).toString(),
+                    timestamp: new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                    journeyDate: new Date(new Date().getTime() + 1 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                    journeyTime: '14:30 PM',
+                    customerName: 'Sarah Johnson',
+                    customerEmail: 'sarah.johnson@example.com',
+                    customerPhone: '+1 (555) 987-6543',
+                    fromLocation: 'Negombo',
+                    toLocation: 'Galle',
+                    totalFare: 175.00,
+                    depositAmount: 52.50,
+                    status: 'confirmed',
+                    vehicleType: 'SUV',
+                    specialRequests: 'Extra luggage space needed',
+                    userId: 'sarah.johnson@example.com'
+                },
+                {
+                    id: 'ORD-' + Math.floor(Math.random() * 1000000000000).toString(),
+                    timestamp: new Date(new Date().getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+                    journeyDate: new Date().toLocaleDateString(),
+                    journeyTime: '10:15 AM',
+                    customerName: 'David Lee',
+                    customerEmail: 'david.lee@example.com',
+                    customerPhone: '+1 (555) 456-7890',
+                    fromLocation: 'Colombo Fort',
+                    toLocation: 'Sigiriya',
+                    totalFare: 250.00,
+                    depositAmount: 75.00,
+                    status: 'completed',
+                    vehicleType: 'Premium',
+                    specialRequests: 'Need English speaking driver',
+                    userId: 'david.lee@example.com'
+                },
+                {
+                    id: 'ORD-' + Math.floor(Math.random() * 1000000000000).toString(),
+                    timestamp: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                    journeyDate: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                    journeyTime: '08:45 AM',
+                    customerName: 'Emily Chen',
+                    customerEmail: 'emily.chen@example.com',
+                    customerPhone: '+1 (555) 789-0123',
+                    fromLocation: 'Ella',
+                    toLocation: 'Mirissa',
+                    totalFare: 185.75,
+                    depositAmount: 55.73,
+                    status: 'cancelled',
+                    vehicleType: 'Sedan',
+                    specialRequests: '',
+                    userId: 'emily.chen@example.com'
+                }
+            ];
+            
+            // Store demo orders
+            allOrders = demoOrders;
+            localStorage.setItem('bookings', JSON.stringify(demoOrders));
+            
+            // 填充用户筛选下拉菜单
+            populateUserFilter(allOrders);
+            
+            // Display them
+            applyFilters();
+        }
+        
+        // Apply filters to the orders
+        function applyFilters() {
+            if (allOrders.length === 0) {
+                console.log('No orders to filter');
+                return;
+            }
+            
+            console.log('Applying filters - Status:', currentFilter, 'User:', currentUserFilter, 'Search:', searchTerm);
+            
+            // Filter by status
+            filteredOrders = allOrders.filter(order => {
+                // Status filter
+                if (currentFilter !== 'all' && order.status !== currentFilter) {
                     return false;
                 }
                 
-                // Apply search filter if there's a search term
+                // User filter
+                if (currentUserFilter !== 'all') {
+                    const orderUserId = order.userId || order.customerEmail || 'guest';
+                    if (orderUserId !== currentUserFilter) {
+                        return false;
+                    }
+                }
+                
+                // Search term filter
                 if (searchTerm) {
-                    return (
-                        (order.customerName || '').toLowerCase().includes(searchTerm) ||
-                        (order.customerEmail || '').toLowerCase().includes(searchTerm) ||
-                        (order.pickupLocation || order.fromLocation || '').toLowerCase().includes(searchTerm) ||
-                        (order.destination || order.toLocation || '').toLowerCase().includes(searchTerm)
-                    );
+                    const searchFields = [
+                        order.id,
+                        order.customerName,
+                        order.customerEmail,
+                        order.customerPhone,
+                        order.fromLocation,
+                        order.toLocation,
+                        order.journeyDate,
+                        order.journeyTime,
+                        order.vehicleType
+                    ].map(field => String(field).toLowerCase());
+                    
+                    return searchFields.some(field => field.includes(searchTerm));
                 }
                 
                 return true;
             });
             
-            // Sort orders by date (newest first)
-            filteredOrders.sort((a, b) => new Date(b.timestamp || b.createdAt || 0) - new Date(a.timestamp || a.createdAt || 0));
+            // Sort by date (newest first)
+            filteredOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
-            // Get the table body
-            const tableBody = document.getElementById('ordersTableBody');
-            const noOrdersMessage = document.getElementById('noOrdersMessage');
-            
-            if (tableBody) {
-                // Clear existing rows
-                tableBody.innerHTML = '';
-                
-                if (filteredOrders.length === 0) {
-                    // Show no orders message
-                    if (noOrdersMessage) {
-                        noOrdersMessage.style.display = 'flex';
-                    }
-                    return;
-                }
-                
-                // Hide no orders message
-                if (noOrdersMessage) {
-                    noOrdersMessage.style.display = 'none';
-                }
-                
-                // Create table rows for each order
-                filteredOrders.forEach(order => {
-                    // Handle different field naming between booking.js and our order structure
-                    const fromLocation = order.pickupLocation || order.fromLocation || 'N/A';
-                    const toLocation = order.destination || order.toLocation || 'N/A';
-                    const price = order.totalFare || order.price || 0;
-                    const createdDate = order.timestamp || order.createdAt || new Date().toISOString();
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${order.id}</td>
-                        <td>${formatDate(createdDate)}</td>
-                        <td>
-                            <div>${order.customerName || 'N/A'}</div>
-                            <small>${order.customerEmail || 'N/A'}</small>
-                        </td>
-                        <td>Transport</td>
-                        <td>${fromLocation}</td>
-                        <td>${toLocation}</td>
-                        <td>${formatPrice(price)}</td>
-                        <td>
-                            <span class="status-badge ${order.status || 'pending'}">${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}</span>
-                        </td>
-                        <td>
-                            <button class="action-btn view-btn" data-order-id="${order.id}" title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn delete-btn" data-order-id="${order.id}" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-                
-                // Setup action buttons after adding to DOM
-                setupActionButtons();
-            } else {
-                console.error('Orders table body not found');
-            }
+            // Render filtered orders
+            renderOrders();
         }
-
-        // Set up event listeners for action buttons
-        function setupActionButtons() {
-            // View order details
-            const viewButtons = document.querySelectorAll('.view-btn');
-            viewButtons.forEach(button => {
+        
+        // Render orders to the table
+        function renderOrders() {
+            console.log('Rendering orders:', filteredOrders.length);
+            
+            if (!orderTableBody) {
+                console.error('Order table body not found');
+                return;
+            }
+            
+            // Clear the table body
+            orderTableBody.innerHTML = '';
+            
+            // Add message if no orders
+            if (filteredOrders.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `
+                    <td colspan="8" class="text-center py-4">
+                        <i class="fas fa-shopping-cart fa-2x mb-3 text-muted"></i>
+                        <p class="mb-0 text-muted">No orders found matching the current filters</p>
+                    </td>
+                `;
+                orderTableBody.appendChild(emptyRow);
+                return;
+            }
+            
+            // Add each order to the table
+            filteredOrders.forEach(order => {
+                const createdDate = new Date(order.timestamp);
+                const row = document.createElement('tr');
+                
+                // Format fields
+                const fromLocation = order.fromLocation || 'N/A';
+                const toLocation = order.toLocation || 'N/A';
+                const totalFare = parseFloat(order.totalFare).toFixed(2);
+                
+                // Create table row
+                row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>
+                        <div>${order.customerName || 'N/A'}</div>
+                        <small class="text-muted">${order.customerEmail || 'N/A'}</small>
+                    </td>
+                    <td>${formatDate(createdDate)}</td>
+                    <td>${fromLocation}</td>
+                    <td>${toLocation}</td>
+                    <td>$${totalFare}</td>
+                    <td><span class="order-status ${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-primary view-order-btn" data-order-id="${order.id}">View</button>
+                            <button class="btn btn-danger delete-order-btn" data-order-id="${order.id}">Delete</button>
+                        </div>
+                    </td>
+                `;
+                
+                orderTableBody.appendChild(row);
+            });
+            
+            // Add event listeners to buttons
+            addOrderButtonEventListeners();
+        }
+        
+        // Add event listeners to order action buttons
+        function addOrderButtonEventListeners() {
+            // View order buttons
+            document.querySelectorAll('.view-order-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const orderId = this.getAttribute('data-order-id');
                     viewOrderDetails(orderId);
                 });
             });
             
-            // Delete order
-            const deleteButtons = document.querySelectorAll('.delete-btn');
-            deleteButtons.forEach(button => {
+            // Delete order buttons
+            document.querySelectorAll('.delete-order-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const orderId = this.getAttribute('data-order-id');
                     if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
@@ -1196,202 +1331,224 @@
                 });
             });
         }
-
-        // View order details in modal
+        
+        // View order details
         function viewOrderDetails(orderId) {
-            const order = ordersData.find(o => o.id === orderId);
-            if (!order) return;
+            console.log('Viewing order details:', orderId);
             
-            const modal = document.getElementById('orderDetailsModal');
-            const modalContent = document.getElementById('orderDetailsContent');
+            // Find the order
+            const order = allOrders.find(o => o.id === orderId);
             
-            if (modal && modalContent) {
-                // Handle different field naming between booking.js and our order structure
-                const fromLocation = order.pickupLocation || order.fromLocation || 'N/A';
-                const toLocation = order.destination || order.toLocation || 'N/A';
-                const price = order.totalFare || order.price || 0;
-                const createdDate = order.timestamp || order.createdAt || new Date().toISOString();
-                const distance = order.distance || 'N/A';
-                const vehicleType = order.vehicleType || 'Standard';
-                
-                modalContent.innerHTML = `
-                    <div class="order-details">
-                        <div class="order-header">
-                            <h4>Order ${order.id}</h4>
-                            <span class="status-badge ${order.status || 'pending'}">${(order.status || 'pending').charAt(0).toUpperCase() + (order.status || 'pending').slice(1)}</span>
+            if (!order) {
+                alert('Order not found');
+                return;
+            }
+            
+            // Create modal HTML
+            const modalHtml = `
+            <div class="modal fade order-details-modal" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="orderDetailsModalLabel">Order Details: ${order.id}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        
-                        <h5>Customer Information</h5>
-                        <div class="order-info-grid">
-                            <div class="info-group">
-                                <label>Name</label>
-                                <span>${order.customerName || 'N/A'}</span>
+                        <div class="modal-body">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h6>Customer Information</h6>
+                                    <div class="mb-2">
+                                        <strong>Name:</strong> ${order.customerName || 'N/A'}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Email:</strong> ${order.customerEmail || 'N/A'}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Phone:</strong> ${order.customerPhone || 'N/A'}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>User ID:</strong> ${order.userId || 'Guest'}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Order Information</h6>
+                                    <div class="mb-2">
+                                        <strong>Order Date:</strong> ${formatDate(order.timestamp)}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Journey Date:</strong> ${order.journeyDate} at ${order.journeyTime}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Status:</strong> <span class="order-status ${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="info-group">
-                                <label>Email</label>
-                                <span>${order.customerEmail || 'N/A'}</span>
+                            
+                            <hr>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <h6>Journey Details</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <strong>From:</strong> ${order.fromLocation}
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>To:</strong> ${order.toLocation}
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Vehicle Type:</strong> ${order.vehicleType}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <strong>Total Fare:</strong> $${parseFloat(order.totalFare).toFixed(2)}
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Deposit Amount:</strong> $${parseFloat(order.depositAmount).toFixed(2)}
+                                            </div>
+                                            <div class="mb-2">
+                                                <strong>Balance Due:</strong> $${(parseFloat(order.totalFare) - parseFloat(order.depositAmount)).toFixed(2)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="info-group">
-                                <label>Phone</label>
-                                <span>${order.customerPhone || 'N/A'}</span>
+                            
+                            ${order.specialRequests ? `
+                            <hr>
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <h6>Special Requests</h6>
+                                    <p>${order.specialRequests}</p>
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            <hr>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h6>Update Order Status</h6>
+                                    <select id="orderStatusSelect" class="form-select mb-3">
+                                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                                        <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                        
-                        <h5>Journey Details</h5>
-                        <div class="order-info-grid">
-                            <div class="info-group">
-                                <label>From</label>
-                                <span>${fromLocation}</span>
-                            </div>
-                            <div class="info-group">
-                                <label>To</label>
-                                <span>${toLocation}</span>
-                            </div>
-                            <div class="info-group">
-                                <label>Distance</label>
-                                <span>${distance} km</span>
-                            </div>
-                            <div class="info-group">
-                                <label>Vehicle Type</label>
-                                <span>${vehicleType}</span>
-                            </div>
-                            <div class="info-group">
-                                <label>Journey Date</label>
-                                <span>${order.journeyDate || 'N/A'}</span>
-                            </div>
-                            <div class="info-group">
-                                <label>Journey Time</label>
-                                <span>${order.journeyTime || 'N/A'}</span>
-                            </div>
-                            <div class="info-group">
-                                <label>Price</label>
-                                <span>${formatPrice(price)}</span>
-                            </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="updateStatusBtn">Update Status</button>
                         </div>
                     </div>
-                `;
-                
-                // Show the modal
-                modal.style.display = 'flex';
-                
-                // Set up status buttons
-                const statusButtons = modal.querySelectorAll('.order-status-buttons button');
-                statusButtons.forEach(button => {
-                    const status = button.getAttribute('data-status');
-                    
-                    // Highlight current status button
-                    if (status === order.status) {
-                        button.classList.add('active');
-                    } else {
-                        button.classList.remove('active');
-                    }
-                    
-                    // Remove existing listeners to prevent duplicates
-                    button.replaceWith(button.cloneNode(true));
-                });
-                
-                // Re-add event listeners to status buttons
-                modal.querySelectorAll('.order-status-buttons button').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const status = this.getAttribute('data-status');
-                        updateOrderStatus(orderId, status);
-                        
-                        // Close the modal
-                        modal.style.display = 'none';
-                    });
-                });
-                
-                // Set up close button
-                const closeButtons = modal.querySelectorAll('.close-modal, .close-details-btn');
-                closeButtons.forEach(button => {
-                    button.addEventListener('click', function() {
-                        modal.style.display = 'none';
-                    });
-                });
-            }
-        }
-
-        // Update order status
-        function updateOrderStatus(orderId, status) {
-            // Find the order
-            const orderIndex = ordersData.findIndex(o => o.id === orderId);
-            if (orderIndex === -1) return;
+                </div>
+            </div>
+            `;
             
-            // Update status
-            ordersData[orderIndex].status = status;
+            // Check if modal already exists, remove it if it does
+            let existingModal = document.getElementById('orderDetailsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Add modal to the page
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Initialize the Bootstrap modal
+            const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+            modal.show();
+            
+            // Add event listener to update status button
+            document.getElementById('updateStatusBtn').addEventListener('click', function() {
+                const newStatus = document.getElementById('orderStatusSelect').value;
+                updateOrderStatus(orderId, newStatus);
+                
+                // Close the modal
+                modal.hide();
+            });
+        }
+        
+        // Update order status
+        function updateOrderStatus(orderId, newStatus) {
+            console.log('Updating order status:', orderId, 'to', newStatus);
+            
+            // Find the order in allOrders
+            const orderIndex = allOrders.findIndex(o => o.id === orderId);
+            
+            if (orderIndex === -1) {
+                alert('Order not found');
+                return;
+            }
+            
+            // Update the status
+            allOrders[orderIndex].status = newStatus;
             
             // Save to localStorage
-            localStorage.setItem('bookings', JSON.stringify(ordersData));
-            
-            // Reload orders to update UI
-            loadOrders();
+            try {
+                localStorage.setItem('bookings', JSON.stringify(allOrders));
+                
+                // Also update in userBookings if exists
+                const userBookings = JSON.parse(localStorage.getItem('userBookings')) || {};
+                const userEmail = allOrders[orderIndex].customerEmail;
+                
+                if (userEmail && userBookings[userEmail]) {
+                    const userOrderIndex = userBookings[userEmail].findIndex(o => o.id === orderId);
+                    if (userOrderIndex !== -1) {
+                        userBookings[userEmail][userOrderIndex].status = newStatus;
+                        localStorage.setItem('userBookings', JSON.stringify(userBookings));
+                    }
+                }
+                
+                // Apply filters and re-render
+                applyFilters();
+                
+                alert('Order status updated successfully');
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                alert('Failed to update order status');
+            }
         }
-
+        
         // Delete order
         function deleteOrder(orderId) {
-            // Filter out the deleted order
-            ordersData = ordersData.filter(o => o.id !== orderId);
+            console.log('Deleting order:', orderId);
+            
+            // Find the order in allOrders
+            const orderIndex = allOrders.findIndex(o => o.id === orderId);
+            
+            if (orderIndex === -1) {
+                alert('Order not found');
+                return;
+            }
+            
+            // Remove the order from allOrders
+            const deletedOrder = allOrders.splice(orderIndex, 1)[0];
             
             // Save to localStorage
-            localStorage.setItem('bookings', JSON.stringify(ordersData));
-            
-            // Reload orders to update UI
-            loadOrders();
-        }
-
-        // Initialize order manager when DOM is loaded
-        function initOrderManager() {
-            console.log('Initializing order manager...');
-            
-            // Set up event listeners for order tabs
-            const orderTabs = document.querySelectorAll('.order-tab');
-            if (orderTabs.length > 0) {
-                console.log('Found order tabs:', orderTabs.length);
+            try {
+                localStorage.setItem('bookings', JSON.stringify(allOrders));
                 
-                orderTabs.forEach(tab => {
-                    tab.addEventListener('click', function() {
-                        // Remove active class from all tabs
-                        orderTabs.forEach(t => t.classList.remove('active'));
-                        
-                        // Add active class to clicked tab
-                        this.classList.add('active');
-                        
-                        // Load orders with new filter
-                        loadOrders();
-                    });
-                });
-            } else {
-                console.error('No order tabs found!');
+                // Also remove from userBookings if exists
+                const userBookings = JSON.parse(localStorage.getItem('userBookings')) || {};
+                const userEmail = deletedOrder.customerEmail;
+                
+                if (userEmail && userBookings[userEmail]) {
+                    userBookings[userEmail] = userBookings[userEmail].filter(o => o.id !== orderId);
+                    localStorage.setItem('userBookings', JSON.stringify(userBookings));
+                }
+                
+                // Apply filters and re-render
+                applyFilters();
+                
+                alert('Order deleted successfully');
+            } catch (error) {
+                console.error('Error deleting order:', error);
+                alert('Failed to delete order');
             }
-            
-            // Set up search functionality
-            const orderSearchBtn = document.getElementById('orderSearchBtn');
-            const orderSearchInput = document.getElementById('orderSearchInput');
-            
-            if (orderSearchBtn) {
-                orderSearchBtn.addEventListener('click', function() {
-                    loadOrders();
-                });
-            }
-            
-            if (orderSearchInput) {
-                orderSearchInput.addEventListener('keyup', function(e) {
-                    if (e.key === 'Enter') {
-                        loadOrders();
-                    }
-                });
-            }
-            
-            // Initial load of orders
-            loadOrders();
-        }
-
-        // Initialize when DOM is loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initOrderManager);
-        } else {
-            // DOM already loaded, initialize immediately
-            initOrderManager();
         }
     })();
     </script>
