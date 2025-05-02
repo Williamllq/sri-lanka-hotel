@@ -6,6 +6,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin Pictures Management loaded');
     
+    // Synchronize storage between admin and frontend
+    synchronizeImageStorage();
+    
     // 初始化图片管理
     initPictureManagement();
     
@@ -15,6 +18,97 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add CSS fixes for picture display
     addPictureStyles();
 });
+
+/**
+ * 同步管理员界面和前端界面的图片存储
+ * Synchronize image storage between admin interface and frontend
+ */
+function synchronizeImageStorage() {
+    console.log('Synchronizing image storage between admin and frontend...');
+    
+    try {
+        // Get images from both storages
+        const adminPicturesStr = localStorage.getItem('adminPictures');
+        const sitePicturesStr = localStorage.getItem('sitePictures');
+        
+        let adminPictures = adminPicturesStr ? JSON.parse(adminPicturesStr) : [];
+        let sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+        
+        // Ensure they are arrays
+        if (!Array.isArray(adminPictures)) adminPictures = [];
+        if (!Array.isArray(sitePictures)) sitePictures = [];
+        
+        console.log(`Found ${adminPictures.length} admin pictures and ${sitePictures.length} site pictures`);
+        
+        // Create a merged set of images - we'll use the combined set
+        // Map site pictures to the admin format
+        const mappedSitePictures = sitePictures.map(sitePic => {
+            // Skip if it already exists in admin pictures by ID or by URL
+            const existsInAdmin = adminPictures.some(
+                adminPic => (adminPic.id === sitePic.id) || 
+                           (adminPic.imageUrl === sitePic.url) ||
+                           (sitePic.name && adminPic.name === sitePic.name)
+            );
+            
+            if (existsInAdmin) return null;
+            
+            // Convert site picture to admin format
+            return {
+                id: sitePic.id || ('pic_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
+                name: sitePic.name || 'Untitled Image',
+                category: sitePic.category || 'scenery',
+                description: sitePic.description || '',
+                imageUrl: sitePic.url,
+                uploadDate: sitePic.uploadDate || new Date().toISOString()
+            };
+        }).filter(Boolean); // Remove nulls
+        
+        // Create final merged list
+        const mergedPictures = [...adminPictures, ...mappedSitePictures];
+        
+        // Save merged pictures back to admin storage
+        if (mappedSitePictures.length > 0) {
+            console.log(`Adding ${mappedSitePictures.length} new pictures from site to admin storage`);
+            localStorage.setItem('adminPictures', JSON.stringify(mergedPictures));
+        }
+        
+        // Now, ensure site pictures contains all admin pictures
+        // Map admin pictures to the site format
+        const mappedAdminPictures = adminPictures.map(adminPic => {
+            // Check if it already exists in site pictures
+            const existsInSite = sitePictures.some(
+                sitePic => (sitePic.id === adminPic.id) || 
+                          (sitePic.url === adminPic.imageUrl) ||
+                          (adminPic.name && sitePic.name === adminPic.name)
+            );
+            
+            if (existsInSite) return null;
+            
+            // Convert admin picture to site format
+            return {
+                id: adminPic.id,
+                name: adminPic.name,
+                category: adminPic.category,
+                description: adminPic.description,
+                url: adminPic.imageUrl,
+                uploadDate: adminPic.uploadDate
+            };
+        }).filter(Boolean); // Remove nulls
+        
+        // Create final merged site pictures
+        const mergedSitePictures = [...sitePictures, ...mappedAdminPictures];
+        
+        // Save merged pictures back to site storage
+        if (mappedAdminPictures.length > 0) {
+            console.log(`Adding ${mappedAdminPictures.length} new pictures from admin to site storage`);
+            localStorage.setItem('sitePictures', JSON.stringify(mergedSitePictures));
+        }
+        
+        console.log('Storage synchronization complete!');
+    } catch (error) {
+        console.error('Error synchronizing storage:', error);
+    }
+}
 
 /**
  * 添加图片样式修复
@@ -145,8 +239,20 @@ function loadPictures(category = 'all') {
         // 如果没有图片，创建示例图片（仅在Netlify上运行时）
         if (pictures.length === 0 && window.location.href.includes('netlify')) {
             pictures = createSamplePictures();
+            
             // 保存样本图片到localStorage
             localStorage.setItem('adminPictures', JSON.stringify(pictures));
+            
+            // Also save to sitePictures for frontend
+            const sitePictures = pictures.map(pic => ({
+                id: pic.id,
+                name: pic.name,
+                category: pic.category,
+                description: pic.description,
+                url: pic.imageUrl,
+                uploadDate: pic.uploadDate
+            }));
+            localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
         }
         
         // 如果指定了分类，进行筛选
@@ -480,9 +586,46 @@ function savePicture(picture) {
         localStorage.setItem('adminPictures', JSON.stringify(pictures));
         console.log('Picture saved:', picture.name);
         
+        // 同时保存到sitePictures以供前端使用
+        savePictureToSite(picture);
+        
         return true;
     } catch (e) {
         console.error('Error saving picture:', e);
+        return false;
+    }
+}
+
+/**
+ * 保存图片到sitePictures以供前端使用
+ * @param {Object} adminPicture - 管理员图片对象
+ */
+function savePictureToSite(adminPicture) {
+    try {
+        // 从localStorage加载前端图片
+        const sitePicturesStr = localStorage.getItem('sitePictures');
+        const sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+        
+        // 转换图片格式
+        const sitePicture = {
+            id: adminPicture.id,
+            name: adminPicture.name,
+            category: adminPicture.category,
+            description: adminPicture.description,
+            url: adminPicture.imageUrl,
+            uploadDate: adminPicture.uploadDate
+        };
+        
+        // 添加到前端图片
+        sitePictures.push(sitePicture);
+        
+        // 保存回localStorage
+        localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
+        console.log('Picture saved to frontend storage:', sitePicture.name);
+        
+        return true;
+    } catch (e) {
+        console.error('Error saving picture to frontend storage:', e);
         return false;
     }
 }
@@ -506,6 +649,12 @@ function deletePicture(pictureId) {
         
         // 保存回localStorage
         localStorage.setItem('adminPictures', JSON.stringify(pictures));
+        
+        // 同时从前端存储中删除
+        const sitePicturesStr = localStorage.getItem('sitePictures');
+        let sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+        sitePictures = sitePictures.filter(pic => pic.id !== pictureId);
+        localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
         
         // 重新加载图片列表
         loadAndDisplayPictures();
