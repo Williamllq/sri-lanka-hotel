@@ -11,13 +11,177 @@ document.addEventListener('DOMContentLoaded', function() {
  * Initialize the booking system
  */
 function initBookingSystem() {
-    const bookNowBtn = document.getElementById('bookNowBtn');
+    // Initialize Get Quote button
+    const getQuoteBtn = document.getElementById('getQuoteBtn');
+    if (getQuoteBtn) {
+        getQuoteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            calculateQuote();
+        });
+    }
     
+    // Initialize Book Now button
+    const bookNowBtn = document.getElementById('bookNowBtn');
     if (bookNowBtn) {
         bookNowBtn.addEventListener('click', function(e) {
             e.preventDefault();
             processBooking();
         });
+    }
+}
+
+/**
+ * Calculate a quote based on the current form values
+ */
+function calculateQuote() {
+    console.log('Calculating quote...');
+    
+    // Get form data
+    const serviceType = document.getElementById('serviceType').value;
+    const journeyDate = document.getElementById('journeyDate').value;
+    const journeyTime = document.getElementById('journeyTime').value;
+    const passengerCount = document.getElementById('passengerCount').value;
+    const pickupLocation = document.getElementById('pickupLocation').value;
+    const destinationLocation = document.getElementById('destinationLocation').value;
+    
+    // Validate inputs
+    if (!serviceType || !journeyDate || !journeyTime || !pickupLocation || !destinationLocation) {
+        alert('Please fill out all required fields to get a quote');
+        return;
+    }
+    
+    // Get location coordinates if available
+    const pickupInput = document.getElementById('pickupLocation');
+    const destinationInput = document.getElementById('destinationLocation');
+    
+    let distance = 0;
+    
+    // Calculate distance if we have coordinates
+    if (pickupInput && destinationInput && 
+        pickupInput.dataset.lat && pickupInput.dataset.lng && 
+        destinationInput.dataset.lat && destinationInput.dataset.lng) {
+        
+        const pickupLat = parseFloat(pickupInput.dataset.lat);
+        const pickupLng = parseFloat(pickupInput.dataset.lng);
+        const destLat = parseFloat(destinationInput.dataset.lat);
+        const destLng = parseFloat(destinationInput.dataset.lng);
+        
+        // Calculate distance (haversine formula)
+        distance = calculateDistance(pickupLat, pickupLng, destLat, destLng);
+    } else {
+        // Fallback to an estimated distance if coordinates aren't available
+        distance = 25; // Default 25km if no coordinates
+    }
+    
+    // Calculate fare based on distance and service type
+    const fare = calculateFare(distance, serviceType);
+    const deposit = Math.round(fare * 0.3 * 100) / 100; // 30% deposit
+    
+    // Update the quote container
+    displayQuote(distance, fare, deposit);
+}
+
+/**
+ * Calculate distance between two coordinates using Haversine formula
+ */
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in km
+    
+    // Add 30% to account for roads vs straight line
+    return Math.round(distance * 1.3 * 10) / 10;
+}
+
+/**
+ * Convert degrees to radians
+ */
+function deg2rad(deg) {
+    return deg * (Math.PI/180);
+}
+
+/**
+ * Calculate fare based on distance and service type
+ */
+function calculateFare(distance, serviceType) {
+    // Base rates
+    const baseFare = 30; // Base fare in USD
+    const ratePerKm = 0.5; // Rate per km in USD
+    
+    // Calculate basic fare
+    let fare = baseFare + (distance * ratePerKm);
+    
+    // Apply service type multiplier
+    if (serviceType === 'airport') {
+        fare *= 1.2; // Airport transfers 20% more
+    } else if (serviceType === 'custom') {
+        fare *= 1.5; // Custom journeys 50% more
+    }
+    
+    // Round to 2 decimal places
+    return Math.round(fare * 100) / 100;
+}
+
+/**
+ * Display the calculated quote
+ */
+function displayQuote(distance, fare, deposit) {
+    // Get the quote container
+    const quoteContainer = document.getElementById('quoteContainer');
+    if (!quoteContainer) {
+        console.error('Quote container not found');
+        return;
+    }
+    
+    // Update the quote details
+    const distanceElement = document.getElementById('quotedDistance');
+    if (distanceElement) {
+        distanceElement.textContent = `${distance} km`;
+    }
+    
+    const vehicleElement = document.getElementById('quotedVehicle');
+    if (vehicleElement) {
+        vehicleElement.textContent = 'Standard';
+    }
+    
+    const fareElement = document.getElementById('quotedFare');
+    if (fareElement) {
+        fareElement.textContent = `$${fare.toFixed(2)}`;
+    }
+    
+    const depositElement = document.getElementById('quotedDeposit');
+    if (depositElement) {
+        depositElement.textContent = `$${deposit.toFixed(2)}`;
+    }
+    
+    // Show the quote container
+    quoteContainer.style.display = 'block';
+    
+    // Enable the Book Now button now that we have a quote
+    const bookNowBtn = document.getElementById('bookNowBtn');
+    if (bookNowBtn) {
+        bookNowBtn.disabled = false;
+    }
+    
+    // Show route map if coordinates are available
+    const pickupInput = document.getElementById('pickupLocation');
+    const destinationInput = document.getElementById('destinationLocation');
+    
+    if (pickupInput && destinationInput && 
+        pickupInput.dataset.lat && pickupInput.dataset.lng && 
+        destinationInput.dataset.lat && destinationInput.dataset.lng) {
+        
+        // If there's a map implementation, initialize it here
+        const routeMapContainer = document.getElementById('routeMapContainer');
+        if (routeMapContainer) {
+            routeMapContainer.style.display = 'block';
+        }
     }
 }
 
@@ -65,6 +229,12 @@ function processBooking() {
         // Extract numeric value from distance text (e.g., "10 km" -> 10)
         const distanceText = quotedDistance.textContent;
         distance = parseFloat(distanceText.replace(/[^0-9.]/g, '')) || 0;
+    }
+    
+    // If we don't have a quote yet, calculate one
+    if (fare === 0 || distance === 0) {
+        calculateQuote();
+        return;
     }
     
     // Get user data
