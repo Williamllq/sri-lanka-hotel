@@ -181,27 +181,36 @@ function calculateFare(distance, vehicleType, journeyDate, journeyTime) {
     let transportSettings;
     
     try {
-        // 尝试从localStorage获取设置
+        // Get settings from localStorage with better debugging
         const transportSettingsStr = localStorage.getItem('transportSettings');
-        console.log('Transport settings from localStorage:', transportSettingsStr);
+        console.log('Transport settings from localStorage (raw):', transportSettingsStr);
         
         if (!transportSettingsStr) {
-            console.log('No transport settings found in localStorage, using defaults');
-            transportSettings = defaultSettings;
+            console.warn('No transport settings found in localStorage, using defaults');
+            transportSettings = JSON.parse(JSON.stringify(defaultSettings)); // Deep clone default settings
         } else {
-            transportSettings = JSON.parse(transportSettingsStr);
-            console.log('Parsed transport settings:', transportSettings);
-            
-            // 验证解析后的对象是否有必要的字段
-            if (!transportSettings.baseFare || !transportSettings.ratePerKm || 
-                !transportSettings.vehicleRates || !transportSettings.vehicleRates.sedan) {
-                console.warn('Transport settings missing required fields, using defaults');
-                transportSettings = defaultSettings;
+            try {
+                transportSettings = JSON.parse(transportSettingsStr);
+                console.log('Parsed transport settings:', transportSettings);
+                
+                // Verify the parsed object has all necessary fields
+                if (typeof transportSettings !== 'object' || 
+                    typeof transportSettings.baseFare !== 'number' || 
+                    typeof transportSettings.ratePerKm !== 'number' || 
+                    !transportSettings.vehicleRates || 
+                    typeof transportSettings.vehicleRates !== 'object') {
+                    
+                    console.warn('Transport settings invalid or missing required fields, using defaults');
+                    transportSettings = JSON.parse(JSON.stringify(defaultSettings));
+                }
+            } catch (parseError) {
+                console.error('Error parsing transport settings JSON:', parseError);
+                transportSettings = JSON.parse(JSON.stringify(defaultSettings));
             }
         }
     } catch (error) {
-        console.error('Error reading transport settings:', error);
-        transportSettings = defaultSettings;
+        console.error('Error accessing localStorage:', error);
+        transportSettings = JSON.parse(JSON.stringify(defaultSettings));
     }
     
     // Calculate base fare

@@ -39,6 +39,10 @@ document.addEventListener('DOMContentLoaded', function() {
             <input type="number" id="testRatePerKm" style="width:80px" step="0.1" value="1.0">
             <button id="testSetRatePerKm">Set</button>
         </div>
+        <div style="margin-bottom:10px">
+            <button id="testFullReset" style="background-color:#ff6347;color:white;padding:5px 10px;">Reset to Defaults</button>
+            <button id="testSaveDefaults" style="background-color:#4169e1;color:white;padding:5px 10px;">Save Test Settings</button>
+        </div>
         <div>
             <button id="testTriggerQuote" style="background-color:#4CAF50;color:white;padding:5px 10px;">Trigger Quote Calculation</button>
         </div>
@@ -54,6 +58,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('testSetBaseFare').addEventListener('click', setBaseFare);
     document.getElementById('testSetRatePerKm').addEventListener('click', setRatePerKm);
     document.getElementById('testTriggerQuote').addEventListener('click', triggerQuoteCalculation);
+    document.getElementById('testFullReset').addEventListener('click', fullReset);
+    document.getElementById('testSaveDefaults').addEventListener('click', saveTestSettings);
     
     // 在页面加载时显示当前设置
     showCurrentSettings();
@@ -88,6 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 保存到localStorage
         localStorage.setItem('transportSettings', JSON.stringify(transportSettings));
+        
+        // Verify storage
+        const verifyData = localStorage.getItem('transportSettings');
+        console.log('Verify storage after update:', verifyData);
         
         // 更新显示
         showCurrentSettings();
@@ -132,6 +142,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // 保存到localStorage
         localStorage.setItem('transportSettings', JSON.stringify(transportSettings));
         
+        // Verify storage
+        const verifyData = localStorage.getItem('transportSettings');
+        console.log('Verify storage after update:', verifyData);
+        
         // 更新显示
         showCurrentSettings();
         
@@ -142,6 +156,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         alert(`Rate per km updated to $${newRatePerKm}`);
+    }
+    
+    // Save test settings with distinctive values
+    function saveTestSettings() {
+        const testSettings = {
+            baseFare: 50,
+            ratePerKm: 2.0,
+            rushHourMultiplier: 2.0,
+            nightMultiplier: 1.8,
+            weekendMultiplier: 1.5,
+            vehicleRates: {
+                sedan: 1.0,
+                suv: 2.0,
+                van: 3.0,
+                luxury: 4.0
+            }
+        };
+        
+        localStorage.setItem('transportSettings', JSON.stringify(testSettings));
+        
+        // Update test inputs
+        document.getElementById('testBaseFare').value = testSettings.baseFare;
+        document.getElementById('testRatePerKm').value = testSettings.ratePerKm;
+        
+        // Update admin form if on admin page
+        const adminBaseFareInput = document.getElementById('baseFare');
+        const adminRatePerKmInput = document.getElementById('ratePerKm');
+        if (adminBaseFareInput) adminBaseFareInput.value = testSettings.baseFare;
+        if (adminRatePerKmInput) adminRatePerKmInput.value = testSettings.ratePerKm;
+        
+        showCurrentSettings();
+        alert('Test settings saved with distinctive values for testing');
+    }
+    
+    // Full reset to default values
+    function fullReset() {
+        if (confirm('This will completely reset transport settings to default values. Continue?')) {
+            const defaultSettings = {
+                baseFare: 30,
+                ratePerKm: 0.5,
+                rushHourMultiplier: 1.5,
+                nightMultiplier: 1.3,
+                weekendMultiplier: 1.2,
+                vehicleRates: {
+                    sedan: 1.0,
+                    suv: 1.5,
+                    van: 1.8,
+                    luxury: 2.2
+                }
+            };
+            
+            // Remove and then set with defaults
+            localStorage.removeItem('transportSettings');
+            localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
+            
+            // Update test inputs
+            document.getElementById('testBaseFare').value = defaultSettings.baseFare;
+            document.getElementById('testRatePerKm').value = defaultSettings.ratePerKm;
+            
+            // Update admin form if on admin page
+            const adminBaseFareInput = document.getElementById('baseFare');
+            const adminRatePerKmInput = document.getElementById('ratePerKm');
+            if (adminBaseFareInput) adminBaseFareInput.value = defaultSettings.baseFare;
+            if (adminRatePerKmInput) adminRatePerKmInput.value = defaultSettings.ratePerKm;
+            
+            showCurrentSettings();
+            alert('Transport settings have been fully reset to defaults');
+        }
     }
     
     // 触发报价计算（仅在用户页面）
@@ -195,23 +277,37 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         const rawData = localStorage.getItem('transportSettings');
-        const transportSettings = JSON.parse(rawData || JSON.stringify(defaultSettings));
+        let transportSettings;
+        
+        try {
+            transportSettings = rawData ? JSON.parse(rawData) : defaultSettings;
+        } catch (e) {
+            console.error('Error parsing transportSettings:', e);
+            transportSettings = defaultSettings;
+        }
         
         // 显示关键设置
         outputElement.innerHTML = `
             <strong>Current Transport Settings:</strong><br>
             Base Fare: $${transportSettings.baseFare}<br>
             Rate per Km: $${transportSettings.ratePerKm}<br>
+            Rush Hour Multiplier: ${transportSettings.rushHourMultiplier}x<br>
+            Night Multiplier: ${transportSettings.nightMultiplier}x<br>
+            Weekend Multiplier: ${transportSettings.weekendMultiplier}x<br>
             <hr>
             <strong>Technical Info:</strong><br>
             Storage Type: ${typeof localStorage}<br>
             localStorage Available: ${!!localStorage}<br>
             Raw Data: ${rawData ? `<span style="color:green">Found</span>` : `<span style="color:red">Not Found</span>`}<br>
+            Raw Data Length: ${rawData ? rawData.length : 'N/A'}<br>
+            Data Sample: ${rawData ? rawData.substring(0, 50) + '...' : 'N/A'}<br>
             Page: ${window.location.pathname}<br>
-            Quote Function: ${typeof calculateQuote === 'function' ? `<span style="color:green">Available</span>` : `<span style="color:red">Not Available</span>`}
+            Quote Function: ${typeof calculateQuote === 'function' ? `<span style="color:green">Available</span>` : `<span style="color:red">Not Available</span>`}<br>
+            Fare Function: ${typeof calculateFare === 'function' ? `<span style="color:green">Available</span>` : `<span style="color:red">Not Available</span>`}
         `;
         
         console.log('Current transport settings:', transportSettings);
+        console.log('Raw localStorage data:', rawData);
     }
     
     // 清除设置
