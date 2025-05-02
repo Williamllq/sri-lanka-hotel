@@ -865,10 +865,210 @@ function editPicture(pictureId) {
             return;
         }
         
-        // TODO: 实现图片编辑功能
-        alert('Picture editing is not implemented yet');
+        // 检查是否已有编辑模态框，如果没有则创建
+        let editModal = document.getElementById('editPictureModal');
+        if (!editModal) {
+            // 创建编辑模态框
+            editModal = document.createElement('div');
+            editModal.id = 'editPictureModal';
+            editModal.className = 'admin-modal';
+            
+            editModal.innerHTML = `
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <h3 class="modal-title"><i class="fas fa-edit"></i> Edit Picture</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <form id="editPictureForm" class="admin-form">
+                        <input type="hidden" id="editPictureId">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editPictureName">Image Name</label>
+                                <input type="text" id="editPictureName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editCategory">Category</label>
+                                <select id="editCategory" required>
+                                    <option value="scenery">Scenery</option>
+                                    <option value="wildlife">Wildlife</option>
+                                    <option value="culture">Culture</option>
+                                    <option value="food">Food</option>
+                                    <option value="beach">Beach</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editPictureDescription">Description</label>
+                            <textarea id="editPictureDescription" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Current Image</label>
+                            <div id="editImagePreview" class="image-preview"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editPictureFile">Replace Image (Optional)</label>
+                            <input type="file" id="editPictureFile" accept="image/*">
+                            <div id="editFilePreview" class="file-preview"></div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="admin-btn secondary cancel-edit">Cancel</button>
+                            <button type="submit" class="admin-btn primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(editModal);
+            
+            // 设置关闭按钮事件
+            const closeBtn = editModal.querySelector('.close-modal');
+            const cancelBtn = editModal.querySelector('.cancel-edit');
+            
+            closeBtn.addEventListener('click', function() {
+                editModal.style.display = 'none';
+            });
+            
+            cancelBtn.addEventListener('click', function() {
+                editModal.style.display = 'none';
+            });
+            
+            // 设置表单提交事件
+            const editForm = document.getElementById('editPictureForm');
+            editForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const pictureId = document.getElementById('editPictureId').value;
+                const pictureName = document.getElementById('editPictureName').value;
+                const category = document.getElementById('editCategory').value;
+                const description = document.getElementById('editPictureDescription').value;
+                const pictureFile = document.getElementById('editPictureFile').files[0];
+                
+                if (pictureFile) {
+                    // 如果上传了新图片，处理图片
+                    processImageFile(pictureFile, function(processedImageUrl) {
+                        updatePicture(pictureId, pictureName, category, description, processedImageUrl);
+                    });
+                } else {
+                    // 否则保持原图片
+                    const picturesStr = localStorage.getItem('adminPictures');
+                    const pictures = picturesStr ? JSON.parse(picturesStr) : [];
+                    const picture = pictures.find(pic => pic.id === pictureId);
+                    
+                    if (picture) {
+                        updatePicture(pictureId, pictureName, category, description, picture.imageUrl);
+                    }
+                }
+            });
+            
+            // 设置文件上传预览
+            const editPictureFile = document.getElementById('editPictureFile');
+            const editFilePreview = document.getElementById('editFilePreview');
+            
+            editPictureFile.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        editFilePreview.innerHTML = `
+                            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px;">
+                                <img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain;">
+                            </div>
+                        `;
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+        
+        // 填充表单数据
+        document.getElementById('editPictureId').value = picture.id;
+        document.getElementById('editPictureName').value = picture.name;
+        document.getElementById('editCategory').value = picture.category;
+        document.getElementById('editPictureDescription').value = picture.description || '';
+        
+        // 显示当前图片
+        const editImagePreview = document.getElementById('editImagePreview');
+        editImagePreview.innerHTML = `
+            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px;">
+                <img src="${picture.imageUrl}" alt="${picture.name}" style="max-width: 100%; max-height: 200px; object-fit: contain;">
+            </div>
+        `;
+        
+        // 清空文件上传字段和预览
+        document.getElementById('editPictureFile').value = '';
+        document.getElementById('editFilePreview').innerHTML = '';
+        
+        // 显示模态框
+        editModal.style.display = 'flex';
+        
     } catch (e) {
         console.error('Error editing picture:', e);
+    }
+}
+
+/**
+ * 更新图片数据
+ * @param {string} pictureId - 图片ID
+ * @param {string} name - 图片名称
+ * @param {string} category - 图片分类
+ * @param {string} description - 图片描述
+ * @param {string} imageUrl - 图片URL
+ */
+function updatePicture(pictureId, name, category, description, imageUrl) {
+    try {
+        // 从localStorage加载图片
+        const picturesStr = localStorage.getItem('adminPictures');
+        let pictures = picturesStr ? JSON.parse(picturesStr) : [];
+        
+        // 查找并更新图片
+        const index = pictures.findIndex(pic => pic.id === pictureId);
+        if (index !== -1) {
+            pictures[index] = {
+                ...pictures[index],
+                name,
+                category,
+                description,
+                imageUrl
+            };
+            
+            // 保存回localStorage
+            localStorage.setItem('adminPictures', JSON.stringify(pictures));
+            
+            // 同步更新sitePictures
+            const sitePicturesStr = localStorage.getItem('sitePictures');
+            let sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+            
+            const siteIndex = sitePictures.findIndex(pic => pic.id === pictureId);
+            if (siteIndex !== -1) {
+                sitePictures[siteIndex] = {
+                    ...sitePictures[siteIndex],
+                    name,
+                    category,
+                    description,
+                    url: imageUrl
+                };
+                localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
+            }
+            
+            // 关闭模态框
+            const editModal = document.getElementById('editPictureModal');
+            if (editModal) {
+                editModal.style.display = 'none';
+            }
+            
+            // 重新加载图片列表
+            loadAndDisplayPictures();
+            
+            alert('Picture updated successfully!');
+        } else {
+            console.error('Picture not found for update:', pictureId);
+        }
+    } catch (e) {
+        console.error('Error updating picture:', e);
     }
 }
 
