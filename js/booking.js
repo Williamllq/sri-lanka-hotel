@@ -197,94 +197,102 @@ function calculateFare(distance, vehicleType, journeyDate, journeyTime) {
         const sessionSettingsStr = sessionStorage.getItem('transportSettings');
         
         // 决定使用哪个数据源
-        let dataSource = null;
-        let sourceType = '';
-        
-        if (transportSettingsStr) {
-            dataSource = transportSettingsStr;
-            sourceType = 'localStorage';
-        } else if (sessionSettingsStr) {
-            dataSource = sessionSettingsStr;
-            sourceType = 'sessionStorage';
-        }
+        let dataSource = transportSettingsStr || sessionSettingsStr;
+        console.log('Transport settings source:', dataSource ? 'Found settings' : 'No settings found');
         
         if (!dataSource) {
-            console.log('No transport settings found in any storage, using defaults');
-            transportSettings = JSON.parse(JSON.stringify(defaultSettings)); // Deep clone default settings
+            console.warn('No transport settings found in storage, using defaults');
+            transportSettings = defaultSettings;
         } else {
             try {
-                console.log(`Using transport settings from ${sourceType}`);
                 transportSettings = JSON.parse(dataSource);
-                
-                // 验证解析后的对象是否有必要的字段
-                if (typeof transportSettings !== 'object' || 
-                    typeof transportSettings.baseFare !== 'number' || 
-                    typeof transportSettings.ratePerKm !== 'number' || 
-                    !transportSettings.vehicleRates || 
-                    typeof transportSettings.vehicleRates !== 'object') {
-                    
-                    console.warn('Transport settings invalid or missing required fields, using defaults');
-                    transportSettings = JSON.parse(JSON.stringify(defaultSettings));
-                }
+                console.log('Using transport settings:', transportSettings);
             } catch (parseError) {
-                console.error('Error parsing transport settings JSON:', parseError);
-                transportSettings = JSON.parse(JSON.stringify(defaultSettings));
+                console.error('Error parsing transport settings:', parseError);
+                transportSettings = defaultSettings;
             }
         }
     } catch (error) {
-        console.error('Error accessing storage:', error);
-        transportSettings = JSON.parse(JSON.stringify(defaultSettings));
+        console.error('Error retrieving transport settings:', error);
+        transportSettings = defaultSettings;
     }
     
-    // Calculate base fare
-    let baseFare = transportSettings.baseFare;
-    let ratePerKm = transportSettings.ratePerKm;
+    // Ensure all required properties exist
+    if (!transportSettings.vehicleRates) {
+        transportSettings.vehicleRates = defaultSettings.vehicleRates;
+    }
     
-    console.log(`Using baseFare: $${baseFare}, ratePerKm: $${ratePerKm}`);
+    // Log the values we're using
+    console.log('Using baseFare: $' + transportSettings.baseFare + ', ratePerKm: $' + transportSettings.ratePerKm);
     
-    // Apply vehicle multiplier
-    const vehicleMultiplier = (transportSettings.vehicleRates && transportSettings.vehicleRates[vehicleType]) 
-        ? transportSettings.vehicleRates[vehicleType] 
-        : defaultSettings.vehicleRates[vehicleType] || defaultSettings.vehicleRates.sedan;
+    // Base fare calculation
+    let fare = transportSettings.baseFare + (distance * transportSettings.ratePerKm);
     
-    // Calculate time-based multipliers if needed
-    let timeMultiplier = 1.0;
+    // Apply vehicle type multiplier
+    let vehicleMultiplier = 1.0; // Default to sedan rate
     
-    // If journey date and time are provided, use them; otherwise use current time
-    let journeyDateTime = new Date();
+    if (transportSettings.vehicleRates[vehicleType.toLowerCase()]) {
+        vehicleMultiplier = transportSettings.vehicleRates[vehicleType.toLowerCase()];
+    } else {
+        // If the specific vehicle type is not found, use default rates
+        switch (vehicleType.toLowerCase()) {
+            case 'suv':
+                vehicleMultiplier = 1.5;
+                break;
+            case 'van':
+                vehicleMultiplier = 1.8;
+                break;
+            case 'luxury':
+                vehicleMultiplier = 2.2;
+                break;
+            default: // sedan
+                vehicleMultiplier = 1.0;
+        }
+    }
+    
+    fare *= vehicleMultiplier;
+    
+    // Parse journey date and time
+    let journeyDateTime = null;
     
     if (journeyDate && journeyTime) {
-        // Parse date and time
-        const [year, month, day] = journeyDate.split('-').map(num => parseInt(num));
-        const [hours, minutes] = journeyTime.split(':').map(num => parseInt(num));
+        try {
+            // Combine date and time
+            journeyDateTime = new Date(journeyDate + 'T' + journeyTime);
+        } catch (e) {
+            console.warn('Unable to parse journey date/time:', e);
+        }
+    }
+    
+    // Apply time-based multipliers if we have a valid date
+    if (journeyDateTime && !isNaN(journeyDateTime)) {
+        const hour = journeyDateTime.getHours();
+        const dayOfWeek = journeyDateTime.getDay(); // 0 = Sunday, 6 = Saturday
         
-        // Create date object (month is 0-indexed in JS Date)
-        journeyDateTime = new Date(year, month - 1, day, hours, minutes);
+        // Rush hour: 6-9 AM or 4-7 PM
+        if ((hour >= 6 && hour < 9) || (hour >= 16 && hour < 19)) {
+            fare *= transportSettings.rushHourMultiplier;
+            console.log('Applied rush hour multiplier:', transportSettings.rushHourMultiplier);
+        }
+        
+        // Night time: 10 PM - 6 AM
+        if (hour >= 22 || hour < 6) {
+            fare *= transportSettings.nightMultiplier;
+            console.log('Applied night multiplier:', transportSettings.nightMultiplier);
+        }
+        
+        // Weekend: Saturday and Sunday
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            fare *= transportSettings.weekendMultiplier;
+            console.log('Applied weekend multiplier:', transportSettings.weekendMultiplier);
+        }
     }
-    
-    const hours = journeyDateTime.getHours();
-    const day = journeyDateTime.getDay(); // 0 = Sunday, 6 = Saturday
-    
-    // Check if it's weekend (Saturday or Sunday)
-    if (day === 0 || day === 6) {
-        timeMultiplier = transportSettings.weekendMultiplier;
-    }
-    // Check if it's rush hour (6-9 AM or 4-7 PM)
-    else if ((hours >= 6 && hours < 9) || (hours >= 16 && hours < 19)) {
-        timeMultiplier = transportSettings.rushHourMultiplier;
-    }
-    // Check if it's night time (10 PM - 6 AM)
-    else if (hours >= 22 || hours < 6) {
-        timeMultiplier = transportSettings.nightMultiplier;
-    }
-    
-    // Calculate total fare
-    let totalFare = (baseFare + (distance * ratePerKm)) * vehicleMultiplier * timeMultiplier;
     
     // Round to 2 decimal places
-    totalFare = Math.round(totalFare * 100) / 100;
+    fare = Math.round(fare * 100) / 100;
     
-    return totalFare;
+    console.log('Calculated fare:', fare);
+    return fare;
 }
 
 // Display the calculated quote
@@ -991,6 +999,7 @@ function initializeTransportSettings() {
         
         // 如果没有设置，使用默认设置
         if (!transportSettingsStr && !sessionSettingsStr) {
+            console.warn('No transport settings found, using defaults');
             return; // 使用默认设置
         }
         
@@ -998,10 +1007,18 @@ function initializeTransportSettings() {
         const dataSource = transportSettingsStr || sessionSettingsStr;
         
         // 解析设置
-        JSON.parse(dataSource);
-        // 成功解析，下次使用时会自动使用
+        const settings = JSON.parse(dataSource);
+        console.log('Initialized transport settings:', settings);
+        
+        // 显示当前设置到控制台，方便调试
+        if (settings.baseFare) {
+            console.log('Base fare:', settings.baseFare);
+        }
+        
+        return settings;
     } catch (error) {
-        console.error('Error initializing settings:', error);
+        console.error('Error initializing transport settings:', error);
+        return null;
     }
 }
 

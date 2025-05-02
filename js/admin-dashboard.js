@@ -1647,13 +1647,24 @@ function initLinksManagement() {
 function initTransportSettings() {
     console.log('Initializing transport settings...');
     
+    // 获取保存按钮元素
     const saveTransportSettingsBtn = document.getElementById('saveTransportSettingsBtn');
     
-    // Load existing settings
+    if (!saveTransportSettingsBtn) {
+        console.error('Save transport settings button not found');
+        return;
+    }
+    
+    // 加载现有设置
     loadTransportSettings();
     
-    // Save settings
-    saveTransportSettingsBtn.addEventListener('click', function() {
+    // 为保存按钮添加点击事件监听器
+    saveTransportSettingsBtn.addEventListener('click', saveTransportSettings);
+    console.log('Event listener added to saveTransportSettingsBtn');
+    
+    // 单独的保存函数
+    function saveTransportSettings() {
+        console.log('saveTransportSettings function called');
         try {
             // 获取表单值并转换为数字
             const baseFareValue = parseFloat(document.getElementById('baseFare').value);
@@ -1665,6 +1676,19 @@ function initTransportSettings() {
             const suvValue = parseFloat(document.getElementById('suvRate').value);
             const vanValue = parseFloat(document.getElementById('vanRate').value);
             const luxuryValue = parseFloat(document.getElementById('luxuryRate').value);
+            
+            // 输出当前获取的值用于调试
+            console.log('Form values:', {
+                baseFare: baseFareValue,
+                ratePerKm: ratePerKmValue,
+                rushHour: rushHourValue,
+                night: nightValue,
+                weekend: weekendValue,
+                sedan: sedanValue,
+                suv: suvValue,
+                van: vanValue,
+                luxury: luxuryValue
+            });
             
             // 验证表单值是否有效
             if (isNaN(baseFareValue) || isNaN(ratePerKmValue) || isNaN(rushHourValue) ||
@@ -1686,40 +1710,49 @@ function initTransportSettings() {
                     van: vanValue,
                     luxury: luxuryValue
                 },
-                lastUpdated: new Date().toISOString() // 添加时间戳
+                lastUpdated: new Date().toISOString()
             };
             
+            console.log('Saving transport settings:', transportSettings);
+            
             // 先尝试清除旧数据（解决可能的缓存问题）
-            localStorage.removeItem('transportSettings');
+            try {
+                localStorage.removeItem('transportSettings');
+            } catch (e) {
+                console.warn('Failed to remove old settings:', e);
+            }
             
             // 保存到localStorage
-            localStorage.setItem('transportSettings', JSON.stringify(transportSettings));
-            
-            // 验证保存的数据
-            const savedData = localStorage.getItem('transportSettings');
-            
             try {
-                const parsedData = JSON.parse(savedData);
+                const settingsJSON = JSON.stringify(transportSettings);
+                console.log('Settings JSON:', settingsJSON);
+                localStorage.setItem('transportSettings', settingsJSON);
                 
-                // 额外的验证步骤：确保设置值与表单值匹配
-                if (parsedData.baseFare !== baseFareValue || parsedData.ratePerKm !== ratePerKmValue) {
-                    // 强制使用sessionStorage作为备份
-                    sessionStorage.setItem('transportSettings', JSON.stringify(transportSettings));
+                // 同时保存到sessionStorage作为备份
+                sessionStorage.setItem('transportSettings', settingsJSON);
+                
+                // 验证保存结果
+                const savedData = localStorage.getItem('transportSettings');
+                console.log('Saved data retrieved:', savedData);
+                
+                if (savedData) {
+                    console.log('Transport settings saved successfully');
+                    alert('Transport settings saved successfully!');
+                } else {
+                    console.error('Failed to verify saved settings');
+                    alert('Failed to save settings. Please try again.');
                 }
-                
-                // 显示成功信息
-                alert('Transport settings saved successfully!');
-            } catch (parseError) {
-                console.error('Error parsing saved data:', parseError);
-                alert('Settings saved but verification failed. Please try again.');
+            } catch (e) {
+                console.error('Error saving to localStorage:', e);
+                alert('Error saving settings: ' + e.message);
             }
         } catch (error) {
-            console.error('Error saving transport settings:', error);
+            console.error('Error in saveTransportSettings:', error);
             alert('Error saving settings: ' + error.message);
         }
-    });
+    }
     
-    // Load transport settings from localStorage
+    // 修复loadTransportSettings函数
     function loadTransportSettings() {
         console.log('Loading transport settings...');
         
@@ -1742,9 +1775,16 @@ function initTransportSettings() {
                 return;
             }
             
-            // 尝试获取localStorage中的设置
-            const settingsStr = localStorage.getItem('transportSettings');
-            console.log('Raw settings from localStorage:', settingsStr);
+            // 尝试从多个来源获取设置
+            let settingsStr = localStorage.getItem('transportSettings');
+            
+            // 如果localStorage没有，尝试从sessionStorage获取
+            if (!settingsStr) {
+                settingsStr = sessionStorage.getItem('transportSettings');
+                console.log('Using settings from sessionStorage');
+            }
+            
+            console.log('Raw settings:', settingsStr);
             
             // 设置默认值（以防localStorage中没有值）
             const defaultSettings = {
@@ -1762,7 +1802,7 @@ function initTransportSettings() {
             };
             
             if (!settingsStr) {
-                console.log('No settings found in localStorage, using defaults');
+                console.log('No settings found, using defaults');
                 // 使用默认值
                 baseFare.value = defaultSettings.baseFare;
                 ratePerKm.value = defaultSettings.ratePerKm;
@@ -1774,9 +1814,13 @@ function initTransportSettings() {
                 vanRate.value = defaultSettings.vehicleRates.van;
                 luxuryRate.value = defaultSettings.vehicleRates.luxury;
                 
-                // 保存默认值到localStorage（确保至少有初始值）
-                localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
-                console.log('Default settings saved to localStorage');
+                // 保存默认值到localStorage
+                try {
+                    localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
+                    console.log('Default settings saved to localStorage');
+                } catch (e) {
+                    console.warn('Failed to save default settings:', e);
+                }
                 return;
             }
             
@@ -1785,11 +1829,6 @@ function initTransportSettings() {
                 const settings = JSON.parse(settingsStr);
                 console.log('Parsed settings:', settings);
                 
-                // 验证设置对象
-                if (typeof settings !== 'object') {
-                    throw new Error('Settings is not an object');
-                }
-                
                 // 设置表单值（带有回退默认值）
                 baseFare.value = settings.baseFare || defaultSettings.baseFare;
                 ratePerKm.value = settings.ratePerKm || defaultSettings.ratePerKm;
@@ -1797,7 +1836,7 @@ function initTransportSettings() {
                 nightMultiplier.value = settings.nightMultiplier || defaultSettings.nightMultiplier;
                 weekendMultiplier.value = settings.weekendMultiplier || defaultSettings.weekendMultiplier;
                 
-                // 处理车辆费率（确保vehicleRates对象存在）
+                // 处理车辆费率
                 const vehicleRates = settings.vehicleRates || defaultSettings.vehicleRates;
                 
                 sedanRate.value = vehicleRates.sedan || defaultSettings.vehicleRates.sedan;
@@ -1819,9 +1858,13 @@ function initTransportSettings() {
                 vanRate.value = defaultSettings.vehicleRates.van;
                 luxuryRate.value = defaultSettings.vehicleRates.luxury;
                 
-                // 保存默认值到localStorage（修复损坏的设置）
-                localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
-                console.log('Default settings saved to localStorage after error');
+                // 保存默认值到localStorage
+                try {
+                    localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
+                    console.log('Default settings saved to localStorage after error');
+                } catch (e) {
+                    console.warn('Failed to save default settings after error:', e);
+                }
             }
         } catch (error) {
             console.error('Error loading transport settings:', error);
