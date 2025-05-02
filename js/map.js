@@ -10,6 +10,7 @@ let searchButton = null;
 let confirmButton = null;
 let mapLoadingIndicator = null; // 新增：地图加载指示器
 let routeMap = null; // Add global variable for route map
+let currentRouteLine = null; // Add variable to track the current route line
 
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -958,29 +959,29 @@ function initializeRouteMap(pickupLat, pickupLng, destLat, destLng, centerLat, c
     const destMarker = L.marker([destLat, destLng]).addTo(routeMap);
     destMarker.bindPopup('<b>Destination</b>');
     
-    // Draw line between markers
-    const routeLine = L.polyline([
-        [pickupLat, pickupLng],
-        [destLat, destLng]
-    ], {
-        color: '#4CAF50',
-        weight: 5,
-        opacity: 0.7,
-        dashArray: '10, 10',
-        lineJoin: 'round'
-    }).addTo(routeMap);
-    
-    // Fit map to show both markers
-    const bounds = L.latLngBounds([
-        [pickupLat, pickupLng],
-        [destLat, destLng]
-    ]);
-    routeMap.fitBounds(bounds, { padding: [50, 50] });
-    
-    // Remove loading indicator
-    if (loadingIndicator && loadingIndicator.parentNode) {
-        loadingIndicator.parentNode.removeChild(loadingIndicator);
-    }
+    // Get driving route
+    getRouteData(pickupLat, pickupLng, destLat, destLng, function(routeData) {
+        if (routeData && routeData.length > 0) {
+            // Draw the route using the received coordinates
+            currentRouteLine = L.polyline(routeData, {
+                color: '#4CAF50',
+                weight: 5,
+                opacity: 0.7,
+                lineJoin: 'round'
+            }).addTo(routeMap);
+            
+            // Fit map to show the entire route
+            routeMap.fitBounds(currentRouteLine.getBounds(), { padding: [50, 50] });
+        } else {
+            // Fallback to straight line if route data is not available
+            drawStraightRoute(pickupLat, pickupLng, destLat, destLng);
+        }
+        
+        // Remove loading indicator
+        if (loadingIndicator && loadingIndicator.parentNode) {
+            loadingIndicator.parentNode.removeChild(loadingIndicator);
+        }
+    });
     
     // Force map to recalculate size
     setTimeout(function() {
@@ -1006,8 +1007,37 @@ function updateRouteMap(pickupLat, pickupLng, destLat, destLng) {
     const destMarker = L.marker([destLat, destLng]).addTo(routeMap);
     destMarker.bindPopup('<b>Destination</b>');
     
-    // Draw new line
-    const routeLine = L.polyline([
+    // Get driving route
+    getRouteData(pickupLat, pickupLng, destLat, destLng, function(routeData) {
+        if (routeData && routeData.length > 0) {
+            // Draw the route using the received coordinates
+            currentRouteLine = L.polyline(routeData, {
+                color: '#4CAF50',
+                weight: 5,
+                opacity: 0.7,
+                lineJoin: 'round'
+            }).addTo(routeMap);
+            
+            // Fit map to show the entire route
+            routeMap.fitBounds(currentRouteLine.getBounds(), { padding: [50, 50] });
+        } else {
+            // Fallback to straight line if route data is not available
+            drawStraightRoute(pickupLat, pickupLng, destLat, destLng);
+        }
+    });
+    
+    // Force map to recalculate size
+    setTimeout(function() {
+        routeMap.invalidateSize();
+    }, 100);
+}
+
+/**
+ * Draw a straight route between two points (fallback method)
+ */
+function drawStraightRoute(pickupLat, pickupLng, destLat, destLng) {
+    // Draw line between markers
+    currentRouteLine = L.polyline([
         [pickupLat, pickupLng],
         [destLat, destLng]
     ], {
@@ -1024,9 +1054,69 @@ function updateRouteMap(pickupLat, pickupLng, destLat, destLng) {
         [destLat, destLng]
     ]);
     routeMap.fitBounds(bounds, { padding: [50, 50] });
+}
+
+/**
+ * Get driving route data between two points using OpenRouteService API
+ */
+function getRouteData(startLat, startLng, endLat, endLng, callback) {
+    console.log('Getting route data between points');
     
-    // Force map to recalculate size
-    setTimeout(function() {
-        routeMap.invalidateSize();
-    }, 100);
+    // OpenRouteService API key - Use a placeholder here
+    // In production, this should be stored securely
+    const apiKey = '5b3ce3597851110001cf6248a50fa14d6bd14c38950e6298e4dd6d4c';
+    
+    // Create request body for OpenRouteService API
+    const body = {
+        coordinates: [
+            [startLng, startLat],
+            [endLng, endLat]
+        ],
+        format: 'geojson'
+    };
+    
+    // Make API request
+    fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
+        method: 'POST',
+        headers: {
+            'Authorization': apiKey,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(body)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`API responded with status ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Route data received:', data);
+        
+        // Extract route coordinates from response
+        let coordinates = [];
+        if (data && data.features && data.features.length > 0 && 
+            data.features[0].geometry && data.features[0].geometry.coordinates) {
+            
+            // Convert [lng, lat] to [lat, lng] for Leaflet
+            coordinates = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+            
+            // Update journey distance in the UI if needed
+            if (data.features[0].properties && data.features[0].properties.summary) {
+                const distance = (data.features[0].properties.summary.distance / 1000).toFixed(2);
+                const distanceElement = document.getElementById('quotedDistance');
+                if (distanceElement) {
+                    distanceElement.textContent = `${distance} km`;
+                }
+            }
+        }
+        
+        callback(coordinates);
+    })
+    .catch(error => {
+        console.error('Error getting route data:', error);
+        // Fall back to straight line
+        callback([]);
+    });
 } 

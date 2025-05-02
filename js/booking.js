@@ -66,19 +66,57 @@ function calculateQuote() {
         const destLat = parseFloat(destinationInput.dataset.lat);
         const destLng = parseFloat(destinationInput.dataset.lng);
         
-        // Calculate distance (haversine formula)
+        // We'll get the actual distance from the route data
+        // For now, use Haversine formula as an initial estimate
         distance = calculateDistance(pickupLat, pickupLng, destLat, destLng);
+        
+        // Calculate fare based on distance and service type
+        const fare = calculateFare(distance, serviceType);
+        const deposit = Math.round(fare * 0.3 * 100) / 100; // 30% deposit
+        
+        // Show the initial quote while we load the route
+        displayQuote(distance, fare, deposit);
+        
+        // Call showRouteMap to display the route and get the actual driving distance
+        if (typeof showRouteMap === 'function') {
+            showRouteMap();
+            
+            // The distance will be updated by getRouteData in map.js
+            // We'll check for the updated distance after a short delay
+            setTimeout(function() {
+                const distanceElement = document.getElementById('quotedDistance');
+                if (distanceElement) {
+                    const distanceText = distanceElement.textContent;
+                    const match = distanceText.match(/(\d+\.?\d*)/);
+                    if (match) {
+                        const updatedDistance = parseFloat(match[1]);
+                        
+                        // If the distance has been updated by the routing API
+                        if (updatedDistance !== distance) {
+                            console.log('Updating quote with actual driving distance:', updatedDistance);
+                            
+                            // Recalculate fare with the actual driving distance
+                            const updatedFare = calculateFare(updatedDistance, serviceType);
+                            const updatedDeposit = Math.round(updatedFare * 0.3 * 100) / 100;
+                            
+                            // Update the quote display
+                            updateQuoteDisplay(updatedDistance, updatedFare, updatedDeposit);
+                        }
+                    }
+                }
+            }, 1500); // Wait 1.5 seconds for route data to be loaded
+        }
     } else {
         // Fallback to an estimated distance if coordinates aren't available
         distance = 25; // Default 25km if no coordinates
+        
+        // Calculate fare based on distance and service type
+        const fare = calculateFare(distance, serviceType);
+        const deposit = Math.round(fare * 0.3 * 100) / 100; // 30% deposit
+        
+        // Update the quote container
+        displayQuote(distance, fare, deposit);
     }
-    
-    // Calculate fare based on distance and service type
-    const fare = calculateFare(distance, serviceType);
-    const deposit = Math.round(fare * 0.3 * 100) / 100; // 30% deposit
-    
-    // Update the quote container
-    displayQuote(distance, fare, deposit);
 }
 
 /**
@@ -140,25 +178,7 @@ function displayQuote(distance, fare, deposit) {
     }
     
     // Update the quote details
-    const distanceElement = document.getElementById('quotedDistance');
-    if (distanceElement) {
-        distanceElement.textContent = `${distance} km`;
-    }
-    
-    const vehicleElement = document.getElementById('quotedVehicle');
-    if (vehicleElement) {
-        vehicleElement.textContent = 'Standard';
-    }
-    
-    const fareElement = document.getElementById('quotedFare');
-    if (fareElement) {
-        fareElement.textContent = `$${fare.toFixed(2)}`;
-    }
-    
-    const depositElement = document.getElementById('quotedDeposit');
-    if (depositElement) {
-        depositElement.textContent = `$${deposit.toFixed(2)}`;
-    }
+    updateQuoteDisplay(distance, fare, deposit);
     
     // Show the quote container
     quoteContainer.style.display = 'block';
@@ -188,6 +208,31 @@ function displayQuote(distance, fare, deposit) {
                 routeMapContainer.style.display = 'block';
             }
         }
+    }
+}
+
+/**
+ * Update the quote display with new values
+ */
+function updateQuoteDisplay(distance, fare, deposit) {
+    const distanceElement = document.getElementById('quotedDistance');
+    if (distanceElement) {
+        distanceElement.textContent = `${distance} km`;
+    }
+    
+    const vehicleElement = document.getElementById('quotedVehicle');
+    if (vehicleElement) {
+        vehicleElement.textContent = 'Standard';
+    }
+    
+    const fareElement = document.getElementById('quotedFare');
+    if (fareElement) {
+        fareElement.textContent = `$${fare.toFixed(2)}`;
+    }
+    
+    const depositElement = document.getElementById('quotedDeposit');
+    if (depositElement) {
+        depositElement.textContent = `$${deposit.toFixed(2)}`;
     }
 }
 
