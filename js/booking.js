@@ -25,14 +25,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Book Now button not found');
     }
     
-    // Initialize My Bookings button
-    const myBookingsBtn = document.getElementById('myBookingsBtn');
-    if (myBookingsBtn) {
-        myBookingsBtn.addEventListener('click', function(e) {
+    // Initialize My Bookings button in the navigation
+    const navMyBookingsBtn = document.getElementById('navMyBookingsBtn');
+    if (navMyBookingsBtn) {
+        navMyBookingsBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            showMyBookingsSection();
+            showMyBookings();
         });
-        console.log('My Bookings button initialized');
+        console.log('Navigation My Bookings button initialized');
     }
     
     // Make sure the quote container is hidden initially
@@ -52,23 +52,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // 显示预算信息和测试
     displayRateInfo();
     
-    // 添加我的订单按钮 (仅当用户登录时显示)
+    // 更新My Bookings按钮显示状态 (仅当用户登录时显示)
     if (window.UserAuth && window.UserAuth.isLoggedIn()) {
-        createMyBookingsButton();
+        updateMyBookingsVisibility(true);
     }
     
     // 监听用户登录状态变化
     window.addEventListener('userAuthChanged', function(event) {
         console.log('Booking.js received userAuthChanged event:', event.detail);
-        // 当用户登录状态变化时，检查是否需要添加或移除我的订单按钮
+        // 当用户登录状态变化时，更新My Bookings按钮显示状态
         const userLoggedIn = event.detail.isLoggedIn;
-        const myBookingsBtn = document.getElementById('myBookingsBtn');
-        
-        if (userLoggedIn && !myBookingsBtn) {
-            createMyBookingsButton();
-        } else if (!userLoggedIn && myBookingsBtn) {
-            myBookingsBtn.remove();
-        }
+        updateMyBookingsVisibility(userLoggedIn);
     });
 });
 
@@ -2424,252 +2418,8 @@ function showBookingConfirmation(bookingData) {
 
 // 创建我的订单按钮
 function createMyBookingsButton() {
-    // 查找现有按钮
-    if (document.getElementById('myBookingsBtn')) {
-        return;
-    }
-    
-    // 创建按钮
-    const myBookingsBtn = document.createElement('button');
-    myBookingsBtn.id = 'myBookingsBtn';
-    myBookingsBtn.className = 'btn my-bookings-btn';
-    myBookingsBtn.innerHTML = '<i class="fas fa-receipt"></i> My Bookings';
-    
-    // 添加样式
-    if (!document.getElementById('my-bookings-styles')) {
-        const style = document.createElement('style');
-        style.id = 'my-bookings-styles';
-        style.textContent = `
-            .my-bookings-btn {
-                position: fixed;
-                bottom: 2rem;
-                right: 12rem; /* 定位在AI助手按钮的左侧 */
-                background: #4a6fa5;
-                color: white;
-                border: none;
-                border-radius: 50px;
-                padding: 0.8rem 1.5rem;
-                display: flex;
-                align-items: center;
-                gap: 0.8rem;
-                cursor: pointer;
-                box-shadow: 0 5px 15px rgba(74, 111, 165, 0.2);
-                transition: all 0.3s ease;
-                z-index: 998;
-                font-size: 0.9rem;
-            }
-            
-            .my-bookings-btn:hover {
-                background: #385a8a;
-                transform: translateY(-2px);
-                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-            }
-            
-            .my-bookings-modal {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                z-index: 1001;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .my-bookings-modal.active {
-                display: flex;
-            }
-            
-            .my-bookings-content {
-                background-color: white;
-                width: 90%;
-                max-width: 800px;
-                max-height: 90vh;
-                border-radius: 8px;
-                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-                display: flex;
-                flex-direction: column;
-                animation: modalFadeIn 0.3s ease-out;
-                overflow: hidden;
-            }
-            
-            .my-bookings-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 16px 20px;
-                border-bottom: 1px solid #e0e0e0;
-                background-color: #f8f9fa;
-            }
-            
-            .my-bookings-header h3 {
-                margin: 0;
-                color: #333;
-                font-size: 18px;
-                font-weight: 600;
-            }
-            
-            .close-bookings-btn {
-                background: none;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-                color: #777;
-                transition: color 0.2s;
-            }
-            
-            .close-bookings-btn:hover {
-                color: #333;
-            }
-            
-            .my-bookings-body {
-                padding: 20px;
-                overflow-y: auto;
-                flex: 1;
-                min-height: 300px;
-            }
-            
-            .booking-list {
-                list-style-type: none;
-                padding: 0;
-                margin: 0;
-            }
-            
-            .booking-item {
-                margin-bottom: 15px;
-                border: 1px solid #e0e0e0;
-                border-radius: 8px;
-                overflow: hidden;
-            }
-            
-            .booking-header {
-                padding: 12px 15px;
-                background-color: #f5f5f5;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                cursor: pointer;
-            }
-            
-            .booking-title {
-                font-weight: 600;
-                font-size: 16px;
-                color: #333;
-            }
-            
-            .booking-date {
-                color: #666;
-                font-size: 14px;
-            }
-            
-            .booking-details {
-                padding: 15px;
-                border-top: 1px solid #e0e0e0;
-                display: none;
-            }
-            
-            .booking-details.active {
-                display: block;
-            }
-            
-            .booking-detail-row {
-                display: flex;
-                margin-bottom: 8px;
-            }
-            
-            .booking-detail-label {
-                flex: 0 0 150px;
-                font-weight: 500;
-                color: #555;
-            }
-            
-            .booking-detail-value {
-                flex: 1;
-                color: #333;
-            }
-            
-            .booking-actions {
-                margin-top: 15px;
-                display: flex;
-                gap: 10px;
-                justify-content: flex-end;
-            }
-            
-            .booking-action-btn {
-                padding: 8px 12px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                transition: background-color 0.3s;
-            }
-            
-            .booking-cancel-btn {
-                background-color: #f8d7da;
-                color: #721c24;
-            }
-            
-            .booking-cancel-btn:hover {
-                background-color: #f1b0b7;
-            }
-            
-            .booking-view-receipt-btn {
-                background-color: #d4edda;
-                color: #155724;
-            }
-            
-            .booking-view-receipt-btn:hover {
-                background-color: #b1dfbb;
-            }
-            
-            .no-bookings-message {
-                text-align: center;
-                padding: 40px 20px;
-                color: #666;
-                font-style: italic;
-            }
-            
-            .no-bookings-message i {
-                font-size: 48px;
-                color: #ccc;
-                display: block;
-                margin-bottom: 15px;
-            }
-            
-            @media (max-width: 768px) {
-                .my-bookings-btn {
-                    right: 6rem;
-                    padding: 0.7rem 1.2rem;
-                    font-size: 0.8rem;
-                }
-                
-                .my-bookings-content {
-                    width: 95%;
-                }
-                
-                .booking-detail-row {
-                    flex-direction: column;
-                }
-                
-                .booking-detail-label {
-                    flex: 0 0 auto;
-                    margin-bottom: 3px;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    // 添加事件监听器
-    myBookingsBtn.addEventListener('click', showMyBookings);
-    
-    // 添加到页面
-    document.body.appendChild(myBookingsBtn);
+    // 此函数已不再需要，保留为空以防有其他代码调用
+    console.log('createMyBookingsButton has been deprecated, using navigation button instead');
 }
 
 // 显示我的订单
@@ -3023,4 +2773,12 @@ function generateBookingId() {
     const timestamp = new Date().getTime().toString().substr(-6);
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     return `BK-${timestamp}-${random}`;
+}
+
+// 更新My Bookings按钮的可见性
+function updateMyBookingsVisibility(isVisible) {
+    const myBookingsNavItem = document.getElementById('myBookingsNavItem');
+    if (myBookingsNavItem) {
+        myBookingsNavItem.style.display = isVisible ? 'inline-block' : 'none';
+    }
 }

@@ -521,12 +521,18 @@
     function updateAuthUI(isLoggedIn, user) {
         const authToggleBtn = document.getElementById('authToggleBtn');
         const authBtnText = document.getElementById('authBtnText');
+        const myBookingsNavItem = document.getElementById('myBookingsNavItem');
         
         if (!authToggleBtn || !authBtnText) return;
         
         if (isLoggedIn && user) {
             authBtnText.textContent = user.name;
             authToggleBtn.parentElement.className = 'user-menu';
+            
+            // 显示导航菜单中的My Bookings按钮
+            if (myBookingsNavItem) {
+                myBookingsNavItem.style.display = 'inline-block';
+            }
             
             // 创建用户菜单
             let userMenu = document.querySelector('.user-menu-content');
@@ -561,6 +567,11 @@
         } else {
             authBtnText.textContent = 'Login';
             authToggleBtn.parentElement.className = 'auth-button';
+            
+            // 隐藏导航菜单中的My Bookings按钮
+            if (myBookingsNavItem) {
+                myBookingsNavItem.style.display = 'none';
+            }
             
             // 移除用户菜单
             const userMenu = document.querySelector('.user-menu-content');

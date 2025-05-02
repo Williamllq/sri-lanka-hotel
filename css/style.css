@@ -126,8 +126,16 @@ body {
 }
 
 /* 确保导航项鼠标悬停时保持一致的颜色变化 */
-.nav-links a:hover, .nav-login-btn:hover {
+.nav-links a:hover, .nav-login-btn:hover, #navMyBookingsBtn:hover {
     color: #4a6fa5 !important;
+}
+
+/* Make sure the My Bookings link has the same style as other nav links */
+#navMyBookingsBtn {
+    color: white !important;
+    text-decoration: none;
+    font-family: inherit;
+    display: inline-block;
 }
 
 /* Hero Section */
