@@ -1017,6 +1017,14 @@ function initHotelManagement() {
 function initOrderManagement() {
     console.log('Initializing order management...');
     
+    // Debug localStorage content
+    try {
+        console.log('localStorage bookings content:', localStorage.getItem('bookings'));
+        console.log('localStorage userBookings content:', localStorage.getItem('userBookings'));
+    } catch (e) {
+        console.error('Error accessing localStorage:', e);
+    }
+    
     // Get elements
     const ordersTableBody = document.getElementById('ordersTableBody');
     const orderSearchInput = document.getElementById('orderSearchInput');
@@ -1076,21 +1084,30 @@ function initOrderManagement() {
             const storedOrders = localStorage.getItem('bookings');
             if (storedOrders) {
                 orders = JSON.parse(storedOrders);
+                console.log('Loaded orders from localStorage:', orders);
             }
         } catch (error) {
             console.error('Error loading orders:', error);
             return;
         }
         
-        // Check if there are orders
+        // If no orders, create and use demo data
         if (!orders || orders.length === 0) {
-            if (noOrdersMessage) {
-                noOrdersMessage.style.display = 'flex';
+            // Check if we want to show demo data
+            const showDemoData = true; // Set to false in production if needed
+            
+            if (showDemoData) {
+                console.log('No orders found, creating demo data');
+                orders = createDemoOrders();
+            } else {
+                if (noOrdersMessage) {
+                    noOrdersMessage.style.display = 'flex';
+                }
+                if (ordersTableBody) {
+                    ordersTableBody.innerHTML = '<tr><td colspan="9" class="no-data">No orders found</td></tr>';
+                }
+                return;
             }
-            if (ordersTableBody) {
-                ordersTableBody.innerHTML = '<tr><td colspan="9" class="no-data">No orders found</td></tr>';
-            }
-            return;
         }
         
         // Filter orders by status
@@ -1195,24 +1212,145 @@ function initOrderManagement() {
         });
     }
     
+    // Function to create demo orders for testing
+    function createDemoOrders() {
+        const demoOrders = [
+            {
+                id: 'ORD-1001',
+                serviceType: 'Transport',
+                journeyDate: '2023-12-15',
+                journeyTime: '09:30',
+                passengerCount: '2',
+                pickupLocation: 'Colombo',
+                destination: 'Kandy',
+                specialRequirements: 'Need child seat',
+                vehicleType: 'sedan',
+                distance: 115.5,
+                totalFare: 89.50,
+                depositAmount: 26.85,
+                customerName: 'John Smith',
+                customerEmail: 'john.smith@example.com',
+                customerPhone: '+1 123-456-7890',
+                customerNationality: 'USA',
+                status: 'confirmed',
+                timestamp: '2023-12-10T08:30:00Z',
+                lastUpdated: '2023-12-10T10:15:00Z'
+            },
+            {
+                id: 'ORD-1002',
+                serviceType: 'Transport',
+                journeyDate: '2023-12-18',
+                journeyTime: '14:00',
+                passengerCount: '4',
+                pickupLocation: 'Galle',
+                destination: 'Mirissa',
+                specialRequirements: 'Extra luggage space',
+                vehicleType: 'suv',
+                distance: 45.8,
+                totalFare: 65.75,
+                depositAmount: 19.73,
+                customerName: 'Emma Johnson',
+                customerEmail: 'emma.j@example.com',
+                customerPhone: '+44 7700 900123',
+                customerNationality: 'UK',
+                status: 'pending',
+                timestamp: '2023-12-11T15:20:00Z',
+                lastUpdated: '2023-12-11T15:20:00Z'
+            },
+            {
+                id: 'ORD-1003',
+                serviceType: 'Transport',
+                journeyDate: '2023-12-12',
+                journeyTime: '10:00',
+                passengerCount: '6',
+                pickupLocation: 'Negombo',
+                destination: 'Sigiriya',
+                specialRequirements: '',
+                vehicleType: 'van',
+                distance: 158.3,
+                totalFare: 175.25,
+                depositAmount: 52.58,
+                customerName: 'David Chen',
+                customerEmail: 'david.c@example.com',
+                customerPhone: '+61 4123 456789',
+                customerNationality: 'Australia',
+                status: 'completed',
+                timestamp: '2023-12-08T09:45:00Z',
+                lastUpdated: '2023-12-12T16:30:00Z'
+            },
+            {
+                id: 'ORD-1004',
+                serviceType: 'Transport',
+                journeyDate: '2023-12-20',
+                journeyTime: '16:30',
+                passengerCount: '2',
+                pickupLocation: 'Colombo Airport',
+                destination: 'Bentota',
+                specialRequirements: 'Airport pickup',
+                vehicleType: 'luxury',
+                distance: 87.6,
+                totalFare: 120.00,
+                depositAmount: 36.00,
+                customerName: 'Sophie Martin',
+                customerEmail: 'sophie.m@example.com',
+                customerPhone: '+33 612345678',
+                customerNationality: 'France',
+                status: 'cancelled',
+                timestamp: '2023-12-05T14:10:00Z',
+                lastUpdated: '2023-12-06T11:25:00Z'
+            },
+            {
+                id: 'ORD-1005',
+                serviceType: 'Transport',
+                journeyDate: '2023-12-22',
+                journeyTime: '08:00',
+                passengerCount: '3',
+                pickupLocation: 'Ella',
+                destination: 'Nuwara Eliya',
+                specialRequirements: 'Stops at tea plantations',
+                vehicleType: 'suv',
+                distance: 64.2,
+                totalFare: 78.50,
+                depositAmount: 23.55,
+                customerName: 'Miguel Rodriguez',
+                customerEmail: 'miguel.r@example.com',
+                customerPhone: '+34 612345678',
+                customerNationality: 'Spain',
+                status: 'confirmed',
+                timestamp: '2023-12-12T18:30:00Z',
+                lastUpdated: '2023-12-13T09:15:00Z'
+            }
+        ];
+        
+        return demoOrders;
+    }
+    
     // Function to view order details
     function viewOrderDetails(orderId) {
         console.log('Viewing order details for:', orderId);
         
         // Get orders from localStorage
         let orders = [];
+        let order = null;
+        
         try {
             const storedOrders = localStorage.getItem('bookings');
             if (storedOrders) {
                 orders = JSON.parse(storedOrders);
+                // Find the specific order
+                order = orders.find(o => o.id === orderId);
             }
         } catch (error) {
             console.error('Error loading orders:', error);
-            return;
         }
         
-        // Find the specific order
-        const order = orders.find(o => o.id === orderId);
+        // If not found in localStorage, check in demo orders
+        if (!order) {
+            const demoOrders = createDemoOrders();
+            order = demoOrders.find(o => o.id === orderId);
+        }
+        
+        // If still not found, show error
         if (!order) {
             alert('Order not found');
             return;
@@ -1314,6 +1452,15 @@ function initOrderManagement() {
                     updateOrderStatus(orderId, newStatus);
                 });
             });
+            
+            // Add event listener to close button
+            const closeDetailsBtn = orderDetailsModal.querySelector('.close-details-btn');
+            if (closeDetailsBtn) {
+                closeDetailsBtn.addEventListener('click', function() {
+                    orderDetailsModal.style.display = 'none';
+                    orderDetailsModal.classList.remove('active');
+                });
+            }
         }
     }
     
