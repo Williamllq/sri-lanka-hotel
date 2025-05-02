@@ -1062,9 +1062,8 @@ function drawStraightRoute(pickupLat, pickupLng, destLat, destLng) {
 function getRouteData(startLat, startLng, endLat, endLng, callback) {
     console.log('Getting route data between points');
     
-    // OpenRouteService API key - Use a placeholder here
-    // In production, this should be stored securely
-    const apiKey = '5b3ce3597851110001cf6248a50fa14d6bd14c38950e6298e4dd6d4c';
+    // OpenRouteService API key - using official demo key
+    const apiKey = '5b3ce3597851110001cf62480fb542962e4f4fe384e740b789c77ad0';
     
     // Create request body for OpenRouteService API
     const body = {
@@ -1075,17 +1074,20 @@ function getRouteData(startLat, startLng, endLat, endLng, callback) {
         format: 'geojson'
     };
     
-    // Make API request
-    fetch('https://api.openrouteservice.org/v2/directions/driving-car', {
+    console.log('OpenRouteService API request body:', JSON.stringify(body));
+    
+    // Make API request with proper headers
+    fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
         method: 'POST',
         headers: {
             'Authorization': apiKey,
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json, application/geo+json, application/gpx+xml'
         },
         body: JSON.stringify(body)
     })
     .then(response => {
+        console.log('OpenRouteService API response status:', response.status);
         if (!response.ok) {
             throw new Error(`API responded with status ${response.status}`);
         }
@@ -1096,6 +1098,8 @@ function getRouteData(startLat, startLng, endLat, endLng, callback) {
         
         // Extract route coordinates from response
         let coordinates = [];
+        let distance = 0;
+        
         if (data && data.features && data.features.length > 0 && 
             data.features[0].geometry && data.features[0].geometry.coordinates) {
             
@@ -1104,10 +1108,113 @@ function getRouteData(startLat, startLng, endLat, endLng, callback) {
             
             // Update journey distance in the UI if needed
             if (data.features[0].properties && data.features[0].properties.summary) {
-                const distance = (data.features[0].properties.summary.distance / 1000).toFixed(2);
+                distance = (data.features[0].properties.summary.distance / 1000).toFixed(2);
+                console.log('Driving distance from API:', distance, 'km');
+                
                 const distanceElement = document.getElementById('quotedDistance');
                 if (distanceElement) {
                     distanceElement.textContent = `${distance} km`;
+                    
+                    // Also update the fare calculation with the actual driving distance
+                    const serviceType = document.getElementById('serviceType').value;
+                    if (serviceType) {
+                        const updatedDistance = parseFloat(distance);
+                        // Use calculateFare from booking.js if available
+                        if (typeof calculateFare === 'function') {
+                            const updatedFare = calculateFare(updatedDistance, serviceType);
+                            const updatedDeposit = Math.round(updatedFare * 0.3 * 100) / 100;
+                            
+                            // Update fare display
+                            const fareElement = document.getElementById('quotedFare');
+                            const depositElement = document.getElementById('quotedDeposit');
+                            
+                            if (fareElement) {
+                                fareElement.textContent = `$${updatedFare.toFixed(2)}`;
+                            }
+                            
+                            if (depositElement) {
+                                depositElement.textContent = `$${updatedDeposit.toFixed(2)}`;
+                            }
+                        } else {
+                            console.error('calculateFare function not available');
+                        }
+                    }
+                }
+            }
+        } else {
+            console.error('Invalid route data structure:', data);
+        }
+        
+        if (coordinates.length > 0) {
+            callback(coordinates);
+        } else {
+            console.warn('No valid coordinates found in the response, trying fallback method');
+            getRouteDataFallback(startLat, startLng, endLat, endLng, callback);
+        }
+    })
+    .catch(error => {
+        console.error('Error getting route data:', error);
+        // Try with OSRM fallback API if OpenRouteService fails
+        console.log('Trying fallback routing service...');
+        getRouteDataFallback(startLat, startLng, endLat, endLng, callback);
+    });
+}
+
+/**
+ * Fallback method to get route using OSRM API if OpenRouteService fails
+ */
+function getRouteDataFallback(startLat, startLng, endLat, endLng, callback) {
+    // Use OSRM API as fallback
+    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
+    
+    fetch(osrmUrl)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Fallback API responded with status ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Fallback route data received:', data);
+        
+        let coordinates = [];
+        if (data && data.routes && data.routes.length > 0 && 
+            data.routes[0].geometry && data.routes[0].geometry.coordinates) {
+            
+            // Convert [lng, lat] to [lat, lng] for Leaflet
+            coordinates = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+            
+            // Update journey distance in the UI
+            if (data.routes[0].distance) {
+                const distance = (data.routes[0].distance / 1000).toFixed(2);
+                const distanceElement = document.getElementById('quotedDistance');
+                if (distanceElement) {
+                    distanceElement.textContent = `${distance} km`;
+                    
+                    // Also update fare calculation
+                    const serviceType = document.getElementById('serviceType').value;
+                    if (serviceType) {
+                        const updatedDistance = parseFloat(distance);
+                        // Use calculateFare from booking.js if available
+                        if (typeof calculateFare === 'function') {
+                            const updatedFare = calculateFare(updatedDistance, serviceType);
+                            const updatedDeposit = Math.round(updatedFare * 0.3 * 100) / 100;
+                            
+                            // Update fare display
+                            const fareElement = document.getElementById('quotedFare');
+                            const depositElement = document.getElementById('quotedDeposit');
+                            
+                            if (fareElement) {
+                                fareElement.textContent = `$${updatedFare.toFixed(2)}`;
+                            }
+                            
+                            if (depositElement) {
+                                depositElement.textContent = `$${updatedDeposit.toFixed(2)}`;
+                            }
+                        } else {
+                            console.error('calculateFare function not available');
+                        }
+                    }
                 }
             }
         }
@@ -1115,8 +1222,8 @@ function getRouteData(startLat, startLng, endLat, endLng, callback) {
         callback(coordinates);
     })
     .catch(error => {
-        console.error('Error getting route data:', error);
-        // Fall back to straight line
+        console.error('Error getting fallback route data:', error);
+        // Fall back to straight line if both APIs fail
         callback([]);
     });
 } 
