@@ -194,14 +194,7 @@ function calculateFare(distance, vehicleType, journeyDate, journeyTime) {
         
         // 从localStorage获取设置
         const transportSettingsStr = localStorage.getItem('transportSettings');
-        console.log('Transport settings from localStorage (raw):', transportSettingsStr);
-        
-        // 尝试从sessionStorage获取设置（作为备份）
         const sessionSettingsStr = sessionStorage.getItem('transportSettings');
-        console.log('Transport settings from sessionStorage (backup):', sessionSettingsStr);
-        
-        // 调试输出所有localStorage内容
-        console.log('All localStorage keys:', Object.keys(localStorage));
         
         // 决定使用哪个数据源
         let dataSource = null;
@@ -216,13 +209,12 @@ function calculateFare(distance, vehicleType, journeyDate, journeyTime) {
         }
         
         if (!dataSource) {
-            console.warn('No transport settings found in any storage, using defaults');
+            console.log('No transport settings found in any storage, using defaults');
             transportSettings = JSON.parse(JSON.stringify(defaultSettings)); // Deep clone default settings
         } else {
             try {
                 console.log(`Using transport settings from ${sourceType}`);
                 transportSettings = JSON.parse(dataSource);
-                console.log('Parsed transport settings:', transportSettings);
                 
                 // 验证解析后的对象是否有必要的字段
                 if (typeof transportSettings !== 'object' || 
@@ -233,8 +225,6 @@ function calculateFare(distance, vehicleType, journeyDate, journeyTime) {
                     
                     console.warn('Transport settings invalid or missing required fields, using defaults');
                     transportSettings = JSON.parse(JSON.stringify(defaultSettings));
-                } else {
-                    console.log('Successfully loaded transport settings with baseFare:', transportSettings.baseFare);
                 }
             } catch (parseError) {
                 console.error('Error parsing transport settings JSON:', parseError);
@@ -1001,23 +991,17 @@ function initializeTransportSettings() {
         
         // 如果没有设置，使用默认设置
         if (!transportSettingsStr && !sessionSettingsStr) {
-            console.warn('initializeTransportSettings: No settings found, using defaults');
             return; // 使用默认设置
         }
         
         // 优先使用localStorage，备用sessionStorage
         const dataSource = transportSettingsStr || sessionSettingsStr;
-        const sourceType = transportSettingsStr ? 'localStorage' : 'sessionStorage';
-        
-        console.log(`initializeTransportSettings: Found settings in ${sourceType}`);
         
         // 解析设置
-        const parsedSettings = JSON.parse(dataSource);
-        console.log('initializeTransportSettings: Parsed settings:', parsedSettings);
-        
-        // 下次使用时会自动使用
+        JSON.parse(dataSource);
+        // 成功解析，下次使用时会自动使用
     } catch (error) {
-        console.error('initializeTransportSettings: Error initializing settings:', error);
+        console.error('Error initializing settings:', error);
     }
 }
 
@@ -1027,7 +1011,6 @@ function displayRateInfo() {
         // 获取报价容器
         const quoteContainer = document.getElementById('quoteContainer');
         if (!quoteContainer) {
-            console.warn('displayRateInfo: Quote container not found');
             return;
         }
         
@@ -1044,7 +1027,7 @@ function displayRateInfo() {
                 }
             }
         } catch (parseError) {
-            console.error('displayRateInfo: Error parsing settings:', parseError);
+            console.error('Error parsing settings:', parseError);
         }
         
         // 如果没有设置或解析失败，使用默认值
@@ -1078,6 +1061,6 @@ function displayRateInfo() {
             detailsDiv.appendChild(rateInfoDiv);
         }
     } catch (error) {
-        console.error('displayRateInfo: Error displaying rate info:', error);
+        console.error('Error displaying rate info:', error);
     }
 }

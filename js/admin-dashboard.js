@@ -1689,34 +1689,26 @@ function initTransportSettings() {
                 lastUpdated: new Date().toISOString() // 添加时间戳
             };
             
-            console.log('Saving transport settings:', transportSettings);
-            
             // 先尝试清除旧数据（解决可能的缓存问题）
             localStorage.removeItem('transportSettings');
             
             // 保存到localStorage
             localStorage.setItem('transportSettings', JSON.stringify(transportSettings));
-            console.log('Transport settings saved to localStorage');
             
             // 验证保存的数据
             const savedData = localStorage.getItem('transportSettings');
-            console.log('Verification - Raw saved data:', savedData);
             
             try {
                 const parsedData = JSON.parse(savedData);
-                console.log('Verification - Parsed saved data:', parsedData);
                 
                 // 额外的验证步骤：确保设置值与表单值匹配
                 if (parsedData.baseFare !== baseFareValue || parsedData.ratePerKm !== ratePerKmValue) {
-                    console.warn('警告：保存的数据与表单值不匹配，可能存在localStorage问题');
-                    
                     // 强制使用sessionStorage作为备份
                     sessionStorage.setItem('transportSettings', JSON.stringify(transportSettings));
-                    console.log('Backup saved to sessionStorage as failsafe');
                 }
                 
-                // 显示成功信息，包含保存的值
-                alert(`Transport settings saved successfully!\n\nBase Fare: $${baseFareValue}\nRate per Km: $${ratePerKmValue}`);
+                // 显示成功信息
+                alert('Transport settings saved successfully!');
             } catch (parseError) {
                 console.error('Error parsing saved data:', parseError);
                 alert('Settings saved but verification failed. Please try again.');
