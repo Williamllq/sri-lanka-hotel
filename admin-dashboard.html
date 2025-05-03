@@ -127,8 +127,11 @@
                 <li data-section="content">
                     <a href="#content"><i class="fas fa-newspaper"></i> Content Management</a>
                 </li>
-                <li data-section="hotels">
-                    <a href="#hotels"><i class="fas fa-hotel"></i> Hotel Recommendations</a>
+                <li>
+                    <a href="#" class="nav-link" data-section="hotelsSection">
+                        <i class="fas fa-hotel"></i>
+                        <span>Accommodations Management</span>
+                    </a>
                 </li>
                 <li data-section="orders">
                     <a href="#orders"><i class="fas fa-shopping-cart"></i> Order Management</a>
@@ -521,105 +524,21 @@
             
             <!-- Hotel Recommendations Section -->
             <div class="admin-section" id="hotelsSection">
-                <h2><i class="fas fa-hotel"></i> Hotel Recommendations</h2>
+                <h2><i class="fas fa-hotel"></i> Accommodations Management</h2>
                 
                 <div class="section-description">
-                    <p>管理网站上显示的酒店和住宿推荐。设置客房类型、图片、价格和详情，这些内容会显示在前端的"Luxurious Accommodations"部分。</p>
+                    <p>管理网站上显示的酒店客房信息。您在此页面设置的客房类型、图片、价格和详情将显示在前端的"Luxurious Accommodations"部分。</p>
                 </div>
                 
-                <div class="admin-tabs">
-                    <button class="admin-tab active" data-hotel-tab="recommendations">Hotel Recommendations</button>
-                    <button class="admin-tab" data-hotel-tab="accommodations">Luxurious Accommodations</button>
+                <!-- Simplified to only one tab since "Hotel Recommendations" was redundant -->
+                <div class="action-buttons">
+                    <button class="admin-btn primary" id="addRoomBtn">
+                        <i class="fas fa-plus"></i> Add New Room
+                    </button>
                 </div>
                 
-                <!-- Hotel Recommendations Tab -->
-                <div class="hotel-tab-content active" id="recommendationsContent">
-                    <div class="action-buttons">
-                        <button class="admin-btn primary" id="addHotelBtn">
-                            <i class="fas fa-plus"></i> Add New Hotel
-                        </button>
-                    </div>
-                    
-                    <div class="hotels-grid" id="hotelsGrid">
-                        <!-- Hotels will be loaded here dynamically -->
-                    </div>
-                </div>
-                
-                <!-- Luxurious Accommodations Tab -->
-                <div class="hotel-tab-content" id="accommodationsContent">
-                    <div class="action-buttons">
-                        <button class="admin-btn primary" id="addRoomBtn">
-                            <i class="fas fa-plus"></i> Add New Room
-                        </button>
-                    </div>
-                    
-                    <div class="rooms-grid" id="roomsGrid">
-                        <!-- Rooms will be loaded here dynamically -->
-                    </div>
-                </div>
-                
-                <!-- Add/Edit Hotel Modal -->
-                <div id="hotelModal" class="admin-modal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3 id="hotelModalTitle">Add New Hotel</h3>
-                            <button class="close-modal">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="hotelForm">
-                                <input type="hidden" id="hotelId">
-                                
-                                <div class="form-group">
-                                    <label for="hotelName">Hotel Name</label>
-                                    <input type="text" id="hotelName" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="hotelLocation">Location</label>
-                                    <input type="text" id="hotelLocation" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="hotelPrice">Price Range</label>
-                                    <input type="text" id="hotelPrice" placeholder="e.g. $100-200/night" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="hotelRating">Rating</label>
-                                    <select id="hotelRating">
-                                        <option value="5">5 Stars</option>
-                                        <option value="4">4 Stars</option>
-                                        <option value="3">3 Stars</option>
-                                        <option value="2">2 Stars</option>
-                                        <option value="1">1 Star</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="hotelDescription">Description</label>
-                                    <textarea id="hotelDescription" rows="4" required></textarea>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="hotelImage">Hotel Image</label>
-                                    <input type="file" id="hotelImage" accept="image/*">
-                                    <div class="file-preview" id="hotelImagePreview"></div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="hotelAmenities">Amenities (comma-separated)</label>
-                                    <input type="text" id="hotelAmenities" placeholder="WiFi, Pool, Restaurant" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="hotelWebsite">Website URL (optional)</label>
-                                    <input type="url" id="hotelWebsite" placeholder="https://hotelwebsite.com">
-                                </div>
-                                
-                                <button type="submit" class="admin-btn primary" id="saveHotelBtn">Save Hotel</button>
-                            </form>
-                        </div>
-                    </div>
+                <div class="rooms-grid" id="roomsGrid">
+                    <!-- Rooms will be loaded here dynamically -->
                 </div>
                 
                 <!-- Add/Edit Room Modal -->
