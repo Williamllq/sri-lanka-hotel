@@ -6,9 +6,148 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Admin Accommodations Management loaded');
     
+    // First ensure we have both storage keys properly initialized
+    initializeStorageKeys();
+    
     // 初始化酒店和房间管理
     initAccommodationsManagement();
 });
+
+/**
+ * Initialize the localStorage keys for both admin and front-end
+ */
+function initializeStorageKeys() {
+    console.log('Initializing localStorage keys for rooms');
+    
+    // Check if adminRooms exists - if not, create it from siteRooms or create empty
+    let adminRooms = [];
+    let siteRooms = [];
+    
+    try {
+        // Load adminRooms
+        const adminRoomsStr = localStorage.getItem('adminRooms');
+        if (adminRoomsStr) {
+            adminRooms = JSON.parse(adminRoomsStr);
+            console.log('Loaded adminRooms from localStorage:', adminRooms.length);
+        }
+        
+        // Load siteRooms
+        const siteRoomsStr = localStorage.getItem('siteRooms');
+        if (siteRoomsStr) {
+            siteRooms = JSON.parse(siteRoomsStr);
+            console.log('Loaded siteRooms from localStorage:', siteRooms.length);
+        }
+        
+        // If adminRooms is empty but siteRooms has data, convert to adminRooms format
+        if (adminRooms.length === 0 && siteRooms.length > 0) {
+            console.log('Creating adminRooms from siteRooms');
+            adminRooms = siteRooms.map(room => ({
+                id: room.id || 'room_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                name: room.name,
+                description: room.description,
+                price: room.price,
+                size: room.size,
+                bedType: room.bedType,
+                hasWifi: room.hasWifi ? 'yes' : 'no',
+                imageUrl: room.imageUrl,
+                createdAt: new Date().toISOString()
+            }));
+            
+            // Save adminRooms
+            localStorage.setItem('adminRooms', JSON.stringify(adminRooms));
+            console.log('Saved adminRooms from siteRooms data');
+        }
+        // If siteRooms is empty but adminRooms has data, convert to siteRooms format
+        else if (siteRooms.length === 0 && adminRooms.length > 0) {
+            console.log('Creating siteRooms from adminRooms');
+            siteRooms = adminRooms.map(room => ({
+                id: room.id,
+                name: room.name,
+                description: room.description,
+                price: room.price,
+                size: room.size,
+                bedType: room.bedType,
+                hasWifi: room.hasWifi === 'yes',
+                imageUrl: room.imageUrl
+            }));
+            
+            // Save siteRooms
+            localStorage.setItem('siteRooms', JSON.stringify(siteRooms));
+            console.log('Saved siteRooms from adminRooms data');
+        }
+        
+        // Create demo data if both are empty
+        if (adminRooms.length === 0 && siteRooms.length === 0) {
+            console.log('Creating demo room data');
+            createDemoRooms();
+        }
+    } catch (error) {
+        console.error('Error initializing storage keys:', error);
+        // Create demo data if there's an error
+        createDemoRooms();
+    }
+}
+
+/**
+ * Create demo room data for testing
+ */
+function createDemoRooms() {
+    console.log('Creating demo room data');
+    
+    const demoRooms = [
+        {
+            id: 'room_001',
+            name: 'Ocean View Suite',
+            description: 'Wake up to breathtaking views of the Indian Ocean',
+            price: 250,
+            size: 55,
+            bedType: 'King Bed',
+            hasWifi: 'yes',
+            imageUrl: 'images/rooms/ocean-view.jpg',
+            createdAt: new Date().toISOString()
+        },
+        {
+            id: 'room_002',
+            name: 'Tropical Garden Suite',
+            description: 'Immerse yourself in lush tropical gardens',
+            price: 180,
+            size: 45,
+            bedType: 'Queen Bed',
+            hasWifi: 'yes',
+            imageUrl: 'images/rooms/garden-suite.jpg',
+            createdAt: new Date().toISOString()
+        },
+        {
+            id: 'room_003',
+            name: 'Private Pool Villa',
+            description: 'Ultimate luxury with your own infinity pool',
+            price: 450,
+            size: 120,
+            bedType: 'King Bed',
+            hasWifi: 'yes',
+            imageUrl: 'images/rooms/pool-villa.jpg',
+            createdAt: new Date().toISOString()
+        }
+    ];
+    
+    // Save to adminRooms
+    localStorage.setItem('adminRooms', JSON.stringify(demoRooms));
+    
+    // Convert and save to siteRooms
+    const siteDemoRooms = demoRooms.map(room => ({
+        id: room.id,
+        name: room.name,
+        description: room.description,
+        price: room.price,
+        size: room.size,
+        bedType: room.bedType,
+        hasWifi: room.hasWifi === 'yes',
+        imageUrl: room.imageUrl
+    }));
+    
+    localStorage.setItem('siteRooms', JSON.stringify(siteDemoRooms));
+    console.log('Demo room data created and saved');
+}
 
 /**
  * 初始化酒店管理功能
