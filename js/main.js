@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Display all images from admin in the gallery section
     displayAdminImages();
+    
+    // Initialize testimonials
+    initTestimonials();
 });
 
 // Initialize the tabs in the Discover More section
@@ -765,4 +768,84 @@ function initModals() {
             }
         });
     }
+}
+
+// Initialize testimonials grid and slider
+function initTestimonials() {
+    const dots = document.querySelectorAll('.testimonial-dots .dot');
+    const testimonialCards = document.querySelectorAll('.testimonial-card');
+    const prevButton = document.querySelector('.prev-testimonial');
+    const nextButton = document.querySelector('.next-testimonial');
+    
+    if (!dots.length || !testimonialCards.length) {
+        console.warn('Testimonials elements not found');
+        return;
+    }
+
+    let currentSlide = 0;
+    const totalSlides = testimonialCards.length;
+
+    // Function to update the active slide
+    function showSlide(index) {
+        // Hide all testimonials (for mobile view)
+        testimonialCards.forEach(card => {
+            card.style.display = 'none';
+        });
+        
+        // Show the current testimonial
+        testimonialCards[index].style.display = 'flex';
+        
+        // Update the active dot
+        dots.forEach(dot => {
+            dot.classList.remove('active');
+        });
+        
+        dots[index].classList.add('active');
+        currentSlide = index;
+    }
+
+    // Set up dot navigation
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            showSlide(index);
+        });
+    });
+
+    // Set up prev/next buttons
+    if (prevButton && nextButton) {
+        prevButton.addEventListener('click', () => {
+            let newIndex = currentSlide - 1;
+            if (newIndex < 0) {
+                newIndex = totalSlides - 1;
+            }
+            showSlide(newIndex);
+        });
+
+        nextButton.addEventListener('click', () => {
+            let newIndex = currentSlide + 1;
+            if (newIndex >= totalSlides) {
+                newIndex = 0;
+            }
+            showSlide(newIndex);
+        });
+    }
+
+    // Initialize the first slide for mobile view
+    // Desktop view shows all cards in a grid
+    if (window.innerWidth <= 768) {
+        showSlide(0);
+    }
+
+    // Update on window resize
+    window.addEventListener('resize', () => {
+        if (window.innerWidth <= 768) {
+            // On mobile, make sure a slide is active
+            showSlide(currentSlide);
+        } else {
+            // On desktop, show all testimonials in grid
+            testimonialCards.forEach(card => {
+                card.style.display = 'flex';
+            });
+        }
+    });
 } 
