@@ -495,24 +495,42 @@ function initLuxuriousRooms() {
 }
 
 /**
- * 加载并显示奢华客房
+ * 加载并显示客房
  */
 function loadAndDisplayRooms() {
+    console.log('Loading and displaying rooms');
+    
     const roomsGrid = document.getElementById('roomsGrid');
     if (!roomsGrid) {
-        console.error('Rooms grid not found');
+        console.error('Rooms grid element not found');
         return;
     }
     
     // 从localStorage获取客房
     const roomsStr = localStorage.getItem('adminRooms');
-    const rooms = roomsStr ? JSON.parse(roomsStr) : [];
+    console.log('Rooms data from localStorage:', roomsStr);
     
-    // 清空列表
+    let rooms = [];
+    try {
+        rooms = roomsStr ? JSON.parse(roomsStr) : [];
+        console.log('Parsed rooms:', rooms);
+        
+        // 确保是数组
+        if (!Array.isArray(rooms)) {
+            console.warn('Rooms is not an array, resetting to empty array');
+            rooms = [];
+        }
+    } catch (e) {
+        console.error('Error parsing rooms data:', e);
+        rooms = []; // 如果解析失败，使用空数组
+    }
+    
+    // 清空现有内容
     roomsGrid.innerHTML = '';
     
     // 如果没有客房，显示提示
     if (rooms.length === 0) {
+        console.log('No rooms found, displaying empty message');
         roomsGrid.innerHTML = `
             <div class="no-content-message">
                 <i class="fas fa-bed"></i>
@@ -522,8 +540,11 @@ function loadAndDisplayRooms() {
         return;
     }
     
+    console.log(`Displaying ${rooms.length} rooms`);
+    
     // 显示所有客房
-    rooms.forEach(room => {
+    rooms.forEach((room, index) => {
+        console.log(`Creating card for room ${index + 1}:`, room.id);
         const roomCard = document.createElement('div');
         roomCard.className = 'room-card';
         
@@ -533,13 +554,13 @@ function loadAndDisplayRooms() {
             </div>
             <div class="room-info">
                 <h3>${room.name}</h3>
-                <div class="room-price"><i class="fas fa-dollar-sign"></i> $${room.price} per night</div>
-                <p class="room-description">${room.description}</p>
+                <p>${room.description}</p>
                 <div class="room-details">
-                    <div class="room-detail"><i class="fas fa-ruler-combined"></i> ${room.size} m²</div>
-                    <div class="room-detail"><i class="fas fa-bed"></i> ${room.bedType}</div>
-                    <div class="room-detail"><i class="fas fa-wifi"></i> WiFi: ${room.hasWifi === 'yes' ? 'Available' : 'Not Available'}</div>
+                    <span><i class="fas fa-bed"></i> ${room.bedType}</span>
+                    <span><i class="fas fa-ruler-combined"></i> ${room.size} m²</span>
+                    <span><i class="fas fa-wifi"></i> ${room.hasWifi === 'yes' ? 'WiFi Included' : 'No WiFi'}</span>
                 </div>
+                <div class="room-price">$${room.price} per night</div>
             </div>
             <div class="room-actions">
                 <button class="edit-room-btn" data-id="${room.id}">
@@ -554,7 +575,7 @@ function loadAndDisplayRooms() {
         roomsGrid.appendChild(roomCard);
     });
     
-    // 添加编辑和删除事件处理
+    // 设置客房卡片的事件处理
     setupRoomEventHandlers();
 }
 
@@ -608,18 +629,20 @@ function setupRoomForm() {
     const roomForm = document.getElementById('roomForm');
     if (roomForm) {
         roomForm.addEventListener('submit', function(e) {
+            // 阻止表单默认提交行为
             e.preventDefault();
+            console.log('Room form submitted');
             
             // 获取表单数据
             const roomId = document.getElementById('roomId').value;
-            const name = document.getElementById('roomName').value.trim();
-            const description = document.getElementById('roomDescription').value.trim();
+            const name = document.getElementById('roomName').value;
+            const description = document.getElementById('roomDescription').value;
             const price = document.getElementById('roomPrice').value;
             const size = document.getElementById('roomSize').value;
             const bedType = document.getElementById('bedType').value;
             const hasWifi = document.querySelector('input[name="hasWifi"]:checked').value;
             
-            // 验证必填字段
+            // 数据验证
             if (!name) {
                 alert('Please enter a room name');
                 return;
@@ -652,42 +675,78 @@ function setupRoomForm() {
                 createdAt: new Date().toISOString()
             };
             
+            console.log('Created room object:', room);
+            
             // 处理图片上传
             const roomImageInput = document.getElementById('roomImage');
             const preview = document.querySelector('#roomImagePreview img');
             
-            if (roomImageInput.files[0]) {
+            if (roomImageInput.files && roomImageInput.files[0]) {
+                console.log('New image file selected');
+                const file = roomImageInput.files[0];
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     room.imageUrl = e.target.result;
+                    console.log('Image loaded, saving room');
                     saveRoomToStorage(room);
                 };
-                reader.readAsDataURL(roomImageInput.files[0]);
+                reader.onerror = function(error) {
+                    console.error('Error reading file:', error);
+                    alert('Failed to read image file');
+                };
+                reader.readAsDataURL(file);
             } else if (preview && preview.src) {
                 // 保留现有图片
+                console.log('Using existing image');
                 room.imageUrl = preview.src;
                 saveRoomToStorage(room);
-            } else {
-                // 没有图片但这是必填项
+            } else if (roomId) {
+                // 编辑模式，但没有更改图片 - 从存储中获取现有图片
+                console.log('Edit mode without image change');
+                const roomsStr = localStorage.getItem('adminRooms');
+                if (roomsStr) {
+                    try {
+                        const rooms = JSON.parse(roomsStr);
+                        const existingRoom = rooms.find(r => r.id === roomId);
+                        if (existingRoom && existingRoom.imageUrl) {
+                            room.imageUrl = existingRoom.imageUrl;
+                            console.log('Found existing image, saving room');
+                            saveRoomToStorage(room);
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing rooms from localStorage:', e);
+                    }
+                }
+                // 如果找不到现有图片，请求用户上传
                 alert('Please select a room image');
-                return;
+            } else {
+                // 新增模式，但没有选择图片
+                console.log('New room without image');
+                alert('Please select a room image');
             }
         });
+    } else {
+        console.error('Room form not found');
     }
     
     // 设置取消按钮
-    const cancelBtn = roomForm.querySelector('.cancel-btn');
+    const cancelBtn = document.querySelector('#roomForm .cancel-btn');
     if (cancelBtn) {
         cancelBtn.addEventListener('click', function() {
+            console.log('Cancel button clicked');
             if (typeof closeModal === 'function') {
                 closeModal('roomModal');
             } else {
                 const modal = document.getElementById('roomModal');
                 if (modal) {
                     modal.style.display = 'none';
+                    modal.classList.remove('active');
                 }
             }
         });
+    } else {
+        console.warn('Cancel button not found in room form');
     }
 }
 
@@ -697,47 +756,70 @@ function setupRoomForm() {
  */
 function saveRoomToStorage(room) {
     try {
+        console.log('Saving room to storage:', room);
+        
         // 从localStorage获取现有客房
         const roomsStr = localStorage.getItem('adminRooms');
-        let rooms = roomsStr ? JSON.parse(roomsStr) : [];
+        console.log('Current rooms from localStorage:', roomsStr);
         
-        // 确保是数组
-        if (!Array.isArray(rooms)) {
+        let rooms = [];
+        try {
+            rooms = roomsStr ? JSON.parse(roomsStr) : [];
+            // 确保是数组
+            if (!Array.isArray(rooms)) {
+                console.warn('Rooms is not an array, resetting to empty array');
+                rooms = [];
+            }
+        } catch (parseError) {
+            console.error('Error parsing rooms from localStorage:', parseError);
             rooms = [];
         }
         
+        console.log('Parsed rooms:', rooms);
+        
         // 检查是否存在具有相同ID的客房（编辑模式）
         const existingIndex = rooms.findIndex(r => r.id === room.id);
+        console.log('Existing room index:', existingIndex);
         
         if (existingIndex !== -1) {
             // 更新现有客房
             rooms[existingIndex] = room;
+            console.log('Updated existing room at index', existingIndex);
         } else {
             // 添加新客房
             rooms.push(room);
+            console.log('Added new room, total rooms:', rooms.length);
         }
         
         // 保存回localStorage
-        localStorage.setItem('adminRooms', JSON.stringify(rooms));
+        const roomsJson = JSON.stringify(rooms);
+        console.log('Saving rooms to localStorage:', roomsJson);
+        localStorage.setItem('adminRooms', roomsJson);
         
         // 关闭模态框
+        console.log('Attempting to close room modal');
         if (typeof closeModal === 'function') {
             closeModal('roomModal');
         } else {
+            console.warn('closeModal function not found, using alternative method');
             const modal = document.getElementById('roomModal');
             if (modal) {
                 modal.style.display = 'none';
+                modal.classList.remove('active');
+            } else {
+                console.error('Room modal element not found');
             }
         }
         
         // 重新加载客房列表
+        console.log('Reloading rooms display');
         loadAndDisplayRooms();
         
         // 显示成功消息
         alert('Room saved successfully');
     } catch (e) {
         console.error('Error saving room:', e);
-        alert('Failed to save room');
+        alert('Failed to save room: ' + e.message);
     }
 }
 

@@ -216,6 +216,7 @@ function openModal(modalId) {
  * @param {string} modalId - 要关闭的模态框ID
  */
 function closeModal(modalId) {
+    console.log(`Closing modal: ${modalId}`);
     const modal = document.getElementById(modalId);
     if (modal) {
         // 隐藏模态框
@@ -242,6 +243,8 @@ function closeModal(modalId) {
         backdrops.forEach(backdrop => {
             backdrop.parentNode.removeChild(backdrop);
         });
+    } else {
+        console.error(`Modal with ID ${modalId} not found`);
     }
 }
 
