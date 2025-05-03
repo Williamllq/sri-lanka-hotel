@@ -28,33 +28,74 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebarMenuItems = document.querySelectorAll('.sidebar-menu li');
     const adminSections = document.querySelectorAll('.admin-section');
     
-    // Set last login time
-    const lastLogin = localStorage.getItem('adminLastLogin');
-    if (lastLogin) {
-        const date = new Date(lastLogin);
-        lastLoginTime.textContent = `Last login: ${date.toLocaleString()}`;
-    }
-    
-    // Sidebar toggle functionality
-    sidebarToggle.addEventListener('click', function() {
-        adminLayout.classList.toggle('sidebar-collapsed');
-    });
-    
-    // Responsive design
-    function handleResponsive() {
-        if (window.innerWidth < 992) {
-            adminLayout.classList.add('sidebar-collapsed');
-        } else {
-            adminLayout.classList.remove('sidebar-collapsed');
+    // Update last login time
+    if (lastLoginTime) {
+        const lastLogin = localStorage.getItem('adminLastLogin');
+        if (lastLogin) {
+            const date = new Date(lastLogin);
+            lastLoginTime.textContent = 'Last login: ' + date.toLocaleString();
         }
     }
     
-    // Initially handle responsive design
-    handleResponsive();
-    window.addEventListener('resize', handleResponsive);
+    // Manually setup click handler for hotel section
+    const hotelLink = document.querySelector('a[data-section="hotelsSection"]');
+    if (hotelLink) {
+        hotelLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all menu items and sections
+            sidebarMenuItems.forEach(menuItem => menuItem.classList.remove('active'));
+            adminSections.forEach(section => section.classList.remove('active'));
+            
+            // Make parent li active
+            this.closest('li').classList.add('active');
+            
+            // Show hotels section
+            const hotelSection = document.getElementById('hotelsSection');
+            if (hotelSection) {
+                hotelSection.classList.add('active');
+                console.log('Activated hotelsSection');
+            } else {
+                console.error('Hotels section not found');
+            }
+        });
+    } else {
+        console.warn('Hotel section link not found');
+    }
+    
+    // Initialize charts
+    initCharts();
+    
+    // Initialize content management
+    initContentManagement();
+    
+    // Initialize hotel management
+    initHotelManagement();
+    
+    // Initialize sidebar toggle
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            adminLayout.classList.toggle('sidebar-collapsed');
+        });
+    }
+    
+    // Logout button
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminLastLogin');
+                window.location.href = 'admin-login.html';
+            }
+        });
+    }
     
     // Handle sidebar navigation
     sidebarMenuItems.forEach(item => {
+        const dataSection = item.getAttribute('data-section');
+        if (!dataSection) return; // Skip items without data-section (like our hotel link now)
+        
         item.addEventListener('click', function(event) {
             if (this.classList.contains('logout')) return;
             
@@ -68,8 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('active');
             
             // Show corresponding section
-            const sectionId = this.getAttribute('data-section');
-            document.getElementById(sectionId + 'Section').classList.add('active');
+            document.getElementById(dataSection + 'Section').classList.add('active');
             
             // On mobile, collapse sidebar after selection
             if (window.innerWidth < 992) {
@@ -78,43 +118,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Logout functionality
-    logoutButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        // Clear local storage authentication
-        localStorage.removeItem('adminToken');
-        
-        // Redirect to login page
-        window.location.href = 'admin-login.html';
-    });
-    
-    // Initialize dashboard stats (mock data for demonstration)
-    initDashboardStats();
-    
-    // Initialize picture management
-    initPictureManagement();
-    
-    // Initialize carousel management
-    initCarouselManagement();
-    
-    // Initialize content management
-    initContentManagement();
-    
-    // Initialize hotel management
-    initHotelManagement();
-    
-    // Initialize order management
-    initOrderManagement();
-    
-    // Initialize transport settings
-    initTransportSettings();
-    
-    // Initialize settings
-    initSettings();
-    
-    // Ensure all modals are properly handled
-    initModalHandling();
+    // Activate default section (dashboard)
+    if (document.querySelector('.sidebar-menu li.active') === null) {
+        const defaultSection = document.querySelector('.sidebar-menu li[data-section="dashboard"]');
+        if (defaultSection) {
+            defaultSection.classList.add('active');
+            document.getElementById('dashboardSection').classList.add('active');
+        }
+    }
 });
 
 // Ensure all modals are properly handled
