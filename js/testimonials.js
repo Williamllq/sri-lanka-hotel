@@ -2,8 +2,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const slides = document.querySelectorAll('.testimonial-slide');
     const dots = document.querySelectorAll('.dot');
-    const prevBtn = document.querySelector('.testimonial-nav.prev');
-    const nextBtn = document.querySelector('.testimonial-nav.next');
+    const prevBtn = document.querySelector('.testimonial-nav.prev-testimonial');
+    const nextBtn = document.querySelector('.testimonial-nav.next-testimonial');
     
     let currentSlide = 0;
     const slideCount = slides.length;
