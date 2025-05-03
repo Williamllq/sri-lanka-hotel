@@ -166,48 +166,71 @@ function initAccommodationsManagement() {
  * 初始化奢华客房管理
  */
 function initLuxuriousRooms() {
+    console.log('Initializing luxury rooms management');
+    
     // 加载和显示奢华客房
     loadAndDisplayRooms();
     
     // 设置添加客房按钮
     const addRoomBtn = document.getElementById('addRoomBtn');
     if (addRoomBtn) {
+        console.log('Setting up Add Room button click handler');
         addRoomBtn.addEventListener('click', function() {
-            // 重置表单
+            console.log('Add Room button clicked');
+            
+            // 重置表单并准备添加新客房
             const roomForm = document.getElementById('roomForm');
-            if (roomForm) {
-                roomForm.reset();
-                
-                // 清除隐藏ID字段
-                const roomId = document.getElementById('roomId');
-                if (roomId) {
-                    roomId.value = '';
-                }
-                
-                // 更新模态框标题
-                const modalTitle = document.getElementById('roomModalTitle');
-                if (modalTitle) {
-                    modalTitle.innerHTML = '<i class="fas fa-bed"></i> Add New Room';
-                }
-                
-                // 清除图片预览
-                const imagePreview = document.getElementById('roomImagePreview');
-                if (imagePreview) {
-                    imagePreview.innerHTML = '';
-                }
-            }
+            if (roomForm) roomForm.reset();
+            
+            // 清除隐藏字段和预览
+            const roomId = document.getElementById('roomId');
+            if (roomId) roomId.value = '';
+            
+            const roomImagePreview = document.getElementById('roomImagePreview');
+            if (roomImagePreview) roomImagePreview.innerHTML = '';
+            
+            // 更新标题
+            const roomModalTitle = document.getElementById('roomModalTitle');
+            if (roomModalTitle) roomModalTitle.innerHTML = '<i class="fas fa-bed"></i> Add New Room';
             
             // 打开模态框
-            if (typeof openModal === 'function') {
+            const roomModal = document.getElementById('roomModal');
+            if (roomModal) {
+                console.log('Opening room modal');
                 openModal('roomModal');
             } else {
-                const modal = document.getElementById('roomModal');
-                if (modal) {
-                    modal.style.display = 'block';
-                }
+                console.error('Room modal not found');
             }
         });
+    } else {
+        console.error('Add Room button not found');
     }
+    
+    // 设置取消按钮
+    const cancelBtns = document.querySelectorAll('.cancel-btn');
+    cancelBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            console.log('Cancel button clicked');
+            const modal = this.closest('.admin-modal');
+            if (modal) {
+                console.log('Closing modal:', modal.id);
+                closeModal(modal.id);
+            }
+        });
+    });
+    
+    // 设置关闭按钮
+    const closeModalBtns = document.querySelectorAll('.close-modal');
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            console.log('Close button clicked');
+            const modal = this.closest('.admin-modal');
+            if (modal) {
+                console.log('Closing modal:', modal.id);
+                closeModal(modal.id);
+            }
+        });
+    });
 }
 
 /**
