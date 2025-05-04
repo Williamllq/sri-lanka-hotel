@@ -73,42 +73,124 @@
    */
   function loadImagesFromLocalStorage() {
     try {
-      // 尝试从adminPictures获取
-      const adminPicturesStr = localStorage.getItem('adminPictures');
-      const adminPictures = adminPicturesStr ? JSON.parse(adminPicturesStr) : [];
+      // 检查是否使用增强存储
+      const usingEnhanced = localStorage.getItem('usingEnhancedStorage') === 'true';
       
-      // 尝试从sitePictures获取
-      const sitePicturesStr = localStorage.getItem('sitePictures');
-      const sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
-      
-      // 合并去重
-      let allPictures = [...adminPictures];
-      
-      // 添加sitePictures中不重复的图片
-      sitePictures.forEach(sitePic => {
-        if (!allPictures.some(pic => pic.id === sitePic.id)) {
-          // 转换sitePicture格式为统一格式
-          allPictures.push({
-            id: sitePic.id,
-            name: sitePic.name,
-            category: sitePic.category,
-            description: sitePic.description || '',
-            imageUrl: sitePic.url || sitePic.imageUrl,
-            uploadDate: sitePic.uploadDate || new Date().toISOString()
-          });
-        }
-      });
-      
-      console.log(`Loaded ${allPictures.length} images from localStorage`);
-      
-      if (allPictures.length > 0) {
-        setupGalleryWithPictures(allPictures);
-      } else {
-        // 没有图片时加载默认图片
-        loadDefaultPictures();
+      if (usingEnhanced && window.ImageStorageService) {
+        console.log('检测到增强存储标志，但未能成功从IndexedDB加载，正在重试...');
+        // 再次尝试从IndexedDB加载图片，使用更简单的方式
+        window.ImageStorageService.getAllImages({
+          page: 1,
+          limit: 100,
+          sort: 'newest'
+        }, function(result) {
+          if (result && result.images && result.images.length > 0) {
+            console.log(`成功从IndexedDB加载 ${result.images.length} 张图片`);
+            setupGalleryWithPictures(result.images);
+          } else {
+            // 如果仍然失败，回退到索引
+            loadFromImageIndex();
+          }
+        });
+        return;
       }
+      
+      // 如果不是使用增强存储，或者没有增强存储服务，尝试使用索引
+      loadFromImageIndex();
     } catch (e) {
-      console.error('Error loading images from localStorage:', e);
+      console.error('加载图片时出错:', e);
+      loadDefaultPictures();
+    }
+  }
+  
+  /**
+   * 从图片索引加载图片
+   */
+  function loadFromImageIndex() {
+    try {
+      // 尝试从索引获取
+      const indexStr = localStorage.getItem('siteImageIndex');
+      const index = indexStr ? JSON.parse(indexStr) : [];
+      
+      if (index && index.length > 0) {
+        console.log(`从索引中找到 ${index.length} 张图片引用`);
+        
+        // 如果增强存储服务可用，从增强存储加载完整数据
+        if (window.ImageStorageService) {
+          // 轮询获取每张图片的完整数据
+          let loadedImages = [];
+          let loadCount = 0;
+          
+          index.forEach(item => {
+            window.ImageStorageService.getFullImage(item.id, function(fullImage) {
+              loadCount++;
+              
+              if (fullImage) {
+                loadedImages.push(fullImage);
+              }
+              
+              // 所有图片都处理完后，显示图库
+              if (loadCount === index.length) {
+                if (loadedImages.length > 0) {
+                  console.log(`成功从IndexedDB加载 ${loadedImages.length} 张图片的完整数据`);
+                  setupGalleryWithPictures(loadedImages);
+                } else {
+                  console.warn('未能从IndexedDB加载图片，尝试旧方法');
+                  loadFromLegacyStorage();
+                }
+              }
+            });
+          });
+          return;
+        }
+      }
+      
+      // 如果索引为空或无法使用，尝试旧存储
+      loadFromLegacyStorage();
+    } catch (e) {
+      console.error('从索引加载图片失败:', e);
+      loadFromLegacyStorage();
+    }
+  }
+  
+  /**
+   * 从旧存储方式加载图片
+   */
+  function loadFromLegacyStorage() {
+    console.log('尝试从旧存储方式加载图片');
+    
+    // 尝试从adminPictures获取
+    const adminPicturesStr = localStorage.getItem('adminPictures');
+    const adminPictures = adminPicturesStr ? JSON.parse(adminPicturesStr) : [];
+    
+    // 尝试从sitePictures获取
+    const sitePicturesStr = localStorage.getItem('sitePictures');
+    const sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+    
+    // 合并去重
+    let allPictures = [...adminPictures];
+    
+    // 添加sitePictures中不重复的图片
+    sitePictures.forEach(sitePic => {
+      if (!allPictures.some(pic => pic.id === sitePic.id)) {
+        // 转换sitePicture格式为统一格式
+        allPictures.push({
+          id: sitePic.id,
+          name: sitePic.name,
+          category: sitePic.category,
+          description: sitePic.description || '',
+          imageUrl: sitePic.url || sitePic.imageUrl,
+          uploadDate: sitePic.uploadDate || new Date().toISOString()
+        });
+      }
+    });
+    
+    console.log(`从旧存储方式加载了 ${allPictures.length} 张图片`);
+    
+    if (allPictures.length > 0) {
+      setupGalleryWithPictures(allPictures);
+    } else {
+      // 没有图片时加载默认图片
       loadDefaultPictures();
     }
   }

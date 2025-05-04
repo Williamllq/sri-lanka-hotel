@@ -168,93 +168,54 @@ function migrateFromLocalStorage() {
 }
 
 /**
- * 迁移单个图片
+ * 直接将图片数据迁移到IndexedDB中
  * @param {Object} picture - 图片数据
  * @param {Function} callback - 回调函数
  */
 function migrateImage(picture, callback) {
-    // 创建Image对象来加载图片
-    const img = new Image();
+    if (!db) {
+        console.error('数据库未初始化');
+        if (typeof callback === 'function') callback(false);
+        return;
+    }
     
-    // 设置超时，防止图片加载时间过长
-    const timeoutId = setTimeout(function() {
-        console.warn(`图片加载超时: ${picture.name}，使用直接保存方式`);
-        // 超时后直接保存原始图片数据
-        saveDirectly(picture, callback);
-    }, 5000); // 5秒超时
+    console.log('直接迁移图片数据到IndexedDB:', picture.name);
     
-    img.onload = function() {
-        // 清除超时
-        clearTimeout(timeoutId);
-        
+    try {
         // 创建主图像数据
         const imageData = {
             id: picture.id,
             name: picture.name,
             category: picture.category,
-            description: picture.description,
+            description: picture.description || '',
             imageUrl: picture.imageUrl || picture.url,
-            uploadDate: picture.uploadDate
+            uploadDate: picture.uploadDate || new Date().toISOString()
         };
         
-        // 生成缩略图
-        const thumbnailUrl = generateThumbnail(img, 200, 150);
+        // 使用相同的数据作为缩略图
         const thumbnailData = {
             id: picture.id,
             name: picture.name,
             category: picture.category,
-            imageUrl: thumbnailUrl,
-            uploadDate: picture.uploadDate
+            imageUrl: picture.imageUrl || picture.url,
+            uploadDate: picture.uploadDate || new Date().toISOString()
         };
         
         // 保存到IndexedDB
         saveImageToDB(imageData, thumbnailData, function() {
-            callback(true);
+            // 同步到前端
+            try {
+                syncToFrontend(imageData);
+            } catch (e) {
+                console.warn('前端同步失败，但图片已保存到IndexedDB:', e);
+            }
+            
+            if (typeof callback === 'function') callback(true);
         });
-    };
-    
-    img.onerror = function() {
-        // 清除超时
-        clearTimeout(timeoutId);
-        
-        console.warn(`加载图片失败: ${picture.name}，使用直接保存方式`);
-        // 图片加载失败时直接保存原始数据
-        saveDirectly(picture, callback);
-    };
-    
-    // 设置图片源
-    img.src = picture.imageUrl || picture.url;
-}
-
-/**
- * 直接保存图片数据（不生成缩略图）
- * @param {Object} picture - 图片数据
- * @param {Function} callback - 回调函数
- */
-function saveDirectly(picture, callback) {
-    // 创建主图像数据
-    const imageData = {
-        id: picture.id,
-        name: picture.name,
-        category: picture.category,
-        description: picture.description,
-        imageUrl: picture.imageUrl || picture.url,
-        uploadDate: picture.uploadDate
-    };
-    
-    // 使用相同的数据作为缩略图（这不是理想的做法，但可以确保数据的完整性）
-    const thumbnailData = {
-        id: picture.id,
-        name: picture.name,
-        category: picture.category,
-        imageUrl: picture.imageUrl || picture.url,
-        uploadDate: picture.uploadDate
-    };
-    
-    // 保存到IndexedDB
-    saveImageToDB(imageData, thumbnailData, function() {
-        callback(true);
-    });
+    } catch (e) {
+        console.error('迁移图片数据失败:', e);
+        if (typeof callback === 'function') callback(false);
+    }
 }
 
 /**
@@ -718,29 +679,51 @@ function preloadFullImages(imageIds) {
  */
 function syncToFrontend(imageData) {
     try {
-        const sitePicture = {
+        console.log('同步图片到前端存储:', imageData.name);
+        
+        // 创建轻量级的引用对象，不包含完整图片数据，只包含ID和基本信息
+        const indexData = {
             id: imageData.id,
             name: imageData.name,
             category: imageData.category,
             description: imageData.description,
-            url: imageData.imageUrl,
+            // 不存储完整的图片URL，只存储是否可用的标志
+            hasImageUrl: Boolean(imageData.imageUrl),
             uploadDate: imageData.uploadDate
         };
         
-        const sitePicturesStr = localStorage.getItem('sitePictures');
-        let sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
-        
-        // 检查是否存在并更新或添加
-        const existingIndex = sitePictures.findIndex(pic => pic.id === sitePicture.id);
-        if (existingIndex !== -1) {
-            sitePictures[existingIndex] = sitePicture;
-        } else {
-            sitePictures.push(sitePicture);
+        // 尝试读取现有索引
+        let siteIndex = [];
+        try {
+            const siteIndexStr = localStorage.getItem('siteImageIndex');
+            if (siteIndexStr) {
+                siteIndex = JSON.parse(siteIndexStr);
+                if (!Array.isArray(siteIndex)) siteIndex = [];
+            }
+        } catch (e) {
+            console.warn('读取站点图片索引失败，创建新索引:', e);
+            siteIndex = [];
         }
         
-        localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
+        // 更新或添加索引
+        const existingIndex = siteIndex.findIndex(item => item.id === indexData.id);
+        if (existingIndex !== -1) {
+            siteIndex[existingIndex] = indexData;
+        } else {
+            siteIndex.push(indexData);
+        }
+        
+        // 保存轻量级索引到localStorage
+        localStorage.setItem('siteImageIndex', JSON.stringify(siteIndex));
+        
+        // 为了兼容性，保存一个标志指示我们正在使用增强存储
+        localStorage.setItem('usingEnhancedStorage', 'true');
+        
+        // 不再尝试保存完整图片到localStorage
+        console.log('图片索引同步完成，图片数据仅存储在IndexedDB中');
     } catch (e) {
-        console.error('同步到前端时出错:', e);
+        console.error('同步到前端存储时出错:', e);
+        // 错误不会抛出，以免中断主要流程
     }
 }
 

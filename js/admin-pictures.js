@@ -58,9 +58,43 @@ function preventDuplicateHandling() {
 function synchronizeImageStorage() {
     console.log('Synchronizing image storage between admin and frontend...');
     
-    // 使用新的IndexedDB服务同步数据是自动的
-    // 无需额外操作，因为所有修改都会自动同步到前端
-    console.log('Using enhanced storage service for automatic sync');
+    // 检查是否可以使用增强存储服务
+    if (window.ImageStorageService) {
+        console.log('使用IndexedDB存储服务自动同步数据');
+        
+        // 清理localStorage中的过时数据，防止配额问题
+        try {
+            console.log('清理localStorage中的过时图片数据...');
+            
+            // 保留小型索引和必要的管理数据
+            const keysToKeep = ['usingEnhancedStorage', 'siteImageIndex', 'carouselImages', 'userSettings', 'userPrefs'];
+            const keysToRemove = ['adminPictures', 'sitePictures'];
+            
+            // 只删除图片相关的大型数据，保留其他设置
+            keysToRemove.forEach(key => {
+                try {
+                    localStorage.removeItem(key);
+                    console.log(`已删除localStorage中的 ${key}`);
+                } catch (e) {
+                    console.warn(`尝试删除 ${key} 时出错:`, e);
+                }
+            });
+            
+            // 设置标志表明我们已清理过数据
+            localStorage.setItem('storageCleanupDone', 'true');
+            
+        } catch (e) {
+            console.error('清理localStorage数据时出错:', e);
+        }
+        
+        // 所有修改和同步都直接在IndexedDB中进行
+        // 不需要额外操作
+        return;
+    }
+    
+    // 如果IndexedDB服务不可用，使用有限的localStorage功能
+    console.warn('增强存储服务不可用，使用有限的localStorage功能');
+    // 不执行任何同步，避免localStorage配额问题
 }
 
 /**
