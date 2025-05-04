@@ -315,7 +315,7 @@
     // 筛选图片
     const filteredPictures = category === 'all' 
       ? pictures 
-      : pictures.filter(pic => pic.category === category);
+      : pictures.filter(pic => pic.category.toLowerCase() === category.toLowerCase());
       
     console.log(`Displaying ${filteredPictures.length} ${category} pictures`);
     
@@ -355,8 +355,38 @@
       thumbnail.className = `gallery-thumbnail ${index === 0 ? 'active' : ''}`;
       thumbnail.setAttribute('data-id', picture.id);
       
-      // 设置缩略图内容
-      thumbnail.innerHTML = `<img src="${picture.imageUrl}" alt="${picture.name}">`;
+      // 根据分类设置默认缩略图背景
+      let categoryColor;
+      switch(picture.category.toLowerCase()) {
+        case 'scenery': categoryColor = '#4CAF50'; break;
+        case 'wildlife': categoryColor = '#FF9800'; break;
+        case 'culture': categoryColor = '#9C27B0'; break;
+        case 'food': categoryColor = '#F44336'; break;
+        case 'beach': categoryColor = '#03A9F4'; break;
+        default: categoryColor = '#607D8B';
+      }
+      
+      // 设置默认样式，稍后用图片替换
+      thumbnail.innerHTML = `
+        <div class="thumbnail-placeholder" style="background-color: ${categoryColor}20; border: 1px solid ${categoryColor}">
+          <span>${picture.name.charAt(0)}</span>
+        </div>
+      `;
+      
+      // 根据URL类型加载缩略图
+      if (picture.imageUrl && (picture.imageUrl.startsWith('data:image/') || 
+                              picture.imageUrl.includes('/images/') || 
+                              picture.imageUrl.includes('unsplash.com'))) {
+        // 直接加载缩略图
+        loadThumbnailImage(thumbnail, picture.imageUrl, picture.name);
+      } else if (window.ImageStorageService && picture.id) {
+        // 尝试从IndexedDB获取缩略图
+        window.ImageStorageService.getFullImage(picture.id, function(fullImage) {
+          if (fullImage && fullImage.imageUrl) {
+            loadThumbnailImage(thumbnail, fullImage.imageUrl, picture.name);
+          }
+        });
+      }
       
       // 添加点击事件
       thumbnail.addEventListener('click', function() {
@@ -383,48 +413,182 @@
   }
   
   /**
+   * 加载缩略图
+   * @param {HTMLElement} container - 缩略图容器
+   * @param {string} imageUrl - 图片URL
+   * @param {string} altText - 替代文本
+   */
+  function loadThumbnailImage(container, imageUrl, altText) {
+    const img = new Image();
+    img.onload = function() {
+      container.innerHTML = `<img src="${imageUrl}" alt="${altText}">`;
+    };
+    img.onerror = function() {
+      // 加载失败时保留默认缩略图
+    };
+    img.src = imageUrl;
+  }
+  
+  /**
    * 显示特色图片
    * @param {HTMLElement} container - 特色图片容器
    * @param {Object} picture - 图片对象
    */
   function displayFeaturedImage(container, picture) {
-    // 创建图片元素用于预加载和错误处理
-    const img = new Image();
-    
-    // 设置加载事件
-    img.onload = function() {
-      // 成功加载后更新特色图片
-      container.innerHTML = `
-        <div class="featured-image">
-          <img src="${picture.imageUrl}" alt="${picture.name}">
+    // 显示加载中状态
+    container.innerHTML = `
+      <div class="featured-image">
+        <div class="loading-image">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Loading image...</p>
         </div>
-        <div class="featured-caption">
-          <h3 class="featured-title">${picture.name}</h3>
-          <p class="featured-desc">${picture.description || ''}</p>
-        </div>
-      `;
-    };
+      </div>
+      <div class="featured-caption">
+        <h3 class="featured-title">${picture.name}</h3>
+        <p class="featured-desc">${picture.description || ''}</p>
+      </div>
+    `;
     
-    // 设置错误处理
-    img.onerror = function() {
-      console.warn(`Failed to load image: ${picture.name}`);
-      // 加载失败时使用替代图片
-      container.innerHTML = `
-        <div class="featured-image">
-          <div class="image-error">
-            <i class="fas fa-image"></i>
-            <p>Image could not be loaded</p>
+    // 检查图片URL格式
+    let imageUrl = picture.imageUrl;
+    
+    // 处理base64编码的图片数据
+    if (imageUrl && (imageUrl.startsWith('data:image/') || imageUrl.includes('/images/') || imageUrl.includes('unsplash.com'))) {
+      // 正常URL格式，直接使用
+      loadImageWithUrl(imageUrl);
+    } else if (window.ImageStorageService && picture.id) {
+      // 如果没有直接可用的URL但有ID且存储服务可用，尝试从IndexedDB获取完整图片
+      console.log('尝试从IndexedDB获取完整图片:', picture.id);
+      window.ImageStorageService.getFullImage(picture.id, function(fullImage) {
+        if (fullImage && fullImage.imageUrl) {
+          loadImageWithUrl(fullImage.imageUrl);
+        } else {
+          // 如果从IndexedDB获取失败，使用默认图片
+          loadDefaultImage();
+        }
+      });
+    } else {
+      // 无法获取图片，使用默认图片
+      loadDefaultImage();
+    }
+    
+    /**
+     * 尝试加载图片URL
+     */
+    function loadImageWithUrl(url) {
+      // 创建图片元素用于预加载和错误处理
+      const img = new Image();
+      
+      // 设置加载事件
+      img.onload = function() {
+        // 成功加载后更新特色图片
+        container.innerHTML = `
+          <div class="featured-image">
+            <img src="${url}" alt="${picture.name}">
           </div>
-        </div>
-        <div class="featured-caption">
-          <h3 class="featured-title">${picture.name}</h3>
-          <p class="featured-desc">${picture.description || ''}</p>
-        </div>
-      `;
-    };
+          <div class="featured-caption">
+            <h3 class="featured-title">${picture.name}</h3>
+            <p class="featured-desc">${picture.description || ''}</p>
+          </div>
+        `;
+      };
+      
+      // 设置错误处理
+      img.onerror = function() {
+        console.warn(`Failed to load image: ${picture.name} (${url})`);
+        // 加载失败时使用默认图片
+        loadDefaultImage();
+      };
+      
+      // 设置超时处理
+      const timeout = setTimeout(function() {
+        console.warn(`Image load timeout: ${picture.name}`);
+        img.src = ""; // 取消加载
+        loadDefaultImage();
+      }, 5000); // 5秒超时
+      
+      // 清除超时计时器
+      img.onload = function() {
+        clearTimeout(timeout);
+        // 成功加载后更新特色图片
+        container.innerHTML = `
+          <div class="featured-image">
+            <img src="${url}" alt="${picture.name}">
+          </div>
+          <div class="featured-caption">
+            <h3 class="featured-title">${picture.name}</h3>
+            <p class="featured-desc">${picture.description || ''}</p>
+          </div>
+        `;
+      };
+      
+      // 开始加载图片
+      img.src = url;
+    }
     
-    // 开始加载图片
-    img.src = picture.imageUrl;
+    /**
+     * 显示默认/错误图片
+     */
+    function loadDefaultImage() {
+      // 根据分类选择不同的默认图片
+      let defaultImagePath;
+      
+      switch (picture.category.toLowerCase()) {
+        case 'scenery':
+          defaultImagePath = 'images/gallery/scenic-mountains.jpg';
+          break;
+        case 'wildlife':
+          defaultImagePath = 'images/gallery/wildlife.jpg';
+          break;
+        case 'culture':
+          defaultImagePath = 'images/gallery/temple.jpg';
+          break;
+        case 'food':
+          defaultImagePath = 'images/gallery/food.jpg';
+          break;
+        case 'beach':
+          defaultImagePath = 'images/gallery/beach.jpg';
+          break;
+        default:
+          defaultImagePath = 'images/gallery/sri-lanka-default.jpg';
+      }
+      
+      // 加载默认图片
+      const defaultImage = new Image();
+      defaultImage.onload = function() {
+        container.innerHTML = `
+          <div class="featured-image">
+            <img src="${defaultImagePath}" alt="${picture.name}">
+            <div class="image-overlay">
+              <i class="fas fa-exclamation-circle"></i>
+              <p>Original image could not be loaded</p>
+            </div>
+          </div>
+          <div class="featured-caption">
+            <h3 class="featured-title">${picture.name}</h3>
+            <p class="featured-desc">${picture.description || ''}</p>
+          </div>
+        `;
+      };
+      
+      defaultImage.onerror = function() {
+        // 如果默认图片也无法加载，显示纯文本信息
+        container.innerHTML = `
+          <div class="featured-image">
+            <div class="image-error">
+              <i class="fas fa-image"></i>
+              <p>Image could not be loaded</p>
+            </div>
+          </div>
+          <div class="featured-caption">
+            <h3 class="featured-title">${picture.name}</h3>
+            <p class="featured-desc">${picture.description || ''}</p>
+          </div>
+        `;
+      };
+      
+      defaultImage.src = defaultImagePath;
+    }
   }
   
   /**
