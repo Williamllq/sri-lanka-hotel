@@ -41,8 +41,8 @@
         
         // 检查是否在前端页面
         const isGalleryPage = document.querySelector('.gallery-section') || 
-                              document.querySelector('.gallery-filter') ||
-                              document.querySelector('.gallery-grid');
+                          document.querySelector('.gallery-filter') ||
+                          document.querySelector('.gallery-grid');
         
         if (!isGalleryPage) {
             console.log('Not on gallery page, skipping gallery initialization');
@@ -51,19 +51,23 @@
         
         console.log('Gallery page detected, initializing gallery components');
         
-        // 如果定义了增强版同步函数，先运行一次
-        if (window.adminPicturesSyncEnhance && 
-            typeof window.adminPicturesSyncEnhance.syncPictures === 'function') {
-            console.log('Running enhanced sync before initializing gallery');
-            window.adminPicturesSyncEnhance.syncPictures();
+        // 尝试使用强制同步API（如果可用）
+        if (window.galleryForceSync && typeof window.galleryForceSync.forceSync === 'function') {
+            console.log('Using gallery force sync API');
+            window.galleryForceSync.forceSync();
         }
         
-        // 提取默认图片
-        extractDefaultImages();
-        
-        // 获取图片
+        // 从本地存储获取图片
         const pictures = getSiteImages();
         console.log(`Gallery found ${pictures ? pictures.length : 0} pictures to display`);
+        
+        // 处理URL
+        if (pictures && pictures.length > 0) {
+            fixImageUrls(pictures);
+        } else {
+            // 提取默认图片
+            extractDefaultImages();
+        }
         
         // 设置过滤按钮
         setupFilterButtons();
@@ -76,6 +80,49 @@
     }
     
     /**
+     * 修复图片URL
+     */
+    function fixImageUrls(pictures) {
+        if (!pictures || !Array.isArray(pictures)) return;
+        
+        pictures.forEach(pic => {
+            // 1. 检查URL是否为空或无效
+            if (!pic.url || typeof pic.url !== 'string' || pic.url.trim() === '') {
+                // 尝试从其他字段获取URL
+                pic.url = pic.imageUrl || '';
+            }
+            
+            // 2. 处理相对路径
+            if (pic.url && !pic.url.startsWith('http') && !pic.url.startsWith('data:') && !pic.url.startsWith('/')) {
+                // 添加images/前缀，如果还没有
+                if (!pic.url.startsWith('images/')) {
+                    pic.url = 'images/' + pic.url;
+                }
+            }
+            
+            // 3. 处理网络URL中的特殊字符
+            if (pic.url && pic.url.includes('%')) {
+                try {
+                    pic.url = decodeURIComponent(pic.url);
+                } catch (e) {
+                    console.warn('Failed to decode URL:', pic.url);
+                }
+            }
+            
+            // 4. 处理管理员面板相对路径
+            if (pic.url && pic.url.includes('admin-dashboard.html')) {
+                pic.url = pic.url.split('admin-dashboard.html')[1];
+                if (pic.url.startsWith('/')) {
+                    pic.url = pic.url.substring(1);
+                }
+            }
+        });
+        
+        // 保存修复后的图片
+        localStorage.setItem('sitePictures', JSON.stringify(pictures));
+    }
+    
+    /**
      * 从隐藏的原始gallery-grid中提取默认图片
      */
     function extractDefaultImages() {
@@ -83,7 +130,7 @@
         const galleryItems = document.querySelectorAll('.gallery-grid .gallery-item');
         if (!galleryItems || galleryItems.length === 0) {
             console.warn('No gallery items found in hidden gallery');
-            return;
+            return [];
         }
         
         console.log(`Found ${galleryItems.length} default images in hidden gallery`);
@@ -108,10 +155,11 @@
         // 如果已经有图片，则不需要提取
         if (pictures.length > 0) {
             console.log('Using existing pictures from storage');
-            return;
+            return pictures;
         }
         
         // 从隐藏的gallery-grid中提取图片
+        const extractedPictures = [];
         galleryItems.forEach((item, index) => {
             const img = item.querySelector('img');
             const title = item.querySelector('.gallery-item-title');
@@ -128,21 +176,19 @@
                     uploadDate: new Date().toISOString()
                 };
                 
-                pictures.push(picture);
+                extractedPictures.push(picture);
                 console.log(`Extracted default image: ${picture.name} (${category})`);
             }
         });
         
         // 保存到localStorage
-        if (pictures.length > 0) {
+        if (extractedPictures.length > 0) {
+            pictures = extractedPictures;
             localStorage.setItem('sitePictures', JSON.stringify(pictures));
             console.log(`Saved ${pictures.length} default images to storage`);
-            
-            // 初始化显示默认类别
-            setupFilterButtons();
-            filterAndDisplayCategory(currentCategory);
-            startCarousel();
         }
+        
+        return pictures;
     }
     
     /**
@@ -230,12 +276,22 @@
      */
     function filterAndDisplayCategory(category) {
         const pictures = getSiteImages();
-        if (!pictures || pictures.length === 0) return;
+        if (!pictures || pictures.length === 0) {
+            console.warn('No pictures found for filtering');
+            displayEmptyCategory();
+            return;
+        }
+        
+        // 预处理图片URL
+        fixImageUrls(pictures);
         
         // 过滤当前类别的图片
         const filteredPictures = category === 'all' ? 
             pictures : 
-            pictures.filter(pic => pic.category === category);
+            pictures.filter(pic => {
+                const picCategory = (pic.category || '').toLowerCase().trim();
+                return picCategory === category;
+            });
         
         console.log(`Filtered ${filteredPictures.length} images for category: ${category}`);
         
@@ -268,24 +324,43 @@
         // 清空现有缩略图
         thumbnailsContainer.innerHTML = '';
         
+        if (!pictures || pictures.length === 0) {
+            console.warn('No pictures to display thumbnails');
+            return;
+        }
+        
+        console.log(`Displaying ${pictures.length} thumbnails`);
+        
         // 为每张图片创建缩略图
         pictures.forEach((picture, index) => {
             const thumbnail = document.createElement('div');
             thumbnail.className = 'gallery-thumbnail';
+            thumbnail.setAttribute('data-index', index);
+            thumbnail.setAttribute('data-category', picture.category || 'scenery');
+            
             if (index === currentFeatureIndex) {
                 thumbnail.classList.add('active');
             }
             
+            // 确保URL有效
+            let imgUrl = picture.url || '';
+            if (imgUrl && !imgUrl.match(/^(https?:\/\/|data:image|\/)/i) && !imgUrl.startsWith('images/')) {
+                imgUrl = 'images/' + imgUrl;
+            }
+            
             // 创建图片元素
             const img = document.createElement('img');
-            img.src = picture.url;
+            img.src = imgUrl;
             img.alt = picture.name || 'Gallery Image';
+            img.loading = 'lazy'; // 延迟加载
+            
+            // 处理图片加载失败
             img.onerror = function() {
-                // 图片加载失败时设置默认图片
+                console.warn(`Failed to load thumbnail image: ${imgUrl}`);
                 this.src = 'images/placeholder.jpg';
                 this.alt = 'Image not available';
-                console.warn(`Failed to load image: ${picture.url}`);
             };
+            
             thumbnail.appendChild(img);
             
             // 添加点击事件
@@ -326,8 +401,42 @@
             return;
         }
         
-        // 设置图片和标题
-        featureImageContainer.innerHTML = `<img src="${picture.url}" alt="${picture.name || 'Featured Image'}" onerror="this.src='images/placeholder.jpg'; this.alt='Image not available';">`;
+        if (!picture || !picture.url) {
+            console.warn('Invalid picture data for feature display');
+            displayEmptyCategory();
+            return;
+        }
+        
+        // 确保URL有效
+        let imgUrl = picture.url || '';
+        if (imgUrl && !imgUrl.match(/^(https?:\/\/|data:image|\/)/i) && !imgUrl.startsWith('images/')) {
+            imgUrl = 'images/' + imgUrl;
+        }
+        
+        console.log(`Displaying feature image: ${picture.name}, URL: ${imgUrl}`);
+        
+        // 创建图片元素而不是使用innerHTML
+        featureImageContainer.innerHTML = ''; // 清空容器
+        
+        const img = document.createElement('img');
+        img.src = imgUrl;
+        img.alt = picture.name || 'Featured Image';
+        
+        // 处理加载失败
+        img.onerror = function() {
+            console.warn(`Failed to load feature image: ${imgUrl}`);
+            this.src = 'images/placeholder.jpg';
+            this.alt = 'Image not available';
+        };
+        
+        // 添加加载事件
+        img.onload = function() {
+            console.log(`Feature image loaded successfully: ${imgUrl}`);
+        };
+        
+        featureImageContainer.appendChild(img);
+        
+        // 设置标题和描述
         featureTitle.textContent = picture.name || 'Sri Lanka';
         featureDesc.textContent = picture.description || 'Discover the beauty of Sri Lanka';
         
@@ -433,12 +542,6 @@
                             uploadDate: pic.uploadDate || new Date().toISOString()
                         }));
                         console.log(`Converted ${pictures.length} pictures from adminPictures`);
-                        
-                        // 尝试使用增强版同步
-                        if (window.adminPicturesSyncEnhance && 
-                            typeof window.adminPicturesSyncEnhance.syncPictures === 'function') {
-                            window.adminPicturesSyncEnhance.syncPictures();
-                        }
                     }
                 }
             }
