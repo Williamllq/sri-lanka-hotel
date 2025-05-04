@@ -10,20 +10,6 @@
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 30px;
-    position: relative;
-}
-
-.gallery-filter::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1;
-    opacity: 0.05;
-    background-color: #4285f4;
-    border-radius: 35px;
 }
 
 .gallery-filter-btn {
@@ -40,60 +26,38 @@
 }
 
 .gallery-filter-btn:hover {
-    background-color: rgba(66, 133, 244, 0.1);
+    background-color: #f5f5f5;
+    border-color: #ccc;
 }
 
 .gallery-filter-btn.active {
     background-color: #4285f4;
     color: white;
-    box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3);
+    border-color: #4285f4;
+    box-shadow: 0 3px 8px rgba(66, 133, 244, 0.3);
+    transform: translateY(-2px);
 }
 
 /* 确保按钮呈现为单选样式 */
-.gallery-filter-btn::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 10px;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background-color: transparent;
-    transform: translateY(-50%);
-    transition: all 0.2s ease;
-    opacity: 0;
-}
-
-.gallery-filter-btn.active::before {
-    width: 8px;
-    height: 8px;
-    background-color: #fff;
-    opacity: 0.9;
-}
-
 .gallery-filter-btn::after {
-    content: "";
+    content: '';
     position: absolute;
     bottom: 0;
     left: 50%;
+    width: 0;
+    height: 2px;
+    background-color: #4285f4;
     transform: translateX(-50%);
-    width: 30px;
-    height: 3px;
-    background-color: #fff;
-    border-radius: 3px;
+    transition: width 0.3s ease;
 }
 
-/* 添加提示文本，说明这是单选 */
-.gallery-filter::after {
-    content: "Select one category";
-    display: block;
-    position: absolute;
-    bottom: -20px;
-    width: 100%;
-    text-align: center;
-    font-size: 0.75rem;
-    color: #888;
-    letter-spacing: 0.5px;
+.gallery-filter-btn.active::after {
+    width: 80%;
+}
+
+/* 强调单选效果 */
+.gallery-filter-btn:focus {
+    outline: none;
 }
 
 /* 画廊容器样式 */
@@ -150,35 +114,39 @@
     opacity: 0.9;
 }
 
-/* 缩略图占位符样式 */
-.thumbnail-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
-    color: rgba(0, 0, 0, 0.5);
-}
-
-/* 缩略图容器样式 */
+/* 缩略图容器 */
 .gallery-thumbnails {
     display: flex;
-    flex-wrap: wrap;
+    overflow-x: auto;
     gap: 10px;
-    margin-top: 15px;
-    justify-content: center;
+    padding: 10px 0;
+    scrollbar-width: thin;
+    scrollbar-color: #4285f4 #f0f0f0;
 }
 
+.gallery-thumbnails::-webkit-scrollbar {
+    height: 6px;
+}
+
+.gallery-thumbnails::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 10px;
+}
+
+.gallery-thumbnails::-webkit-scrollbar-thumb {
+    background-color: #4285f4;
+    border-radius: 10px;
+}
+
+/* 缩略图样式 */
 .gallery-thumbnail {
-    width: 80px;
-    height: 60px;
+    flex: 0 0 100px;
+    height: 70px;
+    border-radius: 5px;
     overflow: hidden;
-    border-radius: 4px;
     cursor: pointer;
+    position: relative;
     transition: all 0.3s ease;
-    border: 2px solid transparent;
 }
 
 .gallery-thumbnail img {
@@ -187,25 +155,29 @@
     object-fit: cover;
 }
 
+.gallery-thumbnail::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.gallery-thumbnail:hover::after {
+    background: rgba(0,0,0,0.1);
+}
+
 .gallery-thumbnail.active {
-    border-color: #4285f4;
-    transform: scale(1.05);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
 }
 
-/* 加载中样式 */
-.loading-gallery {
-    text-align: center;
-    padding: 40px;
-    background-color: #f8f8f8;
-    border-radius: 8px;
-    margin: 20px 0;
-}
-
-.loading-gallery i {
-    font-size: 32px;
-    color: #4285f4;
-    margin-bottom: 15px;
-    animation: spin 1.5s infinite linear;
+.gallery-thumbnail.active::after {
+    background: rgba(66, 133, 244, 0.3);
+    border: 2px solid #4285f4;
 }
 
 /* 空类别显示 */
@@ -254,153 +226,4 @@
 /* 原始画廊网格（隐藏）样式修复 */
 .gallery-grid {
     display: none;
-}
-
-/* 图片加载状态样式 */
-.loading-image {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: #f5f5f5;
-    height: 100%;
-    padding: 30px;
-    box-sizing: border-box;
-    text-align: center;
-}
-
-.loading-image i {
-    font-size: 36px;
-    color: #4285f4;
-    margin-bottom: 15px;
-    animation: spin 1.5s linear infinite;
-}
-
-.loading-image p {
-    margin: 0;
-    font-size: 16px;
-    color: #666;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* 图片错误显示样式 */
-.image-error {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: #f8f8f8;
-    height: 100%;
-    width: 100%;
-    color: #999;
-    padding: 20px;
-    box-sizing: border-box;
-    text-align: center;
-}
-
-.image-error i {
-    font-size: 48px;
-    margin-bottom: 15px;
-    color: #ccc;
-}
-
-.image-error p {
-    margin: 0;
-    font-size: 14px;
-}
-
-/* 图片覆盖层样式 */
-.image-overlay {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    z-index: 2;
-}
-
-.image-overlay i {
-    margin-right: 5px;
-    color: #ffcc00;
-}
-
-.featured-image {
-    position: relative;
-    width: 100%;
-    height: 400px;
-    overflow: hidden;
-    background-color: #f5f5f5;
-    border-radius: 8px;
-}
-
-.featured-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.featured-caption {
-    padding: 15px;
-    background-color: white;
-    border-radius: 0 0 8px 8px;
-}
-
-.featured-title {
-    margin: 0 0 8px 0;
-    font-size: 20px;
-    color: #333;
-}
-
-.featured-desc {
-    margin: 0;
-    font-size: 14px;
-    color: #666;
-    line-height: 1.5;
-}
-
-/* 空分类提示样式 */
-.empty-category {
-    text-align: center;
-    padding: 40px;
-    background-color: #f8f8f8;
-    border-radius: 8px;
-    margin: 20px 0;
-    color: #666;
-}
-
-.empty-category i {
-    font-size: 48px;
-    color: #ccc;
-    margin-bottom: 15px;
-}
-
-/* 缩略图加载失败状态 */
-.gallery-thumbnail.error {
-    position: relative;
-}
-
-.gallery-thumbnail.error::before {
-    content: "!";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0,0,0,0.5);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
 } 
