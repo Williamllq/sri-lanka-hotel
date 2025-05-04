@@ -10,6 +10,53 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(checkAndMigrate, 1000);
 });
 
+// IndexedDB 数据库名称和版本
+const DB_NAME = 'adminPicturesDB';
+const DB_VERSION = 1;
+let db = null;
+
+/**
+ * 初始化IndexedDB数据库
+ * @returns {Promise} 初始化完成后的Promise
+ */
+function initializeDB() {
+    return new Promise((resolve, reject) => {
+        if (db) {
+            resolve(db);
+            return;
+        }
+        
+        console.log('Initializing IndexedDB...');
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        
+        request.onerror = function(event) {
+            console.error('IndexedDB error:', event.target.error);
+            reject('无法打开数据库，请确保您的浏览器支持IndexedDB。');
+        };
+        
+        request.onupgradeneeded = function(event) {
+            console.log('Creating/upgrading database schema...');
+            const database = event.target.result;
+            
+            // 创建图片元数据存储
+            if (!database.objectStoreNames.contains('metadata')) {
+                database.createObjectStore('metadata', { keyPath: 'id' });
+            }
+            
+            // 创建图片数据存储
+            if (!database.objectStoreNames.contains('images')) {
+                database.createObjectStore('images', { keyPath: 'id' });
+            }
+        };
+        
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            console.log('Database initialized successfully');
+            resolve(db);
+        };
+    });
+}
+
 /**
  * 检查是否需要迁移并执行迁移
  */
@@ -28,8 +75,10 @@ function checkAndMigrate() {
         
         // 创建"开始迁移"按钮
         createMigrationButton();
+    } else if (migrationCompleted) {
+        console.log('Migration already completed');
     } else {
-        console.log('Migration not needed or already completed');
+        console.log('No local pictures found, no migration needed');
     }
 }
 
@@ -37,426 +86,231 @@ function checkAndMigrate() {
  * 显示迁移通知
  */
 function showMigrationNotice() {
-    // 创建通知元素
-    const notice = document.createElement('div');
-    notice.id = 'migrationNotice';
-    notice.className = 'migration-notice';
-    notice.style.backgroundColor = '#FFFBEA';
-    notice.style.border = '1px solid #FFE58F';
-    notice.style.padding = '10px 15px';
-    notice.style.marginBottom = '20px';
-    notice.style.borderRadius = '4px';
-    notice.style.display = 'flex';
-    notice.style.justifyContent = 'space-between';
-    notice.style.alignItems = 'center';
+    console.log('Showing migration notice');
     
-    // 设置通知内容
-    notice.innerHTML = `
-        <div>
-            <h4 style="margin: 0 0 5px 0; color: #D48806; font-size: 16px;">
-                <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
-                存储升级提示
-            </h4>
-            <p style="margin: 0; color: #5A5A5A; font-size: 14px;">
-                检测到您的图片使用了旧的存储方式，为了支持更多图片并解决存储空间不足的问题，请点击"开始升级"按钮将图片迁移到新的存储系统。
-            </p>
+    const pictureGrid = document.getElementById('pictureGrid');
+    if (!pictureGrid) {
+        console.error('Picture grid container not found');
+        return;
+    }
+    
+    pictureGrid.innerHTML = `
+        <div id="migration-notice" class="migration-notice">
+            <h3>存储升级提示</h3>
+            <p>检测到您的图片使用了旧的存储方式，为了支持更多图片并解决存储空间不足的问题，请点击"开始升级"按钮将图片迁移到新的存储系统。</p>
+            <div id="migration-buttons"></div>
+            <div id="migration-status" style="display: none;"></div>
         </div>
     `;
-    
-    // 插入到页面
-    const container = document.querySelector('.admin-content, .dashboard-content, .content-area, main');
-    if (container) {
-        if (container.firstChild) {
-            container.insertBefore(notice, container.firstChild);
-        } else {
-            container.appendChild(notice);
-        }
-    } else {
-        document.body.insertBefore(notice, document.body.firstChild);
-    }
 }
 
 /**
  * 创建迁移按钮
  */
 function createMigrationButton() {
-    // 创建按钮
-    const button = document.createElement('button');
-    button.id = 'startMigrationBtn';
-    button.className = 'btn migration-btn';
-    button.innerHTML = '<i class="fas fa-database"></i> 开始升级存储系统';
-    button.style.backgroundColor = '#1890FF';
-    button.style.color = 'white';
-    button.style.border = 'none';
-    button.style.padding = '10px 15px';
-    button.style.borderRadius = '4px';
-    button.style.cursor = 'pointer';
-    button.style.marginLeft = '15px';
-    button.style.fontWeight = 'bold';
+    console.log('Creating migration button');
     
-    // 添加悬停效果
-    button.onmouseover = function() {
-        this.style.backgroundColor = '#40A9FF';
-    };
-    button.onmouseout = function() {
-        this.style.backgroundColor = '#1890FF';
-    };
+    const buttonContainer = document.getElementById('migration-buttons');
+    if (!buttonContainer) {
+        console.error('Migration button container not found');
+        return;
+    }
     
-    // 添加点击事件
-    button.onclick = function() {
-        startMigration();
-    };
+    buttonContainer.innerHTML = `
+        <button id="start-migration" class="btn btn-primary">开始升级</button>
+    `;
     
-    // 插入到通知中
-    const notice = document.getElementById('migrationNotice');
-    if (notice) {
-        notice.appendChild(button);
+    const startButton = document.getElementById('start-migration');
+    if (startButton) {
+        startButton.addEventListener('click', startMigration);
     }
 }
 
 /**
- * 开始迁移
+ * 启动迁移过程
  */
 function startMigration() {
-    console.log('Starting migration process...');
+    console.log('Starting migration process');
     
-    // 禁用迁移按钮
-    const button = document.getElementById('startMigrationBtn');
-    if (button) {
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在迁移...';
-        button.style.backgroundColor = '#8C8C8C';
-        button.style.cursor = 'not-allowed';
+    const statusElement = document.getElementById('migration-status');
+    if (statusElement) {
+        statusElement.style.display = 'block';
+        statusElement.innerHTML = `
+            <div class="migration-progress">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>正在进行存储升级，请不要关闭页面...</p>
+            </div>
+        `;
     }
     
-    // 更新通知显示进度
-    const notice = document.getElementById('migrationNotice');
-    if (notice) {
-        const progressDiv = document.createElement('div');
-        progressDiv.id = 'migrationProgress';
-        progressDiv.className = 'migration-progress';
-        progressDiv.style.marginTop = '10px';
-        progressDiv.style.width = '100%';
-        progressDiv.style.height = '6px';
-        progressDiv.style.backgroundColor = '#F5F5F5';
-        progressDiv.style.borderRadius = '3px';
-        progressDiv.style.overflow = 'hidden';
-        
-        const progressBar = document.createElement('div');
-        progressBar.id = 'migrationProgressBar';
-        progressBar.className = 'migration-progress-bar';
-        progressBar.style.width = '0%';
-        progressBar.style.height = '100%';
-        progressBar.style.backgroundColor = '#52C41A';
-        progressBar.style.transition = 'width 0.3s ease';
-        
-        progressDiv.appendChild(progressBar);
-        notice.appendChild(progressDiv);
+    // 禁用开始按钮
+    const startButton = document.getElementById('start-migration');
+    if (startButton) {
+        startButton.disabled = true;
+        startButton.textContent = '升级中...';
     }
     
-    // 执行迁移逻辑
-    setTimeout(function() {
-        migrateData().then(function() {
-            // 标记迁移完成
+    // 执行迁移过程
+    migrateFromLocalStorage()
+        .then(() => {
+            console.log('Migration completed successfully');
             localStorage.setItem('picturesMigrationCompleted', 'true');
             
-            // 更新界面
-            updateMigrationComplete();
-            
-            // 刷新图片列表
-            if (typeof loadAndDisplayPictures === 'function') {
-                loadAndDisplayPictures();
+            if (statusElement) {
+                statusElement.innerHTML = `
+                    <div class="migration-success">
+                        <i class="fas fa-check-circle"></i>
+                        <p>存储升级成功完成！页面将在3秒后刷新...</p>
+                    </div>
+                `;
             }
-        }).catch(function(error) {
+            
+            // 3秒后刷新页面
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        })
+        .catch(error => {
             console.error('Migration failed:', error);
             
-            // 显示错误
-            if (button) {
-                button.innerHTML = '<i class="fas fa-exclamation-circle"></i> 迁移失败 - 点击重试';
-                button.style.backgroundColor = '#F5222D';
-                button.disabled = false;
-                button.style.cursor = 'pointer';
-            }
-        });
-    }, 500);
-}
-
-/**
- * 数据迁移逻辑
- * @returns {Promise} 迁移完成的Promise
- */
-function migrateData() {
-    return new Promise((resolve, reject) => {
-        try {
-            console.log('Migrating picture data to IndexedDB...');
-            
-            // 从localStorage加载现有图片
-            const adminPictures = localStorage.getItem('adminPictures');
-            let pictures = [];
-            
-            if (adminPictures) {
-                try {
-                    pictures = JSON.parse(adminPictures);
-                    if (!Array.isArray(pictures)) {
-                        pictures = [];
-                    }
-                } catch (e) {
-                    console.error('Error parsing pictures from localStorage:', e);
+            if (statusElement) {
+                statusElement.innerHTML = `
+                    <div class="migration-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>迁移失败：${error}</p>
+                        <button id="retry-migration" class="btn btn-warning">重试</button>
+                    </div>
+                `;
+                
+                const retryButton = document.getElementById('retry-migration');
+                if (retryButton) {
+                    retryButton.addEventListener('click', startMigration);
                 }
             }
             
-            if (pictures.length === 0) {
-                console.log('No pictures found in localStorage');
-                resolve();
+            // 重新启用开始按钮
+            if (startButton) {
+                startButton.disabled = false;
+                startButton.textContent = '开始升级';
+            }
+        });
+}
+
+/**
+ * 从localStorage迁移数据到IndexedDB
+ * @returns {Promise} 迁移过程的Promise
+ */
+function migrateFromLocalStorage() {
+    return new Promise((resolve, reject) => {
+        console.log('Migrating data from localStorage to IndexedDB...');
+        
+        try {
+            // 1. 获取localStorage中的数据
+            const picturesJson = localStorage.getItem('adminPictures');
+            if (!picturesJson) {
+                reject('没有找到需要迁移的图片数据');
                 return;
             }
             
-            console.log(`Found ${pictures.length} pictures to migrate`);
-            
-            // 直接检查window上是否有initImageDatabase函数
-            if (typeof window.initImageDatabase === 'function') {
-                console.log('Using global initImageDatabase function');
-                window.initImageDatabase().then(migrateImages).catch(reject);
-            } 
-            // 检查是否可以从admin-pictures.js获取函数
-            else if (typeof initImageDatabase === 'function') {
-                console.log('Using local initImageDatabase function');
-                initImageDatabase().then(migrateImages).catch(reject);
-            } 
-            // 如果都不可用，自己实现数据库初始化
-            else {
-                console.log('No existing initImageDatabase function found, implementing locally');
-                // 此处使用内置的initDB函数实现
-                initDB().then(migrateImages).catch(reject);
+            let pictures;
+            try {
+                pictures = JSON.parse(picturesJson);
+                console.log(`Found ${pictures.length} pictures to migrate`);
+            } catch (e) {
+                reject('图片数据格式无效，无法解析');
+                return;
             }
             
-            // 迁移图片的内部函数
-            function migrateImages() {
-                // 更新进度条显示
-                const progressBar = document.getElementById('migrationProgressBar');
-                
-                // 迁移每张图片
-                const migrationPromises = pictures.map((picture, index) => {
-                    return new Promise((resolveItem) => {
-                        setTimeout(() => {
-                            try {
-                                console.log(`Migrating picture ${index+1}/${pictures.length}: ${picture.id || 'unknown id'}`);
-                                
-                                // 对图片进行分离处理：元数据和图片数据分开存储
-                                const metadata = {
-                                    id: picture.id || `pic_migrated_${Date.now()}_${index}`,
-                                    name: picture.name || 'Untitled',
-                                    category: picture.category || 'scenery',
-                                    description: picture.description || '',
-                                    thumbnailUrl: picture.imageUrl || picture.url || '', // 旧数据没有缩略图，直接使用原图
-                                    uploadDate: picture.uploadDate || new Date().toISOString()
-                                };
-                                
-                                const imageData = {
-                                    id: metadata.id, // 确保ID匹配
-                                    imageUrl: picture.imageUrl || picture.url || '',
-                                    uploadDate: picture.uploadDate || new Date().toISOString()
-                                };
-                                
-                                // 保存到IndexedDB
-                                Promise.all([
-                                    saveMetadata(metadata),
-                                    saveImageData(imageData)
-                                ]).then(() => {
-                                    // 更新进度条
-                                    if (progressBar) {
-                                        const progress = Math.floor(((index + 1) / pictures.length) * 100);
-                                        progressBar.style.width = `${progress}%`;
-                                    }
-                                    console.log(`Successfully migrated picture ${index+1}: ${metadata.id}`);
-                                    resolveItem();
-                                }).catch(error => {
-                                    console.error(`Error migrating picture ${metadata.id}:`, error);
-                                    resolveItem(); // 继续处理下一张，不中断整体迁移
-                                });
-                            } catch (e) {
-                                console.error(`Error processing picture at index ${index}:`, e);
-                                resolveItem(); // 继续处理下一张
-                            }
-                        }, 100 * index); // 每张图片间隔100ms，避免阻塞UI
+            // 2. 初始化IndexedDB
+            initializeDB()
+                .then(() => {
+                    // 3. 逐个保存图片数据到IndexedDB
+                    const migrationPromises = pictures.map((picture, index) => {
+                        console.log(`Migrating picture ${index+1}/${pictures.length}: ${picture.id}`);
+                        return saveToIndexedDB(picture);
                     });
-                });
-                
-                // 等待所有迁移完成
-                Promise.all(migrationPromises).then(() => {
-                    // 迁移完成后删除localStorage中的图片数据
-                    console.log('Migration completed');
                     
-                    // 同步到前端
-                    if (typeof window.synchronizeImageStorage === 'function') {
-                        window.synchronizeImageStorage();
-                    } else if (typeof synchronizeImageStorage === 'function') {
-                        synchronizeImageStorage();
-                    }
-                    
-                    // 为安全起见，不立即删除原始数据，而是添加一个过期时间
-                    localStorage.setItem('adminPicturesBackup', adminPictures);
-                    localStorage.setItem('adminPicturesBackupTime', Date.now().toString());
-                    
-                    // 清除原始存储
-                    localStorage.removeItem('adminPictures');
-                    
+                    // 4. 等待所有图片迁移完成
+                    return Promise.all(migrationPromises);
+                })
+                .then(() => {
+                    console.log('All pictures migrated successfully');
                     resolve();
-                }).catch(error => {
-                    console.error('Error in migration process:', error);
+                })
+                .catch(error => {
+                    console.error('Error during migration:', error);
                     reject(error);
                 });
-            }
         } catch (e) {
-            console.error('Error in migration function:', e);
-            reject(e);
+            console.error('Unexpected error during migration:', e);
+            reject('迁移过程中发生意外错误：' + e.message);
         }
     });
 }
 
 /**
- * 初始化IndexedDB数据库 - 本地实现，当全局函数不可用时使用
+ * 将单个图片保存到IndexedDB
+ * @param {Object} picture 图片数据对象
+ * @returns {Promise} 保存操作的Promise
  */
-function initDB() {
+function saveToIndexedDB(picture) {
     return new Promise((resolve, reject) => {
-        console.log('Initializing IndexedDB using local implementation');
-        
-        // 如果浏览器不支持IndexedDB，直接解析空结果
-        if (!window.indexedDB) {
-            console.error('Browser does not support IndexedDB');
-            reject(new Error('您的浏览器不支持现代存储技术。请使用Chrome、Firefox或Edge浏览器。'));
-            return;
+        try {
+            const metadata = {
+                id: picture.id,
+                name: picture.name,
+                category: picture.category,
+                order: picture.order,
+                timestamp: picture.timestamp || Date.now()
+            };
+            
+            // 1. 保存元数据
+            saveItemToStore('metadata', metadata)
+                .then(() => {
+                    // 2. 保存图片数据
+                    const imageData = {
+                        id: picture.id,
+                        dataUrl: picture.dataUrl
+                    };
+                    return saveItemToStore('images', imageData);
+                })
+                .then(() => {
+                    resolve();
+                })
+                .catch(error => {
+                    reject(error);
+                });
+        } catch (e) {
+            reject('保存图片数据失败：' + e.message);
         }
-        
-        const dbName = 'sriLankaImageDB';
-        const dbVersion = 1;
-        
-        const request = indexedDB.open(dbName, dbVersion);
-        
-        request.onerror = function(event) {
-            console.error('Error opening IndexedDB:', event.target.error);
-            reject(event.target.error);
-        };
-        
-        request.onsuccess = function(event) {
-            window.imageDB = event.target.result;
-            console.log('IndexedDB successfully initialized');
-            resolve();
-        };
-        
-        request.onupgradeneeded = function(event) {
-            const db = event.target.result;
-            
-            // 创建图片存储对象
-            if (!db.objectStoreNames.contains('images')) {
-                const imageStore = db.createObjectStore('images', { keyPath: 'id' });
-                imageStore.createIndex('uploadDate', 'uploadDate', { unique: false });
-                console.log('Image store created');
-            }
-            
-            // 创建元数据存储对象
-            if (!db.objectStoreNames.contains('metadata')) {
-                const metadataStore = db.createObjectStore('metadata', { keyPath: 'id' });
-                metadataStore.createIndex('category', 'category', { unique: false });
-                console.log('Metadata store created');
-            }
-        };
     });
 }
 
 /**
- * 更新界面显示迁移完成
+ * 保存单个项目到指定的对象存储
+ * @param {string} storeName 对象存储的名称
+ * @param {Object} item 要保存的项目
+ * @returns {Promise} 保存操作的Promise
  */
-function updateMigrationComplete() {
-    console.log('Updating UI for migration complete');
-    
-    // 更新按钮
-    const button = document.getElementById('startMigrationBtn');
-    if (button) {
-        button.innerHTML = '<i class="fas fa-check-circle"></i> 升级完成';
-        button.style.backgroundColor = '#52C41A';
-    }
-    
-    // 更新通知文本
-    const notice = document.getElementById('migrationNotice');
-    if (notice) {
-        const messageDiv = notice.querySelector('div');
-        if (messageDiv) {
-            messageDiv.innerHTML = `
-                <h4 style="margin: 0 0 5px 0; color: #52C41A; font-size: 16px;">
-                    <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
-                    存储升级完成
-                </h4>
-                <p style="margin: 0; color: #5A5A5A; font-size: 14px;">
-                    您的图片已成功迁移到新的存储系统，现在可以上传更多图片了。
-                </p>
-            `;
-        }
-        
-        // 设置自动消失
-        setTimeout(() => {
-            notice.style.transition = 'opacity 0.5s ease, transform 0.5s ease, max-height 0.5s ease';
-            notice.style.opacity = '0';
-            notice.style.transform = 'translateY(-20px)';
-            notice.style.maxHeight = '0';
-            notice.style.overflow = 'hidden';
-            notice.style.border = 'none';
-            notice.style.padding = '0';
-            notice.style.margin = '0';
-            
-            // 删除元素
-            setTimeout(() => {
-                if (notice.parentNode) {
-                    notice.parentNode.removeChild(notice);
-                }
-            }, 500);
-        }, 5000);
-    }
-}
-
-/**
- * Helper: 保存元数据到IndexedDB
- */
-function saveMetadata(metadata) {
-    console.log(`Saving metadata for: ${metadata.id}`);
-    
-    // 如果window上有全局函数，使用它
-    if (typeof window.saveMetadata === 'function') {
-        console.log('Using global saveMetadata function');
-        return window.saveMetadata(metadata);
-    }
-    
+function saveItemToStore(storeName, item) {
     return new Promise((resolve, reject) => {
-        // 检查IndexedDB是否可用
-        if (!window.indexedDB) {
-            console.error('IndexedDB not supported in this browser');
-            reject(new Error('您的浏览器不支持现代存储技术'));
-            return;
-        }
-        
-        // 检查数据库是否已初始化
-        if (!window.imageDB) {
-            console.error('IndexedDB not initialized');
-            reject(new Error('数据库尚未初始化'));
+        if (!db) {
+            reject('数据库未初始化');
             return;
         }
         
         try {
-            // 创建事务
-            const transaction = window.imageDB.transaction(['metadata'], 'readwrite');
-            const store = transaction.objectStore('metadata');
+            const transaction = db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
             
-            // 保存元数据
-            const request = store.put(metadata);
+            const request = store.put(item);
             
             request.onsuccess = function() {
-                console.log(`Metadata saved successfully for: ${metadata.id}`);
-                resolve(true);
+                resolve();
             };
             
             request.onerror = function(event) {
-                console.error('Error saving metadata:', event.target.error);
-                reject(event.target.error);
+                reject('保存到 ' + storeName + ' 失败: ' + event.target.error);
             };
             
             transaction.oncomplete = function() {
@@ -464,72 +318,51 @@ function saveMetadata(metadata) {
             };
             
             transaction.onerror = function(event) {
-                console.error('Transaction error when saving metadata:', event.target.error);
-                reject(event.target.error);
+                reject('事务错误: ' + event.target.error);
             };
         } catch (e) {
-            console.error('Error in saveMetadata transaction:', e);
-            reject(e);
+            reject('保存操作失败: ' + e.message);
         }
     });
 }
 
-/**
- * Helper: 保存图片数据到IndexedDB
- */
-function saveImageData(imageData) {
-    console.log(`Saving image data for: ${imageData.id}`);
-    
-    // 如果window上有全局函数，使用它
-    if (typeof window.saveImageData === 'function') {
-        console.log('Using global saveImageData function');
-        return window.saveImageData(imageData);
-    }
-    
-    return new Promise((resolve, reject) => {
-        // 检查IndexedDB是否可用
-        if (!window.indexedDB) {
-            console.error('IndexedDB not supported');
-            reject(new Error('您的浏览器不支持现代存储技术'));
-            return;
+// 添加全局样式
+(function addStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .migration-notice {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
         }
         
-        // 检查数据库是否已初始化
-        if (!window.imageDB) {
-            console.error('IndexedDB not initialized');
-            reject(new Error('数据库尚未初始化'));
-            return;
+        .migration-progress, .migration-success, .migration-error {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
         }
         
-        try {
-            // 创建事务
-            const transaction = window.imageDB.transaction(['images'], 'readwrite');
-            const store = transaction.objectStore('images');
-            
-            // 保存图片数据
-            const request = store.put(imageData);
-            
-            request.onsuccess = function() {
-                console.log(`Image data saved successfully for: ${imageData.id}`);
-                resolve(true);
-            };
-            
-            request.onerror = function(event) {
-                console.error('Error saving image data:', event.target.error);
-                reject(event.target.error);
-            };
-            
-            transaction.oncomplete = function() {
-                // 事务完成
-            };
-            
-            transaction.onerror = function(event) {
-                console.error('Transaction error when saving image data:', event.target.error);
-                reject(event.target.error);
-            };
-        } catch (e) {
-            console.error('Error in saveImageData transaction:', e);
-            reject(e);
+        .migration-progress {
+            background-color: #cce5ff;
+            color: #004085;
         }
-    });
-} 
+        
+        .migration-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .migration-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        #migration-buttons {
+            margin: 15px 0;
+        }
+    `;
+    document.head.appendChild(style);
+})(); 
