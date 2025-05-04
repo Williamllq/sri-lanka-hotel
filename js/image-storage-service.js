@@ -68,71 +68,233 @@ function initializeDatabase() {
  */
 function migrateFromLocalStorage() {
     try {
+        // 确保一次性迁移所有图片数据（adminPictures 和 sitePictures）
         const adminPicturesStr = localStorage.getItem('adminPictures');
-        if (!adminPicturesStr) return;
+        const sitePicturesStr = localStorage.getItem('sitePictures');
         
-        const adminPictures = JSON.parse(adminPicturesStr);
-        if (!Array.isArray(adminPictures) || adminPictures.length === 0) return;
+        // 合并所有图片来源
+        let allPictures = [];
         
-        console.log(`开始迁移 ${adminPictures.length} 张图片到IndexedDB...`);
+        // 添加adminPictures
+        if (adminPicturesStr) {
+            try {
+                const adminPictures = JSON.parse(adminPicturesStr);
+                if (Array.isArray(adminPictures) && adminPictures.length > 0) {
+                    console.log(`找到 ${adminPictures.length} 张adminPictures图片`);
+                    adminPictures.forEach(pic => {
+                        allPictures.push({
+                            id: pic.id,
+                            name: pic.name,
+                            category: pic.category,
+                            description: pic.description || '',
+                            imageUrl: pic.imageUrl,
+                            source: 'admin',
+                            uploadDate: pic.uploadDate || new Date().toISOString()
+                        });
+                    });
+                }
+            } catch (e) {
+                console.error('解析adminPictures时出错:', e);
+            }
+        }
+        
+        // 添加sitePictures
+        if (sitePicturesStr) {
+            try {
+                const sitePictures = JSON.parse(sitePicturesStr);
+                if (Array.isArray(sitePictures) && sitePictures.length > 0) {
+                    console.log(`找到 ${sitePictures.length} 张sitePictures图片`);
+                    sitePictures.forEach(pic => {
+                        // 检查是否已经添加了相同ID的图片
+                        const existingIndex = allPictures.findIndex(p => p.id === pic.id);
+                        if (existingIndex === -1) {
+                            allPictures.push({
+                                id: pic.id,
+                                name: pic.name,
+                                category: pic.category,
+                                description: pic.description || '',
+                                imageUrl: pic.url, // 注意sitePictures使用url而不是imageUrl
+                                source: 'site',
+                                uploadDate: pic.uploadDate || new Date().toISOString()
+                            });
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('解析sitePictures时出错:', e);
+            }
+        }
+        
+        // 如果没有找到任何图片，直接返回
+        if (allPictures.length === 0) {
+            console.log('没有找到图片数据，跳过迁移');
+            return;
+        }
+        
+        console.log(`准备迁移总计 ${allPictures.length} 张图片到IndexedDB...`);
         
         // 检查是否已迁移
         checkIfMigrated(function(isMigrated) {
             if (isMigrated) {
-                console.log('数据已经迁移过，跳过迁移');
+                console.log('数据已经迁移过，正在检查遗漏的图片...');
+                checkForMissingImages(allPictures);
                 return;
             }
             
             // 逐个保存图片
             let successCount = 0;
-            const total = adminPictures.length;
+            let errorCount = 0;
+            const total = allPictures.length;
             
-            adminPictures.forEach(picture => {
-                const img = new Image();
-                img.onload = function() {
-                    // 创建主图像和缩略图
-                    const imageData = {
-                        id: picture.id,
-                        name: picture.name,
-                        category: picture.category,
-                        description: picture.description || '',
-                        imageUrl: picture.imageUrl,
-                        uploadDate: picture.uploadDate || new Date().toISOString()
-                    };
-                    
-                    // 生成缩略图
-                    const thumbnailUrl = generateThumbnail(img, 200, 150);
-                    const thumbnailData = {
-                        id: picture.id,
-                        name: picture.name,
-                        category: picture.category,
-                        imageUrl: thumbnailUrl
-                    };
-                    
-                    // 保存到IndexedDB
-                    saveImageToDB(imageData, thumbnailData, function() {
+            allPictures.forEach(picture => {
+                migrateImage(picture, function(success) {
+                    if (success) {
                         successCount++;
-                        if (successCount === total) {
-                            console.log(`成功迁移 ${successCount} 张图片到IndexedDB`);
-                            // 记录迁移完成
-                            markAsMigrated();
-                        }
-                    });
-                };
-                img.onerror = function() {
-                    console.error(`加载图片失败: ${picture.name}`);
-                    successCount++;
-                    if (successCount === total) {
-                        console.log(`完成迁移，共 ${successCount} 张图片`);
+                    } else {
+                        errorCount++;
+                    }
+                    
+                    // 检查是否所有图片都已处理
+                    if (successCount + errorCount === total) {
+                        console.log(`迁移完成: 成功 ${successCount} 张, 失败 ${errorCount} 张`);
                         markAsMigrated();
                     }
-                };
-                img.src = picture.imageUrl;
+                });
             });
         });
     } catch (e) {
         console.error('迁移数据时出错:', e);
     }
+}
+
+/**
+ * 迁移单个图片
+ * @param {Object} picture - 图片数据
+ * @param {Function} callback - 回调函数
+ */
+function migrateImage(picture, callback) {
+    // 创建Image对象来加载图片
+    const img = new Image();
+    
+    // 设置超时，防止图片加载时间过长
+    const timeoutId = setTimeout(function() {
+        console.warn(`图片加载超时: ${picture.name}，使用直接保存方式`);
+        // 超时后直接保存原始图片数据
+        saveDirectly(picture, callback);
+    }, 5000); // 5秒超时
+    
+    img.onload = function() {
+        // 清除超时
+        clearTimeout(timeoutId);
+        
+        // 创建主图像数据
+        const imageData = {
+            id: picture.id,
+            name: picture.name,
+            category: picture.category,
+            description: picture.description,
+            imageUrl: picture.imageUrl || picture.url,
+            uploadDate: picture.uploadDate
+        };
+        
+        // 生成缩略图
+        const thumbnailUrl = generateThumbnail(img, 200, 150);
+        const thumbnailData = {
+            id: picture.id,
+            name: picture.name,
+            category: picture.category,
+            imageUrl: thumbnailUrl,
+            uploadDate: picture.uploadDate
+        };
+        
+        // 保存到IndexedDB
+        saveImageToDB(imageData, thumbnailData, function() {
+            callback(true);
+        });
+    };
+    
+    img.onerror = function() {
+        // 清除超时
+        clearTimeout(timeoutId);
+        
+        console.warn(`加载图片失败: ${picture.name}，使用直接保存方式`);
+        // 图片加载失败时直接保存原始数据
+        saveDirectly(picture, callback);
+    };
+    
+    // 设置图片源
+    img.src = picture.imageUrl || picture.url;
+}
+
+/**
+ * 直接保存图片数据（不生成缩略图）
+ * @param {Object} picture - 图片数据
+ * @param {Function} callback - 回调函数
+ */
+function saveDirectly(picture, callback) {
+    // 创建主图像数据
+    const imageData = {
+        id: picture.id,
+        name: picture.name,
+        category: picture.category,
+        description: picture.description,
+        imageUrl: picture.imageUrl || picture.url,
+        uploadDate: picture.uploadDate
+    };
+    
+    // 使用相同的数据作为缩略图（这不是理想的做法，但可以确保数据的完整性）
+    const thumbnailData = {
+        id: picture.id,
+        name: picture.name,
+        category: picture.category,
+        imageUrl: picture.imageUrl || picture.url,
+        uploadDate: picture.uploadDate
+    };
+    
+    // 保存到IndexedDB
+    saveImageToDB(imageData, thumbnailData, function() {
+        callback(true);
+    });
+}
+
+/**
+ * 检查遗漏的图片并添加到数据库
+ * @param {Array} allPictures - 所有图片数据
+ */
+function checkForMissingImages(allPictures) {
+    if (!db || allPictures.length === 0) return;
+    
+    const transaction = db.transaction([IMAGES_STORE], 'readonly');
+    const store = transaction.objectStore(IMAGES_STORE);
+    const request = store.getAllKeys();
+    
+    request.onsuccess = function(event) {
+        const existingKeys = event.target.result || [];
+        console.log(`当前数据库中有 ${existingKeys.length} 张图片`);
+        
+        // 查找遗漏的图片
+        const missingPictures = allPictures.filter(pic => !existingKeys.includes(pic.id));
+        
+        if (missingPictures.length > 0) {
+            console.log(`发现 ${missingPictures.length} 张遗漏的图片，开始添加...`);
+            
+            let addedCount = 0;
+            missingPictures.forEach(picture => {
+                migrateImage(picture, function(success) {
+                    addedCount++;
+                    if (addedCount === missingPictures.length) {
+                        console.log(`已添加 ${addedCount} 张遗漏的图片`);
+                    }
+                });
+            });
+        } else {
+            console.log('没有发现遗漏的图片');
+        }
+    };
+    
+    request.onerror = function(event) {
+        console.error('检查遗漏图片时出错:', event.target.error);
+    };
 }
 
 /**
@@ -367,15 +529,17 @@ function getAllImages(params, callback) {
     const sort = params.sort || 'newest';
     
     if (!db) {
-        console.error('数据库未初始化');
-        callback([]);
+        console.error('数据库未初始化，回退到localStorage');
+        fallbackToLocalStorage(params, callback);
         return;
     }
     
-    // 先获取缩略图 - 这样用户可以快速看到结果
-    const thumbnailTransaction = db.transaction([THUMBNAILS_STORE], 'readonly');
+    // 尝试同时从两个存储区获取数据，确保不遗漏
+    const thumbnailTransaction = db.transaction([THUMBNAILS_STORE, IMAGES_STORE], 'readonly');
     const thumbnailStore = thumbnailTransaction.objectStore(THUMBNAILS_STORE);
+    const imageStore = thumbnailTransaction.objectStore(IMAGES_STORE);
     
+    // 获取所有缩略图
     let thumbnailRequest;
     if (category !== 'all') {
         const index = thumbnailStore.index('category');
@@ -387,40 +551,232 @@ function getAllImages(params, callback) {
     thumbnailRequest.onsuccess = function(event) {
         let thumbnails = event.target.result || [];
         
-        // 排序
-        if (sort === 'newest') {
-            thumbnails.sort((a, b) => new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0));
-        } else if (sort === 'oldest') {
-            thumbnails.sort((a, b) => new Date(a.uploadDate || 0) - new Date(b.uploadDate || 0));
-        } else if (sort === 'name') {
-            thumbnails.sort((a, b) => a.name.localeCompare(b.name));
-        }
+        // 获取所有完整图片 - 以防缩略图缺少一些元数据
+        const imageRequest = imageStore.getAll();
         
-        // 分页
-        const start = (page - 1) * limit;
-        const end = start + limit;
-        const pagedThumbnails = thumbnails.slice(start, end);
-        
-        // 计算总页数
-        const totalPages = Math.ceil(thumbnails.length / limit);
-        
-        // 返回结果
-        callback({
-            images: pagedThumbnails,
-            pagination: {
-                currentPage: page,
-                totalPages: totalPages,
-                totalItems: thumbnails.length,
-                hasNext: page < totalPages,
-                hasPrev: page > 1
+        imageRequest.onsuccess = function(event) {
+            const fullImages = event.target.result || [];
+            
+            // 合并数据，确保缩略图有完整的元数据
+            thumbnails = thumbnails.map(thumb => {
+                const fullImage = fullImages.find(img => img.id === thumb.id);
+                if (fullImage) {
+                    return {
+                        ...thumb,
+                        category: thumb.category || fullImage.category,
+                        description: fullImage.description,
+                        uploadDate: fullImage.uploadDate
+                    };
+                }
+                return thumb;
+            });
+            
+            // 如果没有数据，尝试从localStorage中获取
+            if (thumbnails.length === 0) {
+                console.log('IndexedDB中没有数据，回退到localStorage');
+                fallbackToLocalStorage(params, callback);
+                return;
             }
-        });
+            
+            // 排序
+            if (sort === 'newest') {
+                thumbnails.sort((a, b) => {
+                    const dateA = a.uploadDate ? new Date(a.uploadDate) : new Date(0);
+                    const dateB = b.uploadDate ? new Date(b.uploadDate) : new Date(0);
+                    return dateB - dateA;
+                });
+            } else if (sort === 'oldest') {
+                thumbnails.sort((a, b) => {
+                    const dateA = a.uploadDate ? new Date(a.uploadDate) : new Date(0);
+                    const dateB = b.uploadDate ? new Date(b.uploadDate) : new Date(0);
+                    return dateA - dateB;
+                });
+            } else if (sort === 'name') {
+                thumbnails.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            }
+            
+            // 分页
+            const start = (page - 1) * limit;
+            const end = start + limit;
+            const pagedThumbnails = thumbnails.slice(start, end);
+            
+            // 将数据转换为统一格式
+            const formattedImages = pagedThumbnails.map(img => ({
+                id: img.id,
+                name: img.name,
+                category: img.category || 'scenery',
+                description: img.description || '',
+                imageUrl: img.imageUrl,  // 缩略图URL
+                url: img.imageUrl,       // 兼容前端显示
+                uploadDate: img.uploadDate || new Date().toISOString()
+            }));
+            
+            // 计算总页数
+            const totalPages = Math.ceil(thumbnails.length / limit);
+            
+            // 返回结果
+            callback({
+                images: formattedImages,
+                pagination: {
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalItems: thumbnails.length,
+                    hasNext: page < totalPages,
+                    hasPrev: page > 1
+                }
+            });
+        };
+        
+        imageRequest.onerror = function(event) {
+            console.error('获取完整图片时出错:', event.target.error);
+            fallbackToLocalStorage(params, callback);
+        };
     };
     
     thumbnailRequest.onerror = function(event) {
         console.error('获取缩略图时出错:', event.target.error);
-        callback({ images: [], pagination: { currentPage: 1, totalPages: 0, totalItems: 0, hasNext: false, hasPrev: false } });
+        fallbackToLocalStorage(params, callback);
     };
+}
+
+/**
+ * 从localStorage获取图片作为备用
+ * @param {Object} params - 参数对象
+ * @param {Function} callback - 回调函数
+ */
+function fallbackToLocalStorage(params, callback) {
+    const category = params.category || 'all';
+    const page = params.page || 1;
+    const limit = params.limit || 20;
+    const sort = params.sort || 'newest';
+    
+    console.log('从localStorage中获取图片数据');
+    
+    // 尝试从sitePictures获取
+    const sitePicturesStr = localStorage.getItem('sitePictures');
+    const adminPicturesStr = localStorage.getItem('adminPictures');
+    
+    let allPictures = [];
+    
+    // 处理sitePictures
+    if (sitePicturesStr) {
+        try {
+            const sitePictures = JSON.parse(sitePicturesStr);
+            if (Array.isArray(sitePictures)) {
+                sitePictures.forEach(pic => {
+                    if (pic && pic.id) {
+                        allPictures.push({
+                            id: pic.id,
+                            name: pic.name || '',
+                            category: pic.category || 'scenery',
+                            description: pic.description || '',
+                            imageUrl: pic.url,
+                            uploadDate: pic.uploadDate || new Date().toISOString()
+                        });
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('解析sitePictures时出错:', e);
+        }
+    }
+    
+    // 处理adminPictures
+    if (adminPicturesStr) {
+        try {
+            const adminPictures = JSON.parse(adminPicturesStr);
+            if (Array.isArray(adminPictures)) {
+                adminPictures.forEach(pic => {
+                    // 检查是否已存在相同ID的图片
+                    const existingIndex = allPictures.findIndex(p => p.id === pic.id);
+                    if (existingIndex === -1 && pic && pic.id) {
+                        allPictures.push({
+                            id: pic.id,
+                            name: pic.name || '',
+                            category: pic.category || 'scenery',
+                            description: pic.description || '',
+                            imageUrl: pic.imageUrl,
+                            uploadDate: pic.uploadDate || new Date().toISOString()
+                        });
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('解析adminPictures时出错:', e);
+        }
+    }
+    
+    // 如果没有找到图片，返回空结果
+    if (allPictures.length === 0) {
+        console.log('在localStorage中没有找到图片');
+        callback({
+            images: [],
+            pagination: {
+                currentPage: 1,
+                totalPages: 0,
+                totalItems: 0,
+                hasNext: false,
+                hasPrev: false
+            }
+        });
+        return;
+    }
+    
+    console.log(`从localStorage中找到 ${allPictures.length} 张图片`);
+    
+    // 过滤分类
+    let filteredPictures = allPictures;
+    if (category !== 'all') {
+        filteredPictures = allPictures.filter(pic => pic.category === category);
+    }
+    
+    // 排序
+    if (sort === 'newest') {
+        filteredPictures.sort((a, b) => {
+            const dateA = a.uploadDate ? new Date(a.uploadDate) : new Date(0);
+            const dateB = b.uploadDate ? new Date(b.uploadDate) : new Date(0);
+            return dateB - dateA;
+        });
+    } else if (sort === 'oldest') {
+        filteredPictures.sort((a, b) => {
+            const dateA = a.uploadDate ? new Date(a.uploadDate) : new Date(0);
+            const dateB = b.uploadDate ? new Date(b.uploadDate) : new Date(0);
+            return dateA - dateB;
+        });
+    } else if (sort === 'name') {
+        filteredPictures.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }
+    
+    // 分页
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const pagedPictures = filteredPictures.slice(start, end);
+    
+    // 转换格式以匹配前端期望的格式
+    const formattedImages = pagedPictures.map(pic => ({
+        id: pic.id,
+        name: pic.name,
+        category: pic.category,
+        description: pic.description,
+        url: pic.imageUrl,  // 前端使用url
+        imageUrl: pic.imageUrl,  // 同时包含imageUrl以防万一
+        uploadDate: pic.uploadDate
+    }));
+    
+    // 计算总页数
+    const totalPages = Math.ceil(filteredPictures.length / limit);
+    
+    // 返回结果
+    callback({
+        images: formattedImages,
+        pagination: {
+            currentPage: page,
+            totalPages: totalPages,
+            totalItems: filteredPictures.length,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+        }
+    });
 }
 
 /**

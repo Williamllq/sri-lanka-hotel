@@ -55,40 +55,75 @@
    */
   function loadImagesFromLocalStorage() {
     try {
-      // 优先从sitePictures获取 - 这是前端显示的格式
+      // 从所有可能的来源收集图片 - 合并多个来源以保证不丢失图片
+      let allPictures = [];
+      
+      // 尝试从sitePictures获取
       const siteData = localStorage.getItem('sitePictures');
       if (siteData) {
-        const sitePics = JSON.parse(siteData);
-        if (sitePics && sitePics.length > 0) {
-          console.log(`Loaded ${sitePics.length} images from sitePictures`);
-          setupGalleryWithPictures(sitePics);
-          return;
+        try {
+          const sitePics = JSON.parse(siteData);
+          if (sitePics && Array.isArray(sitePics) && sitePics.length > 0) {
+            console.log(`Found ${sitePics.length} images in sitePictures`);
+            sitePics.forEach(pic => {
+              if (pic && pic.id) {
+                allPictures.push({
+                  id: pic.id,
+                  name: pic.name || 'Unnamed Picture',
+                  category: pic.category || 'scenery',
+                  description: pic.description || '',
+                  url: pic.url || '',
+                  uploadDate: pic.uploadDate || new Date().toISOString()
+                });
+              }
+            });
+          }
+        } catch (e) {
+          console.error('Error parsing sitePictures:', e);
         }
       }
       
-      // 如果sitePictures为空，尝试获取adminPictures
+      // 尝试从adminPictures获取
       const adminData = localStorage.getItem('adminPictures');
       if (adminData) {
-        const adminPics = JSON.parse(adminData);
-        if (adminPics && adminPics.length > 0) {
-          console.log(`Converting ${adminPics.length} images from adminPictures`);
-          // 转换格式
-          const convertedPics = adminPics.map(pic => ({
-            id: pic.id,
-            name: pic.name,
-            category: pic.category,
-            description: pic.description || '',
-            url: pic.imageUrl, // 关键区别：admin存储用imageUrl，site存储用url
-            uploadDate: pic.uploadDate
-          }));
-          setupGalleryWithPictures(convertedPics);
-          return;
+        try {
+          const adminPics = JSON.parse(adminData);
+          if (adminPics && Array.isArray(adminPics) && adminPics.length > 0) {
+            console.log(`Found ${adminPics.length} images in adminPictures`);
+            adminPics.forEach(pic => {
+              if (pic && pic.id) {
+                // 检查是否已存在此ID的图片
+                const existingIndex = allPictures.findIndex(p => p.id === pic.id);
+                if (existingIndex === -1) {
+                  // 不存在，添加新图片
+                  allPictures.push({
+                    id: pic.id,
+                    name: pic.name || 'Unnamed Picture',
+                    category: pic.category || 'scenery',
+                    description: pic.description || '',
+                    url: pic.imageUrl || '',
+                    uploadDate: pic.uploadDate || new Date().toISOString()
+                  });
+                }
+              }
+            });
+          }
+        } catch (e) {
+          console.error('Error parsing adminPictures:', e);
         }
       }
       
-      // 如果都没有，显示默认图片
-      console.log('No images found in localStorage, using default images');
-      setupGalleryWithPictures(getDefaultImages());
+      // 移除URL为空的图片
+      allPictures = allPictures.filter(pic => pic.url && pic.url.trim() !== '');
+      
+      // 检查是否有有效的图片
+      if (allPictures.length > 0) {
+        console.log(`Total unique pictures found: ${allPictures.length}`);
+        setupGalleryWithPictures(allPictures);
+      } else {
+        console.log('No valid images found in localStorage, using default images');
+        setupGalleryWithPictures(getDefaultImages());
+      }
     } catch (e) {
       console.error('Error loading images from localStorage:', e);
       // 出错时使用默认图片
@@ -101,14 +136,23 @@
    * @param {Array} pictures - 图片数据数组
    */
   function setupGalleryWithPictures(pictures) {
+    // 移除无效的图片数据
+    const validPictures = pictures.filter(pic => pic && pic.id && (pic.url || pic.imageUrl));
+    
+    if (validPictures.length === 0) {
+      console.warn('No valid pictures found, using default images');
+      setupGalleryWithPictures(getDefaultImages());
+      return;
+    }
+
     // 规范化图片数据 - 确保数据格式统一
-    const normalizedPictures = pictures.map(pic => ({
+    const normalizedPictures = validPictures.map(pic => ({
       id: pic.id,
-      name: pic.name,
-      category: normalizeCategory(pic.category),
+      name: pic.name || 'Unnamed Picture',
+      category: normalizeCategory(pic.category || 'scenery'),
       description: pic.description || '',
-      url: pic.url || pic.imageUrl, // 兼容不同的命名格式
-      uploadDate: pic.uploadDate
+      url: pic.url || pic.imageUrl || '', // 兼容不同的命名格式
+      uploadDate: pic.uploadDate || new Date().toISOString()
     }));
     
     // 设置分类按钮事件
@@ -298,16 +342,43 @@
    * @param {Object} picture - 图片对象
    */
   function displayFeaturedImage(container, picture) {
-    // 更新特色图片
-    container.innerHTML = `
-      <div class="featured-image">
-        <img src="${picture.url}" alt="${picture.name}">
-      </div>
-      <div class="featured-caption">
-        <h3 class="featured-title">${picture.name}</h3>
-        <p class="featured-desc">${picture.description || ''}</p>
-      </div>
-    `;
+    // 创建图片元素用于预加载和错误处理
+    const img = new Image();
+    
+    // 设置加载事件
+    img.onload = function() {
+      // 成功加载后更新特色图片
+      container.innerHTML = `
+        <div class="featured-image">
+          <img src="${picture.url}" alt="${picture.name}">
+        </div>
+        <div class="featured-caption">
+          <h3 class="featured-title">${picture.name}</h3>
+          <p class="featured-desc">${picture.description || ''}</p>
+        </div>
+      `;
+    };
+    
+    // 设置错误处理
+    img.onerror = function() {
+      console.warn(`Failed to load image: ${picture.name}`);
+      // 加载失败时使用替代图片
+      container.innerHTML = `
+        <div class="featured-image">
+          <div class="image-error">
+            <i class="fas fa-image"></i>
+            <p>Image could not be loaded</p>
+          </div>
+        </div>
+        <div class="featured-caption">
+          <h3 class="featured-title">${picture.name}</h3>
+          <p class="featured-desc">${picture.description || ''}</p>
+        </div>
+      `;
+    };
+    
+    // 开始加载图片
+    img.src = picture.url;
   }
   
   /**

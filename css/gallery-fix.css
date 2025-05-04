@@ -40,16 +40,13 @@
 }
 
 .gallery-filter-btn:hover {
-    background-color: #f5f5f5;
-    border-color: #ccc;
+    background-color: rgba(66, 133, 244, 0.1);
 }
 
 .gallery-filter-btn.active {
     background-color: #4285f4;
     color: white;
-    border-color: #4285f4;
-    box-shadow: 0 3px 8px rgba(66, 133, 244, 0.3);
-    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3);
 }
 
 /* 确保按钮呈现为单选样式 */
@@ -75,19 +72,15 @@
 }
 
 .gallery-filter-btn::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: 0;
     left: 50%;
-    width: 0;
-    height: 2px;
-    background-color: #4285f4;
     transform: translateX(-50%);
-    transition: width 0.3s ease;
-}
-
-.gallery-filter-btn.active::after {
-    width: 80%;
+    width: 30px;
+    height: 3px;
+    background-color: #fff;
+    border-radius: 3px;
 }
 
 /* 添加提示文本，说明这是单选 */
@@ -269,4 +262,88 @@
 /* 原始画廊网格（隐藏）样式修复 */
 .gallery-grid {
     display: none;
+}
+
+/* 错误图片显示样式 */
+.image-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    height: 100%;
+    width: 100%;
+    color: #999;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.image-error i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #ccc;
+}
+
+.image-error p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* 图片加载状态提示 */
+.loading-gallery {
+    text-align: center;
+    padding: 40px;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.loading-gallery i {
+    font-size: 32px;
+    color: #4285f4;
+    margin-bottom: 15px;
+    animation: spin 1.5s infinite linear;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 空分类提示样式 */
+.empty-category {
+    text-align: center;
+    padding: 40px;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    margin: 20px 0;
+    color: #666;
+}
+
+.empty-category i {
+    font-size: 48px;
+    color: #ccc;
+    margin-bottom: 15px;
+}
+
+/* 缩略图加载失败状态 */
+.gallery-thumbnail.error {
+    position: relative;
+}
+
+.gallery-thumbnail.error::before {
+    content: "!";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
 } 
