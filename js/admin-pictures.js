@@ -132,7 +132,7 @@ function addPictureStyles() {
     style.textContent = `
         .picture-image {
             width: 100%;
-            height: 200px;
+            height: 180px;
             overflow: hidden;
             border-radius: 8px 8px 0 0;
             position: relative;
@@ -163,23 +163,26 @@ function addPictureStyles() {
         }
         
         .picture-info {
-            padding: 15px;
+            padding: 12px;
         }
         
         .picture-info h3 {
             margin-top: 0;
-            margin-bottom: 8px;
-            font-size: 16px;
+            margin-bottom: 5px;
+            font-size: 14px;
             color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .picture-category {
             display: inline-block;
-            padding: 3px 8px;
+            padding: 2px 6px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11px;
             color: white;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .picture-category.scenery { background-color: #4CAF50; }
@@ -189,26 +192,30 @@ function addPictureStyles() {
         .picture-category.beach { background-color: #03A9F4; }
         
         .picture-description {
-            font-size: 13px;
+            font-size: 12px;
             color: #666;
-            margin-bottom: 10px;
-            height: 40px;
+            margin-bottom: 8px;
+            height: 36px;
             overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
         
         .picture-actions {
-            padding: 0 15px 15px;
+            padding: 0 12px 12px;
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 8px;
         }
         
         .picture-actions button {
             background: transparent;
             border: none;
             cursor: pointer;
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -230,7 +237,7 @@ function addPictureStyles() {
         
         .select-picture-image {
             width: 100%;
-            height: 150px;
+            height: 120px;
             overflow: hidden;
             border-radius: 4px;
             position: relative;
@@ -243,8 +250,8 @@ function addPictureStyles() {
         }
         
         .carousel-item-image {
-            width: 120px;
-            height: 80px;
+            width: 100px;
+            height: 70px;
             overflow: hidden;
             border-radius: 4px;
         }
@@ -257,9 +264,16 @@ function addPictureStyles() {
         
         #pictureGrid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            padding: 20px 0;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            padding: 15px 0;
+        }
+        
+        @media (max-width: 768px) {
+            #pictureGrid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 10px;
+            }
         }
         
         .no-pictures-message {
@@ -273,6 +287,35 @@ function addPictureStyles() {
             font-size: 48px;
             margin-bottom: 15px;
             color: #ccc;
+        }
+        
+        /* 图片上传进度指示器 */
+        .upload-progress {
+            height: 4px;
+            background-color: #f0f0f0;
+            margin-top: 10px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .upload-progress-bar {
+            height: 100%;
+            background-color: #4285f4;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        /* 显示剩余图片容量 */
+        .picture-capacity {
+            text-align: right;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .picture-capacity-critical {
+            color: #F44336;
+            font-weight: bold;
         }
     `;
     
@@ -294,6 +337,9 @@ function initPictureManagement() {
     
     // 修复图片上传表单提交
     fixPictureUploadForm();
+    
+    // 显示当前图片数量和容量
+    updatePictureCapacityInfo();
 }
 
 /**
@@ -511,6 +557,99 @@ function setupPictureFilter() {
 }
 
 /**
+ * 更新图片容量信息显示
+ */
+function updatePictureCapacityInfo() {
+    // 从localStorage获取保存的图片
+    const picturesStr = localStorage.getItem('adminPictures');
+    const pictures = picturesStr ? JSON.parse(picturesStr) : [];
+    
+    // 获取管理界面的上传按钮容器
+    const uploadBtnContainer = document.querySelector('.upload-button-container, .admin-buttons, .action-buttons');
+    if (!uploadBtnContainer) return;
+    
+    // 查找或创建容量信息元素
+    let capacityInfo = document.getElementById('pictureCapacityInfo');
+    if (!capacityInfo) {
+        capacityInfo = document.createElement('div');
+        capacityInfo.id = 'pictureCapacityInfo';
+        capacityInfo.className = 'picture-capacity';
+        uploadBtnContainer.appendChild(capacityInfo);
+    }
+    
+    // 设置最大图片数量
+    const MAX_PICTURES = 30;
+    const picturesCount = pictures.length;
+    const remainingSlots = MAX_PICTURES - picturesCount;
+    
+    // 更新容量信息显示
+    if (remainingSlots <= 5) {
+        capacityInfo.className = 'picture-capacity picture-capacity-critical';
+    } else {
+        capacityInfo.className = 'picture-capacity';
+    }
+    
+    capacityInfo.innerHTML = `当前: ${picturesCount}/${MAX_PICTURES} 张图片`;
+    
+    // 如果已达到最大图片数，禁用上传按钮
+    const uploadButton = document.querySelector('#uploadPictureBtn, .upload-picture-btn, button[title="Upload Picture"]');
+    if (uploadButton) {
+        if (picturesCount >= MAX_PICTURES) {
+            uploadButton.disabled = true;
+            uploadButton.title = `已达到最大图片限制(${MAX_PICTURES}张)`;
+            // 添加视觉提示
+            uploadButton.style.opacity = '0.5';
+            uploadButton.style.cursor = 'not-allowed';
+        } else {
+            uploadButton.disabled = false;
+            uploadButton.title = '上传新图片';
+            uploadButton.style.opacity = '1';
+            uploadButton.style.cursor = 'pointer';
+        }
+    }
+    
+    // 添加存储空间使用指示器
+    try {
+        const storageUsedBytes = picturesStr ? picturesStr.length * 2 : 0; // 2字节/字符 (UTF-16)
+        const storageLimit = 5 * 1024 * 1024; // 大约 5MB (localStorage通常限制)
+        const storagePercentage = Math.min(100, (storageUsedBytes / storageLimit) * 100);
+        
+        // 创建或更新存储使用指示器
+        let storageIndicator = document.getElementById('storageUsageIndicator');
+        if (!storageIndicator) {
+            const indicatorContainer = document.createElement('div');
+            indicatorContainer.className = 'upload-progress';
+            indicatorContainer.id = 'storageIndicatorContainer';
+            
+            storageIndicator = document.createElement('div');
+            storageIndicator.className = 'upload-progress-bar';
+            storageIndicator.id = 'storageUsageIndicator';
+            
+            indicatorContainer.appendChild(storageIndicator);
+            capacityInfo.parentNode.insertBefore(indicatorContainer, capacityInfo.nextSibling);
+        }
+        
+        // 更新进度条
+        storageIndicator.style.width = `${storagePercentage}%`;
+        
+        // 根据使用百分比添加颜色警告
+        if (storagePercentage > 80) {
+            storageIndicator.style.backgroundColor = '#F44336'; // 红色，警告
+        } else if (storagePercentage > 60) {
+            storageIndicator.style.backgroundColor = '#FF9800'; // 橙色，注意
+        } else {
+            storageIndicator.style.backgroundColor = '#4CAF50'; // 绿色，正常
+        }
+        
+        // 在容量信息中添加存储使用信息
+        const storageUsedMB = (storageUsedBytes / (1024 * 1024)).toFixed(2);
+        capacityInfo.innerHTML += ` | 存储: ${storageUsedMB}MB`;
+    } catch (e) {
+        console.error('Error calculating storage usage:', e);
+    }
+}
+
+/**
  * 修复图片上传表单提交功能
  * @param {HTMLElement} form - 表单元素，默认为null时会自动查找
  */
@@ -537,22 +676,34 @@ function fixPictureUploadForm(form = null) {
             if (file) {
                 // Check if file is an image
                 if (!file.type.match('image.*')) {
-                    alert('Please select an image file (JPEG, PNG, GIF, etc.)');
+                    alert('请选择图片文件 (JPEG, PNG, GIF等)');
                     return;
                 }
                 
                 // Check file size (max 5MB)
                 if (file.size > 5 * 1024 * 1024) {
-                    alert('Image is too large! Please select an image under 5MB.');
+                    alert('图片太大! 请选择小于5MB的图片。');
                     return;
                 }
                 
+                // 显示加载指示器
+                filePreview.innerHTML = `
+                    <div style="text-align:center;">
+                        <i class="fas fa-spinner fa-spin" style="font-size:36px;color:#4285f4;margin:20px 0;"></i>
+                        <p>处理图片中...</p>
+                    </div>
+                `;
+                
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    // Create preview with proper aspect ratio
+                    // 创建预览
                     filePreview.innerHTML = `
                         <div style="max-width: 100%; max-height: 300px; overflow: hidden; text-align: center; border-radius: 4px;">
-                            <img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                            <img src="${event.target.result}" alt="预览" style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                        </div>
+                        <div style="text-align:center;margin-top:10px;font-size:12px;color:#666;">
+                            <span><i class="fas fa-image"></i> ${file.name}</span>
+                            <span style="margin-left:10px;"><i class="fas fa-weight"></i> ${(file.size / 1024).toFixed(1)}KB</span>
                         </div>
                     `;
                 };
@@ -561,10 +712,43 @@ function fixPictureUploadForm(form = null) {
                 filePreview.innerHTML = `
                     <div class="preview-placeholder">
                         <i class="fas fa-cloud-upload-alt"></i>
-                        <p>Image preview will appear here</p>
+                        <p>点击选择或拖放图片至此处</p>
                     </div>
                 `;
             }
+        });
+        
+        // 添加拖放支持
+        filePreview.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            filePreview.style.backgroundColor = '#f0f0f0';
+            filePreview.style.border = '2px dashed #4285f4';
+        });
+        
+        filePreview.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            filePreview.style.backgroundColor = '';
+            filePreview.style.border = '';
+        });
+        
+        filePreview.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            filePreview.style.backgroundColor = '';
+            filePreview.style.border = '';
+            
+            if (e.dataTransfer.files.length) {
+                pictureFile.files = e.dataTransfer.files;
+                const event = new Event('change');
+                pictureFile.dispatchEvent(event);
+            }
+        });
+        
+        // 点击文件预览区域触发文件选择
+        filePreview.addEventListener('click', function() {
+            pictureFile.click();
         });
     }
     
@@ -579,23 +763,68 @@ function fixPictureUploadForm(form = null) {
         
         // 验证表单
         if (!pictureFile.files[0]) {
-            alert('Please select an image file');
+            alert('请选择图片文件');
             return;
         }
         
         if (!pictureName.value.trim()) {
-            alert('Please enter a name for the image');
+            alert('请输入图片名称');
             return;
         }
         
         if (!category.value) {
-            alert('Please select a category');
+            alert('请选择图片类别');
             return;
         }
+        
+        // 显示上传进度效果
+        const submitBtn = uploadForm.querySelector('button[type="submit"], input[type="submit"], .upload-image-btn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 上传中...';
+        }
+        
+        // 创建并显示进度条
+        let progressContainer = uploadForm.querySelector('.upload-progress');
+        if (!progressContainer) {
+            progressContainer = document.createElement('div');
+            progressContainer.className = 'upload-progress';
+            
+            const progressBar = document.createElement('div');
+            progressBar.className = 'upload-progress-bar';
+            progressBar.id = 'uploadProgressBar';
+            progressBar.style.width = '0%';
+            
+            progressContainer.appendChild(progressBar);
+            
+            // 插入到提交按钮前
+            if (submitBtn && submitBtn.parentNode) {
+                submitBtn.parentNode.insertBefore(progressContainer, submitBtn);
+            }
+        }
+        
+        const progressBar = document.getElementById('uploadProgressBar');
+        
+        // 模拟上传进度
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) {
+                clearInterval(progressInterval);
+                progress = 90;
+            }
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
+        }, 200);
         
         // 读取图片文件并处理图片
         const file = pictureFile.files[0];
         processImageFile(file, function(processedImageUrl) {
+            // 停止进度条动画
+            clearInterval(progressInterval);
+            if (progressBar) progressBar.style.width = '100%';
+            
             // Generate unique ID with timestamp to avoid duplicates
             const uniqueId = 'pic_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
             
@@ -620,38 +849,65 @@ function fixPictureUploadForm(form = null) {
             
             if (duplicateImage) {
                 // 询问用户是否要覆盖
-                if (confirm(`A picture with the name "${newPicture.name}" already exists. Do you want to replace it?`)) {
+                if (confirm(`名为"${newPicture.name}"的图片已存在。是否要替换它?`)) {
                     // 删除旧图片
                     deletePicture(duplicateImage.id, false); // 静默删除，不显示提示
                 } else {
+                    // 恢复按钮状态
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '上传图片';
+                    }
+                    
+                    // 移除或隐藏进度条
+                    if (progressContainer) {
+                        progressContainer.style.display = 'none';
+                    }
+                    
                     return; // 用户取消，不保存
                 }
             }
             
             // 保存图片
-            savePicture(newPicture);
+            const saveSuccess = savePicture(newPicture);
             
             // 关闭模态框
-            const modal = document.getElementById('uploadModal');
-            if (modal && typeof closeModal === 'function') {
-                closeModal('uploadModal');
-            } else if (modal) {
-                modal.style.display = 'none';
+            if (saveSuccess) {
+                const modal = document.getElementById('uploadModal');
+                if (modal && typeof closeModal === 'function') {
+                    closeModal('uploadModal');
+                } else if (modal) {
+                    modal.style.display = 'none';
+                }
+                
+                // 重新加载图片列表
+                loadAndDisplayPictures();
+                
+                // 更新容量信息
+                updatePictureCapacityInfo();
+                
+                // 重置表单
+                uploadForm.reset();
+                filePreview.innerHTML = `
+                    <div class="preview-placeholder">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>点击选择或拖放图片至此处</p>
+                    </div>
+                `;
+                
+                alert('图片上传成功!');
             }
             
-            // 重新加载图片列表
-            loadAndDisplayPictures();
+            // 还原提交按钮状态
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '上传图片';
+            }
             
-            // 重置表单
-            uploadForm.reset();
-            filePreview.innerHTML = `
-                <div class="preview-placeholder">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Image preview will appear here</p>
-                </div>
-            `;
-            
-            alert('Image uploaded successfully!');
+            // 移除或隐藏进度条
+            if (progressContainer) {
+                progressContainer.style.display = 'none';
+            }
         });
     });
 }
@@ -671,8 +927,8 @@ function processImageFile(file, callback) {
             const ctx = canvas.getContext('2d');
             
             // 设置最大尺寸（保持宽高比）
-            const MAX_WIDTH = 1200;
-            const MAX_HEIGHT = 800;
+            const MAX_WIDTH = 1000;  // 减小最大宽度以降低图片大小
+            const MAX_HEIGHT = 700;  // 减小最大高度以降低图片大小
             
             let width = img.width;
             let height = img.height;
@@ -691,8 +947,8 @@ function processImageFile(file, callback) {
             // 绘制图片（保持宽高比）
             ctx.drawImage(img, 0, 0, width, height);
             
-            // 获取处理后的图片URL（JPEG格式，保持较好的质量和文件大小）
-            const processedImageUrl = canvas.toDataURL('image/jpeg', 0.92);
+            // 获取处理后的图片URL（JPEG格式，降低质量以减小存储大小）
+            const processedImageUrl = canvas.toDataURL('image/jpeg', 0.85);
             
             // 调用回调函数返回处理后的图片URL
             callback(processedImageUrl);
@@ -712,11 +968,26 @@ function savePicture(picture) {
         const picturesStr = localStorage.getItem('adminPictures');
         const pictures = picturesStr ? JSON.parse(picturesStr) : [];
         
+        // 检查图片数量是否已达到限制
+        const MAX_PICTURES = 30; // 增加到30张图片限制
+        if (pictures.length >= MAX_PICTURES) {
+            alert(`已达到最大图片数量限制（${MAX_PICTURES}张）。请先删除一些图片后再上传新图片。`);
+            return false;
+        }
+        
         // 添加新图片
         pictures.push(picture);
         
-        // 保存回localStorage
-        localStorage.setItem('adminPictures', JSON.stringify(pictures));
+        // 保存回localStorage，优化存储方式
+        try {
+            localStorage.setItem('adminPictures', JSON.stringify(pictures));
+        } catch (storageError) {
+            // 如果存储失败（可能是因为达到localStorage大小限制），尝试压缩图片数据
+            console.warn('Storage error, trying to optimize images:', storageError);
+            const optimizedPictures = optimizePicturesForStorage(pictures);
+            localStorage.setItem('adminPictures', JSON.stringify(optimizedPictures));
+        }
+        
         console.log('Picture saved:', picture.name);
         
         // 同时保存到sitePictures以供前端使用
@@ -725,8 +996,51 @@ function savePicture(picture) {
         return true;
     } catch (e) {
         console.error('Error saving picture:', e);
+        alert('保存图片出错，可能是存储空间已满。请尝试删除一些图片后再上传。');
         return false;
     }
+}
+
+/**
+ * 优化图片数据以减小存储大小
+ * @param {Array} pictures - 图片数组
+ * @returns {Array} - 优化后的图片数组
+ */
+function optimizePicturesForStorage(pictures) {
+    return pictures.map(pic => {
+        // 如果图片URL是Base64格式且非常长，尝试进一步压缩
+        if (pic.imageUrl && pic.imageUrl.startsWith('data:image')) {
+            // 创建临时图像和Canvas以重新压缩
+            const img = new Image();
+            img.src = pic.imageUrl;
+            
+            // 使用较小的尺寸和较低的质量
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置较小的最大尺寸
+            const MAX_STORAGE_WIDTH = 800;
+            const MAX_STORAGE_HEIGHT = 600;
+            
+            const width = Math.min(img.width, MAX_STORAGE_WIDTH);
+            const height = Math.min(img.height, MAX_STORAGE_HEIGHT);
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // 在Canvas上绘制图像
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // 以较低质量导出
+            try {
+                pic.imageUrl = canvas.toDataURL('image/jpeg', 0.75);
+            } catch (e) {
+                console.error('Failed to optimize image:', e);
+                // 保持原样
+            }
+        }
+        return pic;
+    });
 }
 
 /**

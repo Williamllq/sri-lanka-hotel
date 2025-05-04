@@ -116,15 +116,18 @@
 
 /* 缩略图容器 */
 .gallery-thumbnails {
-    display: flex;
-    overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
     gap: 10px;
-    padding: 10px 0;
+    padding: 15px 0;
+    max-height: 200px;
+    overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #4285f4 #f0f0f0;
 }
 
 .gallery-thumbnails::-webkit-scrollbar {
+    width: 6px;
     height: 6px;
 }
 
@@ -140,7 +143,6 @@
 
 /* 缩略图样式 */
 .gallery-thumbnail {
-    flex: 0 0 100px;
     height: 70px;
     border-radius: 5px;
     overflow: hidden;
@@ -197,14 +199,29 @@
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
-    .featured-image {
-        height: 300px;
+@media (min-width: 1024px) {
+    .gallery-thumbnails {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        max-height: 280px;
     }
     
     .gallery-thumbnail {
-        flex: 0 0 80px;
+        height: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .gallery-thumbnails {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        max-height: 180px;
+    }
+    
+    .gallery-thumbnail {
         height: 60px;
+    }
+    
+    .featured-image {
+        height: 300px;
     }
     
     .featured-title {
