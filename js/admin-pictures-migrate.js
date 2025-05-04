@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // IndexedDB 数据库名称和版本
-const DB_NAME = 'adminPicturesDB';
+const DB_NAME = 'sriLankaImageDB'; // 修正为与admin-pictures.js中相同的数据库名
 const DB_VERSION = 1;
 let db = null;
 
@@ -26,12 +26,21 @@ function initializeDB() {
             return;
         }
         
-        console.log('Initializing IndexedDB...');
+        console.log('Initializing IndexedDB for migration...');
+        
+        // 尝试获取全局变量中的数据库对象
+        if (window.imageDB) {
+            console.log('Using existing database from global variable');
+            db = window.imageDB;
+            resolve(db);
+            return;
+        }
+        
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         
         request.onerror = function(event) {
             console.error('IndexedDB error:', event.target.error);
-            reject('无法打开数据库，请确保您的浏览器支持IndexedDB。');
+            reject('无法打开数据库，请确保您的浏览器支持IndexedDB: ' + event.target.error.message);
         };
         
         request.onupgradeneeded = function(event) {
@@ -41,11 +50,13 @@ function initializeDB() {
             // 创建图片元数据存储
             if (!database.objectStoreNames.contains('metadata')) {
                 database.createObjectStore('metadata', { keyPath: 'id' });
+                console.log('Created metadata store');
             }
             
             // 创建图片数据存储
             if (!database.objectStoreNames.contains('images')) {
                 database.createObjectStore('images', { keyPath: 'id' });
+                console.log('Created images store');
             }
         };
         
@@ -201,7 +212,7 @@ function startMigration() {
  * @returns {Promise} 迁移过程的Promise
  */
 function migrateFromLocalStorage() {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         console.log('Migrating data from localStorage to IndexedDB...');
         
         try {
@@ -217,111 +228,147 @@ function migrateFromLocalStorage() {
                 pictures = JSON.parse(picturesJson);
                 console.log(`Found ${pictures.length} pictures to migrate`);
             } catch (e) {
-                reject('图片数据格式无效，无法解析');
+                reject('图片数据格式无效，无法解析: ' + e.message);
+                return;
+            }
+            
+            if (!Array.isArray(pictures) || pictures.length === 0) {
+                reject('没有有效的图片数据需要迁移');
                 return;
             }
             
             // 2. 初始化IndexedDB
-            initializeDB()
-                .then(() => {
-                    // 3. 逐个保存图片数据到IndexedDB
-                    const migrationPromises = pictures.map((picture, index) => {
-                        console.log(`Migrating picture ${index+1}/${pictures.length}: ${picture.id}`);
-                        return saveToIndexedDB(picture);
-                    });
+            try {
+                // 首先尝试使用admin-pictures.js中全局的initImageDatabase函数
+                if (typeof initImageDatabase === 'function') {
+                    console.log('Using global initImageDatabase function');
+                    await initImageDatabase();
+                    db = window.imageDB; // 使用全局变量
+                } else {
+                    // 如果全局函数不可用，则使用我们自己的函数
+                    console.log('Using local initializeDB function');
+                    await initializeDB();
+                }
+                
+                if (!db) {
+                    throw new Error('数据库初始化失败，无法获取数据库对象');
+                }
+                
+                console.log('Database initialized successfully, starting data migration');
+                
+                // 3. 逐个迁移图片
+                const total = pictures.length;
+                let completed = 0;
+                
+                for (let i = 0; i < pictures.length; i++) {
+                    const picture = pictures[i];
+                    const statusElement = document.getElementById('migration-status');
+                    if (statusElement) {
+                        statusElement.innerHTML = `
+                            <div class="migration-progress">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>正在迁移图片 ${i+1}/${total}...</p>
+                                <div class="progress-bar" style="width: ${Math.round((i/total)*100)}%"></div>
+                            </div>
+                        `;
+                    }
                     
-                    // 4. 等待所有图片迁移完成
-                    return Promise.all(migrationPromises);
-                })
-                .then(() => {
-                    console.log('All pictures migrated successfully');
-                    resolve();
-                })
-                .catch(error => {
-                    console.error('Error during migration:', error);
-                    reject(error);
-                });
+                    console.log(`Migrating picture ${i+1}/${total}: ${picture.id}`);
+                    
+                    try {
+                        // 3.1 准备元数据
+                        const metadata = {
+                            id: picture.id,
+                            name: picture.name || 'Untitled',
+                            category: picture.category || 'scenery',
+                            description: picture.description || '',
+                            thumbnailUrl: picture.thumbnailUrl || null,
+                            uploadDate: picture.uploadDate || new Date().toISOString()
+                        };
+                        
+                        // 3.2 准备图片数据
+                        const imageData = {
+                            id: picture.id,
+                            imageUrl: picture.imageUrl || picture.dataUrl,
+                            uploadDate: picture.uploadDate || new Date().toISOString()
+                        };
+                        
+                        // 3.3 保存到IndexedDB，直接使用事务进行操作
+                        await saveToIndexedDBDirect(metadata, imageData);
+                        completed++;
+                    } catch (error) {
+                        console.error(`Error migrating picture ${picture.id}:`, error);
+                        // 继续处理其他图片，不中断整个过程
+                    }
+                }
+                
+                console.log(`Migration completed: ${completed}/${total} pictures migrated successfully`);
+                
+                if (completed === 0) {
+                    reject(`迁移失败: 没有成功迁移任何图片`);
+                    return;
+                } else if (completed < total) {
+                    console.warn(`部分图片迁移成功: ${completed}/${total}`);
+                }
+                
+                // 4. 同步到前端存储
+                try {
+                    if (typeof synchronizeImageStorage === 'function') {
+                        synchronizeImageStorage();
+                        console.log('Synchronized migrated images to frontend storage');
+                    }
+                } catch (syncError) {
+                    console.warn('Warning: Failed to synchronize with frontend:', syncError);
+                    // 不因为同步失败而中断整个迁移过程
+                }
+                
+                resolve();
+            } catch (dbError) {
+                console.error('Database error during migration:', dbError);
+                reject('数据库操作失败: ' + (dbError.message || dbError));
+            }
         } catch (e) {
             console.error('Unexpected error during migration:', e);
-            reject('迁移过程中发生意外错误：' + e.message);
+            reject('迁移过程中发生意外错误: ' + (e.message || e));
         }
     });
 }
 
 /**
- * 将单个图片保存到IndexedDB
- * @param {Object} picture 图片数据对象
+ * 直接使用事务将数据保存到IndexedDB
+ * @param {Object} metadata - 图片元数据
+ * @param {Object} imageData - 图片数据
  * @returns {Promise} 保存操作的Promise
  */
-function saveToIndexedDB(picture) {
+function saveToIndexedDBDirect(metadata, imageData) {
     return new Promise((resolve, reject) => {
         try {
-            const metadata = {
-                id: picture.id,
-                name: picture.name,
-                category: picture.category,
-                order: picture.order,
-                timestamp: picture.timestamp || Date.now()
-            };
+            if (!db) {
+                reject('数据库未初始化或不可用');
+                return;
+            }
             
-            // 1. 保存元数据
-            saveItemToStore('metadata', metadata)
-                .then(() => {
-                    // 2. 保存图片数据
-                    const imageData = {
-                        id: picture.id,
-                        dataUrl: picture.dataUrl
-                    };
-                    return saveItemToStore('images', imageData);
-                })
-                .then(() => {
-                    resolve();
-                })
-                .catch(error => {
-                    reject(error);
-                });
-        } catch (e) {
-            reject('保存图片数据失败：' + e.message);
-        }
-    });
-}
-
-/**
- * 保存单个项目到指定的对象存储
- * @param {string} storeName 对象存储的名称
- * @param {Object} item 要保存的项目
- * @returns {Promise} 保存操作的Promise
- */
-function saveItemToStore(storeName, item) {
-    return new Promise((resolve, reject) => {
-        if (!db) {
-            reject('数据库未初始化');
-            return;
-        }
-        
-        try {
-            const transaction = db.transaction([storeName], 'readwrite');
-            const store = transaction.objectStore(storeName);
-            
-            const request = store.put(item);
-            
-            request.onsuccess = function() {
-                resolve();
-            };
-            
-            request.onerror = function(event) {
-                reject('保存到 ' + storeName + ' 失败: ' + event.target.error);
-            };
-            
-            transaction.oncomplete = function() {
-                // 事务完成
-            };
+            // 使用单个事务保存元数据和图片数据
+            const transaction = db.transaction(['metadata', 'images'], 'readwrite');
             
             transaction.onerror = function(event) {
                 reject('事务错误: ' + event.target.error);
             };
+            
+            transaction.oncomplete = function() {
+                resolve();
+            };
+            
+            // 保存元数据
+            const metadataStore = transaction.objectStore('metadata');
+            metadataStore.put(metadata);
+            
+            // 保存图片数据
+            const imageStore = transaction.objectStore('images');
+            imageStore.put(imageData);
+            
         } catch (e) {
-            reject('保存操作失败: ' + e.message);
+            reject('保存数据失败: ' + e.message);
         }
     });
 }
@@ -362,6 +409,14 @@ function saveItemToStore(storeName, item) {
         
         #migration-buttons {
             margin: 15px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #007bff;
+            border-radius: 5px;
+            margin-top: 8px;
+            transition: width 0.3s ease;
         }
     `;
     document.head.appendChild(style);
