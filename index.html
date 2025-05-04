@@ -32,6 +32,7 @@
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/gallery-fix.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <!-- Leaflet CSS for maps -->
@@ -328,8 +329,9 @@
                 
                 <!-- Gallery Filter Buttons -->
                 <div class="gallery-filter">
+                    <button class="gallery-filter-btn active" data-filter="all">All</button>
                     <button class="gallery-filter-btn" data-filter="scenery">Scenery</button>
-                    <button class="gallery-filter-btn active" data-filter="wildlife">Wildlife</button>
+                    <button class="gallery-filter-btn" data-filter="wildlife">Wildlife</button>
                     <button class="gallery-filter-btn" data-filter="culture">Culture</button>
                     <button class="gallery-filter-btn" data-filter="food">Food</button>
                     <button class="gallery-filter-btn" data-filter="beach">Beach</button>
@@ -354,7 +356,7 @@
                 </div>
                 
                 <!-- Hidden Original Gallery (for compatibility with admin) -->
-                <div class="gallery-grid" style="display: none;">
+                <div class="gallery-grid" style="position: absolute; left: -9999px; visibility: hidden;">
                     <div class="gallery-item" data-category="scenery">
                         <img src="images/nine-arch-bridge.jpg" alt="Nine Arch Bridge">
                         <div class="gallery-item-info">
@@ -726,7 +728,7 @@
 
     <!-- Scripts -->
     <script src="js/script.js"></script>
-    <script src="js/gallery-display-fix.js"></script>
+    <script src="js/gallery-category-fix.js"></script>
     <script src="js/ai-assistant.js"></script>
     <script src="js/feedback.js"></script>
     <script src="js/testimonials.js"></script>
