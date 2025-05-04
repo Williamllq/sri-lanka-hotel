@@ -9,6 +9,7 @@ A web application for booking accommodations and transportation services in Sri 
 - Fare calculation based on actual driving distance
 - Easy booking process for transportation services
 - Responsive design for all devices
+- Optimized "Discover Sri Lanka" gallery with category filtering and carousel
 
 ## Technologies
 
@@ -17,6 +18,7 @@ A web application for booking accommodations and transportation services in Sri 
 - Leaflet Maps API
 - Leaflet Routing Machine
 - OpenStreetMap
+- LocalStorage for efficient data management
 
 ## Getting Started
 
@@ -29,6 +31,7 @@ A web application for booking accommodations and transportation services in Sri 
 - Uses actual driving routes instead of straight-line distance for more accurate fare calculations
 - Implements fallback mechanisms for situations when routing services are unavailable
 - Responsive UI designed for various device sizes
+- Lightweight gallery implementation using simple-gallery.js for memory-efficient image display
 
 ## GitHub Workflow & Deployment Rules
 
@@ -84,6 +87,19 @@ This project uses the following branch strategy:
 - Ensure each commit has a clear commit message
 - Test your changes before merging
 - Pull Requests should include relevant feature descriptions or issues fixed
+- The gallery implementation uses localStorage for efficiency - avoid using the memory-intensive synchronization scripts
+
+## Gallery Implementation
+
+The "Discover Sri Lanka" gallery section has been optimized to solve memory issues:
+
+1. **Memory-Efficient Approach**: The simple-gallery.js script provides a lightweight implementation that avoids the memory issues present in earlier versions.
+2. **Data Sources**: Images are loaded from localStorage (sitePictures or adminPictures), with fallback to default images if needed.
+3. **Features**:
+   - Category filtering (All, Scenery, Wildlife, Culture, Food, Beach)
+   - Image carousel with automatic rotation
+   - Responsive design for all device sizes
+   - Thumbnail navigation
 
 ## License
 
