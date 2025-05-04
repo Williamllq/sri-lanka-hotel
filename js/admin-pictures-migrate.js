@@ -213,15 +213,25 @@ function migrateData() {
             
             console.log(`Found ${pictures.length} pictures to migrate`);
             
-            // 确保IndexedDB数据库已初始化
-            if (typeof initImageDatabase !== 'function') {
-                console.error('initImageDatabase function not found');
-                reject(new Error('迁移功能不可用，请刷新页面后重试'));
-                return;
+            // 直接检查window上是否有initImageDatabase函数
+            if (typeof window.initImageDatabase === 'function') {
+                console.log('Using global initImageDatabase function');
+                window.initImageDatabase().then(migrateImages).catch(reject);
+            } 
+            // 检查是否可以从admin-pictures.js获取函数
+            else if (typeof initImageDatabase === 'function') {
+                console.log('Using local initImageDatabase function');
+                initImageDatabase().then(migrateImages).catch(reject);
+            } 
+            // 如果都不可用，自己实现数据库初始化
+            else {
+                console.log('No existing initImageDatabase function found, implementing locally');
+                // 此处使用内置的initDB函数实现
+                initDB().then(migrateImages).catch(reject);
             }
             
-            // 初始化数据库
-            initImageDatabase().then(() => {
+            // 迁移图片的内部函数
+            function migrateImages() {
                 // 更新进度条显示
                 const progressBar = document.getElementById('migrationProgressBar');
                 
@@ -230,19 +240,21 @@ function migrateData() {
                     return new Promise((resolveItem) => {
                         setTimeout(() => {
                             try {
+                                console.log(`Migrating picture ${index+1}/${pictures.length}: ${picture.id || 'unknown id'}`);
+                                
                                 // 对图片进行分离处理：元数据和图片数据分开存储
                                 const metadata = {
-                                    id: picture.id,
+                                    id: picture.id || `pic_migrated_${Date.now()}_${index}`,
                                     name: picture.name || 'Untitled',
                                     category: picture.category || 'scenery',
                                     description: picture.description || '',
-                                    thumbnailUrl: picture.imageUrl, // 旧数据没有缩略图，直接使用原图
+                                    thumbnailUrl: picture.imageUrl || picture.url || '', // 旧数据没有缩略图，直接使用原图
                                     uploadDate: picture.uploadDate || new Date().toISOString()
                                 };
                                 
                                 const imageData = {
-                                    id: picture.id,
-                                    imageUrl: picture.imageUrl,
+                                    id: metadata.id, // 确保ID匹配
+                                    imageUrl: picture.imageUrl || picture.url || '',
                                     uploadDate: picture.uploadDate || new Date().toISOString()
                                 };
                                 
@@ -256,14 +268,14 @@ function migrateData() {
                                         const progress = Math.floor(((index + 1) / pictures.length) * 100);
                                         progressBar.style.width = `${progress}%`;
                                     }
-                                    
+                                    console.log(`Successfully migrated picture ${index+1}: ${metadata.id}`);
                                     resolveItem();
                                 }).catch(error => {
-                                    console.error(`Error migrating picture ${picture.id}:`, error);
+                                    console.error(`Error migrating picture ${metadata.id}:`, error);
                                     resolveItem(); // 继续处理下一张，不中断整体迁移
                                 });
                             } catch (e) {
-                                console.error(`Error processing picture ${picture.id}:`, e);
+                                console.error(`Error processing picture at index ${index}:`, e);
                                 resolveItem(); // 继续处理下一张
                             }
                         }, 100 * index); // 每张图片间隔100ms，避免阻塞UI
@@ -276,7 +288,9 @@ function migrateData() {
                     console.log('Migration completed');
                     
                     // 同步到前端
-                    if (typeof synchronizeImageStorage === 'function') {
+                    if (typeof window.synchronizeImageStorage === 'function') {
+                        window.synchronizeImageStorage();
+                    } else if (typeof synchronizeImageStorage === 'function') {
                         synchronizeImageStorage();
                     }
                     
@@ -292,14 +306,61 @@ function migrateData() {
                     console.error('Error in migration process:', error);
                     reject(error);
                 });
-            }).catch(error => {
-                console.error('Error initializing IndexedDB:', error);
-                reject(error);
-            });
+            }
         } catch (e) {
             console.error('Error in migration function:', e);
             reject(e);
         }
+    });
+}
+
+/**
+ * 初始化IndexedDB数据库 - 本地实现，当全局函数不可用时使用
+ */
+function initDB() {
+    return new Promise((resolve, reject) => {
+        console.log('Initializing IndexedDB using local implementation');
+        
+        // 如果浏览器不支持IndexedDB，直接解析空结果
+        if (!window.indexedDB) {
+            console.error('Browser does not support IndexedDB');
+            reject(new Error('您的浏览器不支持现代存储技术。请使用Chrome、Firefox或Edge浏览器。'));
+            return;
+        }
+        
+        const dbName = 'sriLankaImageDB';
+        const dbVersion = 1;
+        
+        const request = indexedDB.open(dbName, dbVersion);
+        
+        request.onerror = function(event) {
+            console.error('Error opening IndexedDB:', event.target.error);
+            reject(event.target.error);
+        };
+        
+        request.onsuccess = function(event) {
+            window.imageDB = event.target.result;
+            console.log('IndexedDB successfully initialized');
+            resolve();
+        };
+        
+        request.onupgradeneeded = function(event) {
+            const db = event.target.result;
+            
+            // 创建图片存储对象
+            if (!db.objectStoreNames.contains('images')) {
+                const imageStore = db.createObjectStore('images', { keyPath: 'id' });
+                imageStore.createIndex('uploadDate', 'uploadDate', { unique: false });
+                console.log('Image store created');
+            }
+            
+            // 创建元数据存储对象
+            if (!db.objectStoreNames.contains('metadata')) {
+                const metadataStore = db.createObjectStore('metadata', { keyPath: 'id' });
+                metadataStore.createIndex('category', 'category', { unique: false });
+                console.log('Metadata store created');
+            }
+        };
     });
 }
 
@@ -354,81 +415,74 @@ function updateMigrationComplete() {
 }
 
 /**
- * Helper: 保存元数据到IndexedDB - 如果admin-pictures.js中的函数不可用
+ * Helper: 保存元数据到IndexedDB
  */
 function saveMetadata(metadata) {
-    // 如果原始函数存在，使用它
+    console.log(`Saving metadata for: ${metadata.id}`);
+    
+    // 如果window上有全局函数，使用它
     if (typeof window.saveMetadata === 'function') {
+        console.log('Using global saveMetadata function');
         return window.saveMetadata(metadata);
     }
     
     return new Promise((resolve, reject) => {
         // 检查IndexedDB是否可用
         if (!window.indexedDB) {
-            console.error('IndexedDB not supported');
-            reject(new Error('Your browser does not support IndexedDB'));
+            console.error('IndexedDB not supported in this browser');
+            reject(new Error('您的浏览器不支持现代存储技术'));
             return;
         }
         
-        // 打开数据库
-        const request = indexedDB.open('sriLankaImageDB', 1);
+        // 检查数据库是否已初始化
+        if (!window.imageDB) {
+            console.error('IndexedDB not initialized');
+            reject(new Error('数据库尚未初始化'));
+            return;
+        }
         
-        request.onerror = function(event) {
-            console.error('Error opening IndexedDB:', event.target.error);
-            reject(event.target.error);
-        };
-        
-        request.onsuccess = function(event) {
-            const db = event.target.result;
+        try {
+            // 创建事务
+            const transaction = window.imageDB.transaction(['metadata'], 'readwrite');
+            const store = transaction.objectStore('metadata');
             
-            try {
-                // 创建事务
-                const transaction = db.transaction(['metadata'], 'readwrite');
-                const store = transaction.objectStore('metadata');
-                
-                // 保存元数据
-                const saveRequest = store.put(metadata);
-                
-                saveRequest.onsuccess = function() {
-                    resolve(true);
-                };
-                
-                saveRequest.onerror = function(event) {
-                    console.error('Error saving metadata:', event.target.error);
-                    reject(event.target.error);
-                };
-                
-                transaction.oncomplete = function() {
-                    db.close();
-                };
-            } catch (e) {
-                console.error('Error in IndexedDB transaction:', e);
-                reject(e);
-            }
-        };
-        
-        request.onupgradeneeded = function(event) {
-            const db = event.target.result;
+            // 保存元数据
+            const request = store.put(metadata);
             
-            // 创建元数据存储
-            if (!db.objectStoreNames.contains('metadata')) {
-                db.createObjectStore('metadata', { keyPath: 'id' });
-            }
+            request.onsuccess = function() {
+                console.log(`Metadata saved successfully for: ${metadata.id}`);
+                resolve(true);
+            };
             
-            // 创建图片存储
-            if (!db.objectStoreNames.contains('images')) {
-                db.createObjectStore('images', { keyPath: 'id' });
-            }
-        };
+            request.onerror = function(event) {
+                console.error('Error saving metadata:', event.target.error);
+                reject(event.target.error);
+            };
+            
+            transaction.oncomplete = function() {
+                // 事务完成
+            };
+            
+            transaction.onerror = function(event) {
+                console.error('Transaction error when saving metadata:', event.target.error);
+                reject(event.target.error);
+            };
+        } catch (e) {
+            console.error('Error in saveMetadata transaction:', e);
+            reject(e);
+        }
     });
 }
 
 /**
- * Helper: 保存图片数据到IndexedDB - 如果admin-pictures.js中的函数不可用
+ * Helper: 保存图片数据到IndexedDB
  */
 function saveImageData(imageData) {
-    // 如果原始函数存在，使用它
+    console.log(`Saving image data for: ${imageData.id}`);
+    
+    // 如果window上有全局函数，使用它
     if (typeof window.saveImageData === 'function') {
+        console.log('Using global saveImageData function');
         return window.saveImageData(imageData);
     }
     
@@ -436,45 +490,46 @@ function saveImageData(imageData) {
         // 检查IndexedDB是否可用
         if (!window.indexedDB) {
             console.error('IndexedDB not supported');
-            reject(new Error('Your browser does not support IndexedDB'));
+            reject(new Error('您的浏览器不支持现代存储技术'));
             return;
         }
         
-        // 打开数据库
-        const request = indexedDB.open('sriLankaImageDB', 1);
+        // 检查数据库是否已初始化
+        if (!window.imageDB) {
+            console.error('IndexedDB not initialized');
+            reject(new Error('数据库尚未初始化'));
+            return;
+        }
         
-        request.onerror = function(event) {
-            console.error('Error opening IndexedDB:', event.target.error);
-            reject(event.target.error);
-        };
-        
-        request.onsuccess = function(event) {
-            const db = event.target.result;
+        try {
+            // 创建事务
+            const transaction = window.imageDB.transaction(['images'], 'readwrite');
+            const store = transaction.objectStore('images');
             
-            try {
-                // 创建事务
-                const transaction = db.transaction(['images'], 'readwrite');
-                const store = transaction.objectStore('images');
-                
-                // 保存图片数据
-                const saveRequest = store.put(imageData);
-                
-                saveRequest.onsuccess = function() {
-                    resolve(true);
-                };
-                
-                saveRequest.onerror = function(event) {
-                    console.error('Error saving image data:', event.target.error);
-                    reject(event.target.error);
-                };
-                
-                transaction.oncomplete = function() {
-                    db.close();
-                };
-            } catch (e) {
-                console.error('Error in IndexedDB transaction:', e);
-                reject(e);
-            }
-        };
+            // 保存图片数据
+            const request = store.put(imageData);
+            
+            request.onsuccess = function() {
+                console.log(`Image data saved successfully for: ${imageData.id}`);
+                resolve(true);
+            };
+            
+            request.onerror = function(event) {
+                console.error('Error saving image data:', event.target.error);
+                reject(event.target.error);
+            };
+            
+            transaction.oncomplete = function() {
+                // 事务完成
+            };
+            
+            transaction.onerror = function(event) {
+                console.error('Transaction error when saving image data:', event.target.error);
+                reject(event.target.error);
+            };
+        } catch (e) {
+            console.error('Error in saveImageData transaction:', e);
+            reject(e);
+        }
     });
 } 
