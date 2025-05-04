@@ -33,23 +33,23 @@
   function getGalleryPictures() {
     // 尝试从localStorage获取图片
     try {
-      // 先尝试从sitePictures获取
-      const siteData = localStorage.getItem('sitePictures');
-      if (siteData) {
-        const sitePics = JSON.parse(siteData);
-        if (Array.isArray(sitePics) && sitePics.length > 0) {
-          console.log(`Found ${sitePics.length} pictures in sitePictures`);
-          return normalizeImages(sitePics);
-        }
-      }
-      
-      // 尝试从adminPictures获取
+      // 优先从adminPictures获取 - 这是管理员上传的图片
       const adminData = localStorage.getItem('adminPictures');
       if (adminData) {
         const adminPics = JSON.parse(adminData);
         if (Array.isArray(adminPics) && adminPics.length > 0) {
           console.log(`Found ${adminPics.length} pictures in adminPictures`);
           return normalizeImages(adminPics);
+        }
+      }
+      
+      // 尝试从sitePictures获取
+      const siteData = localStorage.getItem('sitePictures');
+      if (siteData) {
+        const sitePics = JSON.parse(siteData);
+        if (Array.isArray(sitePics) && sitePics.length > 0) {
+          console.log(`Found ${sitePics.length} pictures in sitePictures`);
+          return normalizeImages(sitePics);
         }
       }
     } catch (e) {
@@ -132,27 +132,30 @@
         btn.setAttribute('data-filter', category);
       }
       
-      // 移除旧的事件监听器
+      // 移除旧的事件监听器并创建新的按钮
       const newBtn = btn.cloneNode(true);
       if (btn.parentNode) {
         btn.parentNode.replaceChild(newBtn, btn);
       }
-      
-      // 添加新的点击事件
-      newBtn.addEventListener('click', () => {
-        // 更新按钮状态
-        buttons.forEach(b => b.classList.remove('active'));
-        newBtn.classList.add('active');
+    });
+    
+    // 获取重新创建的按钮集合并添加点击事件
+    const refreshedButtons = document.querySelectorAll('.gallery-filter-btn');
+    refreshedButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // 更新按钮状态 - 清除所有活动状态，只设置当前按钮为活动
+        refreshedButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
         
         // 获取类别
-        const category = newBtn.getAttribute('data-filter');
+        const category = btn.getAttribute('data-filter');
         displayPicturesByCategory(pictures, category);
       });
     });
     
     // 默认选中第一个按钮
-    if (buttons.length > 0) {
-      buttons[0].classList.add('active');
+    if (refreshedButtons.length > 0) {
+      refreshedButtons[0].classList.add('active');
     }
   }
   

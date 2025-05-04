@@ -10,6 +10,20 @@
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 30px;
+    position: relative;
+}
+
+.gallery-filter::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    opacity: 0.05;
+    background-color: #4285f4;
+    border-radius: 35px;
 }
 
 .gallery-filter-btn {
@@ -34,9 +48,32 @@
     background-color: #4285f4;
     color: white;
     border-color: #4285f4;
+    box-shadow: 0 3px 8px rgba(66, 133, 244, 0.3);
+    transform: translateY(-1px);
 }
 
 /* 确保按钮呈现为单选样式 */
+.gallery-filter-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background-color: transparent;
+    transform: translateY(-50%);
+    transition: all 0.2s ease;
+    opacity: 0;
+}
+
+.gallery-filter-btn.active::before {
+    width: 8px;
+    height: 8px;
+    background-color: #fff;
+    opacity: 0.9;
+}
+
 .gallery-filter-btn::after {
     content: '';
     position: absolute;
@@ -51,6 +88,19 @@
 
 .gallery-filter-btn.active::after {
     width: 80%;
+}
+
+/* 添加提示文本，说明这是单选 */
+.gallery-filter::after {
+    content: "Select one category";
+    display: block;
+    position: absolute;
+    bottom: -20px;
+    width: 100%;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #888;
+    letter-spacing: 0.5px;
 }
 
 /* 画廊容器样式 */

@@ -50,18 +50,16 @@ function synchronizeImageStorage() {
     console.log('Synchronizing image storage between admin and frontend...');
     
     try {
-        // Get images from both storages
+        // 获取管理员图片数据
         const adminPicturesStr = localStorage.getItem('adminPictures');
-        const sitePicturesStr = localStorage.getItem('sitePictures');
-        
         let adminPictures = adminPicturesStr ? JSON.parse(adminPicturesStr) : [];
-        let sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
         
-        // Ensure they are arrays
-        if (!Array.isArray(adminPictures)) adminPictures = [];
-        if (!Array.isArray(sitePictures)) sitePictures = [];
+        // 确保是数组
+        if (!Array.isArray(adminPictures)) {
+            adminPictures = [];
+        }
         
-        // Remove any duplicate entries that might already exist in adminPictures
+        // 移除管理员图片中的重复项
         const uniqueAdminPictures = removeDuplicates(adminPictures);
         if (uniqueAdminPictures.length !== adminPictures.length) {
             console.log(`Removed ${adminPictures.length - uniqueAdminPictures.length} duplicates from admin pictures`);
@@ -69,81 +67,20 @@ function synchronizeImageStorage() {
             localStorage.setItem('adminPictures', JSON.stringify(adminPictures));
         }
         
-        // Remove any duplicate entries that might already exist in sitePictures
-        const uniqueSitePictures = removeDuplicates(sitePictures);
-        if (uniqueSitePictures.length !== sitePictures.length) {
-            console.log(`Removed ${sitePictures.length - uniqueSitePictures.length} duplicates from site pictures`);
-            sitePictures = uniqueSitePictures;
-            localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
-        }
+        // 将管理员图片数据转换为前端格式
+        const sitePictures = adminPictures.map(adminPic => ({
+            id: adminPic.id,
+            name: adminPic.name,
+            category: adminPic.category,
+            description: adminPic.description,
+            url: adminPic.imageUrl,
+            uploadDate: adminPic.uploadDate
+        }));
         
-        console.log(`Found ${adminPictures.length} admin pictures and ${sitePictures.length} site pictures`);
+        // 保存到sitePictures以供前端使用
+        localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
         
-        // Create a merged set of images - we'll use the combined set
-        // Map site pictures to the admin format
-        const mappedSitePictures = sitePictures.map(sitePic => {
-            // Skip if it already exists in admin pictures by ID or by URL
-            const existsInAdmin = adminPictures.some(
-                adminPic => (adminPic.id === sitePic.id) || 
-                           (adminPic.imageUrl === sitePic.url) ||
-                           (sitePic.name && adminPic.name === sitePic.name)
-            );
-            
-            if (existsInAdmin) return null;
-            
-            // Convert site picture to admin format
-            return {
-                id: sitePic.id || ('pic_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
-                name: sitePic.name || 'Untitled Image',
-                category: sitePic.category || 'scenery',
-                description: sitePic.description || '',
-                imageUrl: sitePic.url,
-                uploadDate: sitePic.uploadDate || new Date().toISOString()
-            };
-        }).filter(Boolean); // Remove nulls
-        
-        // Create final merged list
-        const mergedPictures = [...adminPictures, ...mappedSitePictures];
-        
-        // Save merged pictures back to admin storage
-        if (mappedSitePictures.length > 0) {
-            console.log(`Adding ${mappedSitePictures.length} new pictures from site to admin storage`);
-            localStorage.setItem('adminPictures', JSON.stringify(mergedPictures));
-        }
-        
-        // Now, ensure site pictures contains all admin pictures
-        // Map admin pictures to the site format
-        const mappedAdminPictures = adminPictures.map(adminPic => {
-            // Check if it already exists in site pictures
-            const existsInSite = sitePictures.some(
-                sitePic => (sitePic.id === adminPic.id) || 
-                          (sitePic.url === adminPic.imageUrl) ||
-                          (adminPic.name && sitePic.name === adminPic.name)
-            );
-            
-            if (existsInSite) return null;
-            
-            // Convert admin picture to site format
-            return {
-                id: adminPic.id,
-                name: adminPic.name,
-                category: adminPic.category,
-                description: adminPic.description,
-                url: adminPic.imageUrl,
-                uploadDate: adminPic.uploadDate
-            };
-        }).filter(Boolean); // Remove nulls
-        
-        // Create final merged site pictures
-        const mergedSitePictures = [...sitePictures, ...mappedAdminPictures];
-        
-        // Save merged pictures back to site storage
-        if (mappedAdminPictures.length > 0) {
-            console.log(`Adding ${mappedAdminPictures.length} new pictures from admin to site storage`);
-            localStorage.setItem('sitePictures', JSON.stringify(mergedSitePictures));
-        }
-        
-        console.log('Storage synchronization complete!');
+        console.log(`Synchronized ${sitePictures.length} pictures from admin to frontend storage`);
     } catch (error) {
         console.error('Error synchronizing storage:', error);
     }
@@ -746,7 +683,7 @@ function processImageFile(file, callback) {
 }
 
 /**
- * 保存图片到localStorage
+ * 保存图片
  * @param {Object} picture - 图片对象
  */
 function savePicture(picture) {
@@ -760,10 +697,13 @@ function savePicture(picture) {
         
         // 保存回localStorage
         localStorage.setItem('adminPictures', JSON.stringify(pictures));
-        console.log('Picture saved:', picture.name);
+        console.log('Picture saved to adminPictures:', picture.name);
         
         // 同时保存到sitePictures以供前端使用
         savePictureToSite(picture);
+        
+        // 再次运行同步过程以确保数据一致性
+        synchronizeImageStorage();
         
         return true;
     } catch (e) {
@@ -778,11 +718,7 @@ function savePicture(picture) {
  */
 function savePictureToSite(adminPicture) {
     try {
-        // 从localStorage加载前端图片
-        const sitePicturesStr = localStorage.getItem('sitePictures');
-        const sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
-        
-        // 转换图片格式
+        // 转换图片格式以适应前端使用
         const sitePicture = {
             id: adminPicture.id,
             name: adminPicture.name,
@@ -792,12 +728,25 @@ function savePictureToSite(adminPicture) {
             uploadDate: adminPicture.uploadDate
         };
         
-        // 添加到前端图片
-        sitePictures.push(sitePicture);
+        // 从localStorage加载前端图片
+        const sitePicturesStr = localStorage.getItem('sitePictures');
+        const sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+        
+        // 检查是否已存在相同ID的图片
+        const existingIndex = sitePictures.findIndex(pic => pic.id === sitePicture.id);
+        if (existingIndex !== -1) {
+            // 更新已存在的图片
+            sitePictures[existingIndex] = sitePicture;
+            console.log('Updated existing picture in frontend storage:', sitePicture.name);
+        } else {
+            // 添加新图片
+            sitePictures.push(sitePicture);
+            console.log('Added new picture to frontend storage:', sitePicture.name);
+        }
         
         // 保存回localStorage
         localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
-        console.log('Picture saved to frontend storage:', sitePicture.name);
+        console.log(`Frontend storage now has ${sitePictures.length} pictures`);
         
         return true;
     } catch (e) {
@@ -840,6 +789,9 @@ function deletePicture(pictureId, showConfirm = true) {
         if (showConfirm) {
             alert('Picture deleted successfully');
         }
+        
+        // 重新同步存储
+        synchronizeImageStorage();
     } catch (e) {
         console.error('Error deleting picture:', e);
         if (showConfirm) {
