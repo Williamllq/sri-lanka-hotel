@@ -109,56 +109,109 @@ function displayAdminImages() {
     
     console.log("Initializing gallery with admin images...");
     
-    // Load all images from localStorage (from admin dashboard)
-    const storedPictures = localStorage.getItem('sitePictures');
+    // 尝试从多个来源加载图片数据
+    let storedPictures = localStorage.getItem('sitePictures');
     
     if (!storedPictures) {
-        console.log("No uploaded images found in localStorage");
+        console.log("No sitePictures found, trying adminPictures");
+        storedPictures = localStorage.getItem('adminPictures');
+    }
+    
+    // 如果两者都没有找到，创建一些模拟数据
+    if (!storedPictures) {
+        console.log("No uploaded images found, using default gallery");
+        
+        // 检查DOM中是否已有静态画廊项目
+        const existingItems = gallerySection.querySelectorAll('.gallery-item');
+        if (existingItems.length > 0) {
+            console.log(`Found ${existingItems.length} existing static gallery items`);
+            
+            // 收集现有的静态图片项到一个数组，以便同步到localStorage
+            const existingPictures = Array.from(existingItems).map(item => {
+                const img = item.querySelector('img');
+                const title = item.querySelector('.gallery-item-title');
+                const desc = item.querySelector('.gallery-item-desc');
+                const category = item.getAttribute('data-category');
+                
+                return {
+                    id: 'default_' + Math.random().toString(36).substr(2, 9),
+                    name: title ? title.textContent : 'Beautiful Sri Lanka',
+                    category: category || 'scenery',
+                    description: desc ? desc.textContent : '',
+                    url: img ? img.src : '',
+                    uploadDate: new Date().toISOString()
+                };
+            });
+            
+            // 存储这些静态项目，以供管理员界面使用
+            if (existingPictures.length > 0) {
+                localStorage.setItem('sitePictures', JSON.stringify(existingPictures));
+                console.log(`Saved ${existingPictures.length} static gallery items to localStorage`);
+                return; // 保持静态项目
+            }
+        }
         return;
     }
     
     try {
         const pictures = JSON.parse(storedPictures);
+        if (!Array.isArray(pictures) || pictures.length === 0) {
+            console.log("No valid pictures array found");
+            return;
+        }
+        
         console.log(`Found ${pictures.length} images to display in gallery`);
         
-        // Clear existing gallery items if any
+        // 清空现有静态画廊项目
         gallerySection.innerHTML = '';
         
-        // Add each image to the gallery
+        // 添加每张图片到画廊
         pictures.forEach(picture => {
-            // Create gallery item
+            // 处理不同的数据格式（管理员和前端格式可能不同）
+            const imageUrl = picture.url || picture.imageUrl;
+            const imageName = picture.name || 'Sri Lanka Image';
+            const imageDesc = picture.description || '';
+            const imageCategory = picture.category || 'scenery';
+            
+            if (!imageUrl) {
+                console.warn("Missing image URL, skipping:", picture);
+                return;
+            }
+            
+            // 创建画廊项
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item';
-            galleryItem.setAttribute('data-category', picture.category);
+            galleryItem.setAttribute('data-category', imageCategory);
             
-            // Create image container with overlay for description
+            // 创建图片容器
             galleryItem.innerHTML = `
-                <div class="gallery-image-container">
-                    <img src="${picture.url}" alt="${picture.name}" class="gallery-image">
-                    <div class="gallery-overlay">
-                        <h3>${picture.name}</h3>
-                        <p>${picture.description || ''}</p>
-                    </div>
+                <img src="${imageUrl}" alt="${imageName}" class="gallery-image">
+                <div class="gallery-item-info">
+                    <h3 class="gallery-item-title">${imageName}</h3>
+                    <p class="gallery-item-desc">${imageDesc}</p>
                 </div>
             `;
             
-            // Add to gallery
+            // 添加到画廊
             gallerySection.appendChild(galleryItem);
         });
         
-        // Add filtering functionality if category buttons exist
+        // 确保前端和管理员存储都有相同的图片数据
+        syncImageStorages();
+        
+        // 添加过滤功能
         const categoryButtons = document.querySelectorAll('.gallery-filter-btn');
         if (categoryButtons.length > 0) {
             categoryButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const category = this.getAttribute('data-filter');
                     
-                    // Remove active class from all buttons
+                    // 移除所有按钮的active类
                     categoryButtons.forEach(btn => btn.classList.remove('active'));
-                    // Add active class to clicked button
+                    // 添加active类到点击的按钮
                     this.classList.add('active');
                     
-                    // Show all items or filter by category
+                    // 显示所有项或按类别过滤
                     const items = document.querySelectorAll('.gallery-item');
                     items.forEach(item => {
                         if (category === 'all' || item.getAttribute('data-category') === category) {
@@ -169,10 +222,139 @@ function displayAdminImages() {
                     });
                 });
             });
+            
+            // 设置默认活动类别
+            const defaultCategory = categoryButtons[1]; // wildlife
+            if (defaultCategory) {
+                defaultCategory.click();
+            }
         }
+        
+        // 触发自定义事件通知其他脚本画廊已更新
+        const galleryUpdatedEvent = new CustomEvent('galleryUpdated');
+        document.dispatchEvent(galleryUpdatedEvent);
         
     } catch (error) {
         console.error("Error displaying admin images:", error);
+    }
+}
+
+// 同步管理员和前端的图片存储
+function syncImageStorages() {
+    console.log("Syncing image storages between admin and frontend...");
+    
+    try {
+        // 获取管理员和前端图片数据
+        const adminPicturesStr = localStorage.getItem('adminPictures');
+        const sitePicturesStr = localStorage.getItem('sitePictures');
+        
+        // 解析数据
+        let adminPictures = adminPicturesStr ? JSON.parse(adminPicturesStr) : [];
+        let sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+        
+        // 确保是数组
+        if (!Array.isArray(adminPictures)) adminPictures = [];
+        if (!Array.isArray(sitePictures)) sitePictures = [];
+        
+        // 如果管理员图片为空但前端有图片，复制到管理员
+        if (adminPictures.length === 0 && sitePictures.length > 0) {
+            console.log(`Copying ${sitePictures.length} images from site to admin storage`);
+            
+            // 转换为管理员格式
+            const adminFormattedPictures = sitePictures.map(sitePic => {
+                return {
+                    id: sitePic.id || ('pic_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
+                    name: sitePic.name || 'Untitled Image',
+                    category: sitePic.category || 'scenery',
+                    description: sitePic.description || '',
+                    imageUrl: sitePic.url || sitePic.imageUrl,
+                    uploadDate: sitePic.uploadDate || new Date().toISOString()
+                };
+            });
+            
+            localStorage.setItem('adminPictures', JSON.stringify(adminFormattedPictures));
+        }
+        
+        // 如果前端图片为空但管理员有图片，复制到前端
+        if (sitePictures.length === 0 && adminPictures.length > 0) {
+            console.log(`Copying ${adminPictures.length} images from admin to site storage`);
+            
+            // 转换为前端格式
+            const siteFormattedPictures = adminPictures.map(adminPic => {
+                return {
+                    id: adminPic.id,
+                    name: adminPic.name,
+                    category: adminPic.category,
+                    description: adminPic.description,
+                    url: adminPic.imageUrl,
+                    uploadDate: adminPic.uploadDate
+                };
+            });
+            
+            localStorage.setItem('sitePictures', JSON.stringify(siteFormattedPictures));
+        }
+        
+        // 如果两者都有图片，合并不重复的
+        if (sitePictures.length > 0 && adminPictures.length > 0) {
+            // 找出管理员中不在前端的图片
+            const adminOnlyPictures = adminPictures.filter(adminPic => {
+                return !sitePictures.some(sitePic => 
+                    (sitePic.id === adminPic.id) || 
+                    (sitePic.url === adminPic.imageUrl)
+                );
+            });
+            
+            // 找出前端中不在管理员的图片
+            const siteOnlyPictures = sitePictures.filter(sitePic => {
+                return !adminPictures.some(adminPic => 
+                    (adminPic.id === sitePic.id) || 
+                    (adminPic.imageUrl === sitePic.url)
+                );
+            });
+            
+            // 如果有差异，更新两边
+            if (adminOnlyPictures.length > 0) {
+                console.log(`Adding ${adminOnlyPictures.length} admin-only images to site storage`);
+                
+                // 转换为前端格式并添加
+                const newSitePictures = adminOnlyPictures.map(adminPic => {
+                    return {
+                        id: adminPic.id,
+                        name: adminPic.name,
+                        category: adminPic.category,
+                        description: adminPic.description,
+                        url: adminPic.imageUrl,
+                        uploadDate: adminPic.uploadDate
+                    };
+                });
+                
+                const mergedSitePictures = [...sitePictures, ...newSitePictures];
+                localStorage.setItem('sitePictures', JSON.stringify(mergedSitePictures));
+            }
+            
+            if (siteOnlyPictures.length > 0) {
+                console.log(`Adding ${siteOnlyPictures.length} site-only images to admin storage`);
+                
+                // 转换为管理员格式并添加
+                const newAdminPictures = siteOnlyPictures.map(sitePic => {
+                    return {
+                        id: sitePic.id || ('pic_' + Date.now() + '_' + Math.floor(Math.random() * 1000)),
+                        name: sitePic.name || 'Untitled Image',
+                        category: sitePic.category || 'scenery',
+                        description: sitePic.description || '',
+                        imageUrl: sitePic.url,
+                        uploadDate: sitePic.uploadDate || new Date().toISOString()
+                    };
+                });
+                
+                const mergedAdminPictures = [...adminPictures, ...newAdminPictures];
+                localStorage.setItem('adminPictures', JSON.stringify(mergedAdminPictures));
+            }
+        }
+        
+        console.log("Image storage synchronization complete");
+    } catch (error) {
+        console.error("Error syncing image storages:", error);
     }
 }
 
