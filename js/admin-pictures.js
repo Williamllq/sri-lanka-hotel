@@ -61,6 +61,8 @@ function synchronizeImageStorage() {
         if (!Array.isArray(adminPictures)) adminPictures = [];
         if (!Array.isArray(sitePictures)) sitePictures = [];
         
+        console.log(`Initial: ${adminPictures.length} admin pictures, ${sitePictures.length} site pictures`);
+        
         // Remove any duplicate entries that might already exist in adminPictures
         const uniqueAdminPictures = removeDuplicates(adminPictures);
         if (uniqueAdminPictures.length !== adminPictures.length) {
@@ -69,47 +71,32 @@ function synchronizeImageStorage() {
             localStorage.setItem('adminPictures', JSON.stringify(adminPictures));
         }
         
-        // Remove any duplicate entries that might already exist in sitePictures
-        const uniqueSitePictures = removeDuplicates(sitePictures);
-        if (uniqueSitePictures.length !== sitePictures.length) {
-            console.log(`Removed ${sitePictures.length - uniqueSitePictures.length} duplicates from site pictures`);
-            sitePictures = uniqueSitePictures;
-            localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
-        }
+        // 重置sitePictures，完全以adminPictures为基准
+        sitePictures = [];
         
-        console.log(`Found ${adminPictures.length} admin pictures and ${sitePictures.length} site pictures`);
-        
-        // 确保所有管理员图片都在前端
+        // 将所有管理员图片添加到前端
         adminPictures.forEach(adminPic => {
-            // 检查是否已存在于sitePictures中
-            const existsInSite = sitePictures.some(sitePic => 
-                (sitePic.id === adminPic.id) || 
-                (sitePic.url === adminPic.imageUrl) ||
-                (adminPic.name && sitePic.name === adminPic.name)
-            );
+            // 创建前端格式的图片对象
+            const sitePic = {
+                id: adminPic.id,
+                name: adminPic.name || 'Untitled',
+                category: (adminPic.category || 'scenery').toLowerCase(),
+                description: adminPic.description || '',
+                url: adminPic.imageUrl || adminPic.url || '',
+                uploadDate: adminPic.uploadDate || new Date().toISOString()
+            };
             
-            if (!existsInSite) {
-                // 添加到sitePictures
-                const sitePic = {
-                    id: adminPic.id,
-                    name: adminPic.name,
-                    category: adminPic.category || 'scenery',
-                    description: adminPic.description || '',
-                    url: adminPic.imageUrl || adminPic.url,
-                    uploadDate: adminPic.uploadDate || new Date().toISOString()
-                };
-                sitePictures.push(sitePic);
-                console.log(`Added admin picture "${adminPic.name}" to site pictures`);
-            }
+            sitePictures.push(sitePic);
         });
         
-        // 保存更新后的sitePictures
-        if (sitePictures.length > 0) {
-            localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
-            console.log(`Saved ${sitePictures.length} pictures to site storage`);
-        }
+        // 确保没有重复
+        sitePictures = removeDuplicates(sitePictures);
         
-        // 触发同步事件
+        // 保存更新后的sitePictures
+        localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
+        console.log(`Synchronized ${sitePictures.length} pictures to site storage`);
+        
+        // 触发同步事件，通知前端刷新
         const syncEvent = new CustomEvent('gallery-updated');
         document.dispatchEvent(syncEvent);
         
@@ -759,16 +746,17 @@ function savePictureToSite(adminPicture) {
         // 检查是否已存在
         const existingIndex = sitePictures.findIndex(img => 
             img.id === adminPicture.id || 
-            (adminPicture.imageUrl && img.url === adminPicture.imageUrl)
+            (adminPicture.imageUrl && img.url === adminPicture.imageUrl) ||
+            (adminPicture.name && img.name === adminPicture.name && img.category === adminPicture.category)
         );
         
         // 创建前端格式的图片对象
         const sitePicture = {
             id: adminPicture.id,
-            name: adminPicture.name,
-            category: adminPicture.category,
-            description: adminPicture.description,
-            url: adminPicture.imageUrl || adminPicture.url,
+            name: adminPicture.name || 'Untitled',
+            category: (adminPicture.category || 'scenery').toLowerCase(),
+            description: adminPicture.description || '',
+            url: adminPicture.imageUrl || adminPicture.url || '',
             uploadDate: adminPicture.uploadDate || new Date().toISOString()
         };
         

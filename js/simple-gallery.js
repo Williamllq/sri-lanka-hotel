@@ -48,48 +48,71 @@
     try {
       let allPictures = [];
       
-      // 从sitePictures获取
-      const siteData = localStorage.getItem('sitePictures');
-      if (siteData) {
-        const sitePics = JSON.parse(siteData);
-        if (Array.isArray(sitePics) && sitePics.length > 0) {
-          console.log(`Found ${sitePics.length} pictures in sitePictures`);
-          allPictures = [...allPictures, ...sitePics];
-        }
-      }
-      
-      // 从adminPictures获取
+      // 优先从adminPictures获取（这是主要图片源）
       const adminData = localStorage.getItem('adminPictures');
       if (adminData) {
         const adminPics = JSON.parse(adminData);
         if (Array.isArray(adminPics) && adminPics.length > 0) {
           console.log(`Found ${adminPics.length} pictures in adminPictures`);
           
-          // 将admin图片转换为site格式并合并，避免重复
+          // 将admin图片转换为标准格式并添加到集合中
           adminPics.forEach(adminPic => {
-            // 检查是否已存在于allPictures中
-            const isDuplicate = allPictures.some(pic => 
-              pic.id === adminPic.id || 
-              pic.url === adminPic.imageUrl || 
-              (pic.name && adminPic.name && pic.name === adminPic.name)
-            );
-            
-            if (!isDuplicate) {
+            if (adminPic && adminPic.id) {
               allPictures.push({
                 id: adminPic.id,
-                name: adminPic.name,
-                category: adminPic.category,
-                description: adminPic.description,
-                url: adminPic.imageUrl || adminPic.url,
-                uploadDate: adminPic.uploadDate
+                name: adminPic.name || 'Untitled',
+                category: (adminPic.category || 'scenery').toLowerCase(),
+                description: adminPic.description || '',
+                url: adminPic.imageUrl || adminPic.url || '',
+                uploadDate: adminPic.uploadDate || new Date().toISOString()
               });
             }
           });
         }
       }
       
+      // 再从sitePictures获取，避免重复
+      const siteData = localStorage.getItem('sitePictures');
+      if (siteData) {
+        const sitePics = JSON.parse(siteData);
+        if (Array.isArray(sitePics) && sitePics.length > 0) {
+          console.log(`Found ${sitePics.length} pictures in sitePictures`);
+          
+          // 添加未重复的图片
+          sitePics.forEach(sitePic => {
+            if (!sitePic || !sitePic.id) return;
+            
+            // 检查是否已存在于allPictures中
+            const isDuplicate = allPictures.some(pic => 
+              pic.id === sitePic.id || 
+              (pic.url && sitePic.url && pic.url === sitePic.url) || 
+              (pic.name && sitePic.name && pic.name === sitePic.name && pic.category === sitePic.category)
+            );
+            
+            if (!isDuplicate) {
+              allPictures.push({
+                id: sitePic.id,
+                name: sitePic.name || 'Untitled',
+                category: (sitePic.category || 'scenery').toLowerCase(),
+                description: sitePic.description || '',
+                url: sitePic.url || '',
+                uploadDate: sitePic.uploadDate || new Date().toISOString()
+              });
+            }
+          });
+        }
+      }
+      
+      // 如果已获取图片，标准化并返回
       if (allPictures.length > 0) {
         console.log(`Total unique pictures: ${allPictures.length}`);
+        // 打印类别统计信息帮助调试
+        const categories = {};
+        allPictures.forEach(pic => {
+          categories[pic.category] = (categories[pic.category] || 0) + 1;
+        });
+        console.log('Categories breakdown:', categories);
+        
         return normalizeImages(allPictures);
       }
     } catch (e) {
@@ -97,6 +120,7 @@
     }
     
     // 从默认图片中获取
+    console.log('No pictures found in storage, using default pictures');
     return getDefaultPictures();
   }
   
@@ -165,34 +189,55 @@
     const buttons = document.querySelectorAll('.gallery-filter-btn');
     if (!buttons || buttons.length === 0) return;
     
-    // 确保所有按钮都有正确的data-filter属性
+    // 获取当前选中的类别（如果有）
+    let currentActiveCategory = 'all';
+    const activeButton = document.querySelector('.gallery-filter-btn.active');
+    if (activeButton) {
+      currentActiveCategory = activeButton.getAttribute('data-filter') || 'all';
+    }
+    
+    // 移除所有按钮上的active类和事件处理
     buttons.forEach(btn => {
-      if (!btn.hasAttribute('data-filter')) {
-        const category = btn.textContent.trim().toLowerCase();
-        btn.setAttribute('data-filter', category);
-      }
-      
-      // 移除旧的事件监听器
+      btn.classList.remove('active');
+      // 创建新的按钮元素以移除旧的事件监听
       const newBtn = btn.cloneNode(true);
       if (btn.parentNode) {
         btn.parentNode.replaceChild(newBtn, btn);
       }
       
-      // 添加新的点击事件
-      newBtn.addEventListener('click', () => {
-        // 更新按钮状态 - 确保单选行为
-        buttons.forEach(b => b.classList.remove('active'));
+      // 确保所有按钮都有正确的data-filter属性
+      if (!newBtn.hasAttribute('data-filter')) {
+        const category = newBtn.textContent.trim().toLowerCase();
+        newBtn.setAttribute('data-filter', category);
+      }
+      
+      // 设置刚开始的激活状态 - 保持之前选择的类别
+      if (newBtn.getAttribute('data-filter') === currentActiveCategory) {
+        newBtn.classList.add('active');
+      }
+      
+      // 添加单选点击事件
+      newBtn.addEventListener('click', function() {
+        // 确保单选行为 - 移除所有按钮的active类
+        document.querySelectorAll('.gallery-filter-btn').forEach(b => {
+          b.classList.remove('active');
+        });
+        
+        // 仅将当前按钮设为active
         newBtn.classList.add('active');
         
-        // 获取类别
+        // 获取类别并显示对应图片
         const category = newBtn.getAttribute('data-filter');
+        console.log(`Filter clicked: ${category}`);
         displayPicturesByCategory(pictures, category);
       });
     });
     
-    // 默认选中第一个按钮
-    if (buttons.length > 0) {
+    // 如果没有激活的按钮，则默认第一个按钮（"All"）
+    if (!document.querySelector('.gallery-filter-btn.active') && buttons.length > 0) {
       buttons[0].classList.add('active');
+      const defaultCategory = buttons[0].getAttribute('data-filter') || 'all';
+      displayPicturesByCategory(pictures, defaultCategory);
     }
   }
   
