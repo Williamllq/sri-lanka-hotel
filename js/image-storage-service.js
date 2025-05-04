@@ -400,8 +400,96 @@ function generateThumbnail(img, maxWidth, maxHeight) {
 }
 
 /**
+ * 从存储获取所有图片
+ * @param {Object} params - 查询参数：category, page, limit
+ * @param {Function} callback - 回调函数，参数为图片对象数组
+ */
+function getAllImages(params, callback) {
+    const category = params.category || 'all';
+    const page = params.page || 1;
+    const limit = params.limit || 30; // 增加默认数量
+    const sort = params.sort || 'newest';
+    
+    console.log(`Getting images: category=${category}, page=${page}, limit=${limit}`);
+    
+    if (!db) {
+        console.warn('数据库未初始化，回退到localStorage');
+        fallbackToLocalStorage(params, callback);
+        return;
+    }
+    
+    const imageTransaction = db.transaction([THUMBNAILS_STORE, IMAGES_STORE], 'readonly');
+    const thumbnailStore = imageTransaction.objectStore(THUMBNAILS_STORE);
+    
+    // 获取所有缩略图
+    const thumbnailRequest = thumbnailStore.getAll();
+    
+    thumbnailRequest.onsuccess = function(event) {
+        let thumbnails = event.target.result || [];
+        console.log(`从数据库获取到 ${thumbnails.length} 张图片`);
+        
+        // 过滤分类
+        if (category !== 'all') {
+            thumbnails = thumbnails.filter(pic => pic.category.toLowerCase() === category.toLowerCase());
+            console.log(`分类过滤后还剩 ${thumbnails.length} 张图片`);
+        }
+        
+        // 按上传日期排序
+        if (sort === 'newest') {
+            thumbnails.sort((a, b) => {
+                const dateA = new Date(a.uploadDate || 0);
+                const dateB = new Date(b.uploadDate || 0);
+                return dateB - dateA; // 降序（最新的在前）
+            });
+        } else if (sort === 'oldest') {
+            thumbnails.sort((a, b) => {
+                const dateA = new Date(a.uploadDate || 0);
+                const dateB = new Date(b.uploadDate || 0);
+                return dateA - dateB; // 升序（最旧的在前）
+            });
+        } else if (sort === 'name') {
+            thumbnails.sort((a, b) => a.name.localeCompare(b.name));
+        }
+        
+        // 计算分页
+        const totalPages = Math.ceil(thumbnails.length / limit);
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        
+        // 切片获取当前页的图片
+        const pageImages = thumbnails.slice(startIndex, endIndex);
+        console.log(`当前页面显示 ${pageImages.length} 张图片（第 ${page}/${totalPages} 页）`);
+        
+        // 返回结果
+        callback({
+            images: pageImages,
+            pagination: {
+                currentPage: page,
+                totalPages: totalPages,
+                totalImages: thumbnails.length,
+                imagesPerPage: limit
+            }
+        });
+        
+        // 在后台预加载所有图片的完整数据（异步提高性能）
+        if (pageImages.length > 0) {
+            setTimeout(function() {
+                preloadFullImages(pageImages.map(img => img.id));
+            }, 200);
+        }
+    };
+    
+    thumbnailRequest.onerror = function(event) {
+        console.error('加载图片时出错:', event.target.error);
+        // 回退到localStorage
+        fallbackToLocalStorage(params, callback);
+    };
+}
+
+/**
  * 保存图片到存储
  * @param {Object} pictureData - 图片数据对象
+ * @param {File} file - 图片文件
  * @param {Function} callback - 回调函数
  */
 function saveImage(pictureData, file, callback) {
@@ -411,76 +499,217 @@ function saveImage(pictureData, file, callback) {
         return;
     }
     
-    processImageFile(file, function(processedImageUrl, thumbnailUrl) {
-        const imageData = {
-            id: pictureData.id,
-            name: pictureData.name,
-            category: pictureData.category,
-            description: pictureData.description || '',
-            imageUrl: processedImageUrl,
-            uploadDate: new Date().toISOString()
-        };
+    console.log('使用增强存储服务保存图片:', pictureData.name);
+    
+    // 添加进度指示器
+    const progressIndicator = addProgressIndicator();
+    
+    // 在错误情况下的回退方案
+    const handleError = function(error) {
+        console.error('处理图片时出错:', error);
+        removeProgressIndicator(progressIndicator);
         
-        const thumbnailData = {
-            id: pictureData.id,
-            name: pictureData.name,
-            category: pictureData.category,
-            imageUrl: thumbnailUrl
-        };
+        // 尝试直接保存原始文件，不进行处理
+        try {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = {
+                    id: pictureData.id,
+                    name: pictureData.name,
+                    category: pictureData.category,
+                    description: pictureData.description || '',
+                    imageUrl: e.target.result,
+                    uploadDate: new Date().toISOString()
+                };
+                
+                // 直接使用相同数据作为缩略图
+                const thumbnailData = { ...imageData };
+                
+                // 保存到数据库
+                saveImageToDB(imageData, thumbnailData, function() {
+                    // 尝试同步到前端（可选）
+                    try {
+                        syncToFrontend(imageData);
+                    } catch (syncError) {
+                        console.warn('同步到前端失败，但图片已保存:', syncError);
+                    }
+                    
+                    if (typeof callback === 'function') callback(true);
+                });
+            };
+            reader.onerror = function() {
+                if (typeof callback === 'function') callback(false);
+            };
+            reader.readAsDataURL(file);
+        } catch (fallbackError) {
+            console.error('回退保存方案也失败:', fallbackError);
+            if (typeof callback === 'function') callback(false);
+        }
+    };
+    
+    // 处理图片，生成高质量版本和缩略图
+    try {
+        updateProgressIndicator(progressIndicator, 10);
         
-        saveImageToDB(imageData, thumbnailData, function() {
-            // 同步到sitePictures以供前端使用
-            syncToFrontend(imageData);
-            if (typeof callback === 'function') callback(true);
+        processImageFile(file, function(processedImageUrl, thumbnailUrl) {
+            updateProgressIndicator(progressIndicator, 50);
+            
+            if (!processedImageUrl) {
+                handleError(new Error('图片处理失败'));
+                return;
+            }
+            
+            // 创建完整的图片数据
+            const imageData = {
+                id: pictureData.id,
+                name: pictureData.name,
+                category: pictureData.category,
+                description: pictureData.description || '',
+                imageUrl: processedImageUrl,
+                uploadDate: new Date().toISOString()
+            };
+            
+            // 创建缩略图数据
+            const thumbnailData = {
+                id: pictureData.id,
+                name: pictureData.name,
+                category: pictureData.category,
+                imageUrl: thumbnailUrl || processedImageUrl, // 如果没有缩略图就使用原图
+                uploadDate: imageData.uploadDate
+            };
+            
+            updateProgressIndicator(progressIndicator, 75);
+            
+            // 保存到IndexedDB
+            saveImageToDB(imageData, thumbnailData, function() {
+                updateProgressIndicator(progressIndicator, 90);
+                
+                // 同步到前端
+                syncToFrontend(imageData);
+                
+                // 完成
+                removeProgressIndicator(progressIndicator);
+                if (typeof callback === 'function') callback(true);
+            });
         });
-    });
+    } catch (error) {
+        handleError(error);
+    }
 }
 
 /**
- * 处理图片文件
- * @param {File} file - 图片文件
- * @param {Function} callback - 回调函数，参数为处理后的图片URL和缩略图URL
+ * 添加进度指示器
  */
-function processImageFile(file, callback) {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-            // 高质量主图
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // 设置最大尺寸（保持宽高比）- 增加到1800x1200以支持高分辨率设备
-            const MAX_WIDTH = 1800;
-            const MAX_HEIGHT = 1200;
-            
-            let width = img.width;
-            let height = img.height;
-            
-            if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-                const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
-                width = width * ratio;
-                height = height * ratio;
-            }
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            // 使用高质量绘制
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            // 获取高质量图片URL（使用更高的质量参数）
-            const processedImageUrl = canvas.toDataURL('image/jpeg', 0.95);
-            
-            // 生成缩略图
-            const thumbnailUrl = generateThumbnail(img, 200, 150);
-            
-            // 返回处理后的图片URL
-            callback(processedImageUrl, thumbnailUrl);
+function addProgressIndicator() {
+    const indicator = document.createElement('div');
+    indicator.className = 'storage-progress-indicator';
+    indicator.innerHTML = `
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+            <div class="progress-text">Processing image...</div>
+        </div>
+    `;
+    
+    // 添加样式
+    const style = document.createElement('style');
+    style.textContent = `
+        .storage-progress-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(66, 133, 244, 0.9);
+            height: 4px;
+            z-index: 10000;
+            transition: width 0.3s ease;
+        }
+        .progress-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #fff;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(indicator);
+    
+    return indicator;
+}
+
+/**
+ * 更新进度指示器
+ */
+function updateProgressIndicator(indicator, percentage) {
+    if (!indicator) return;
+    
+    const progressBar = indicator.querySelector('.progress-bar');
+    if (progressBar) {
+        progressBar.style.width = percentage + '%';
+    }
+    
+    const progressText = indicator.querySelector('.progress-text');
+    if (progressText) {
+        if (percentage < 30) {
+            progressText.textContent = 'Processing image...';
+        } else if (percentage < 60) {
+            progressText.textContent = 'Optimizing image...';
+        } else if (percentage < 90) {
+            progressText.textContent = 'Saving image...';
+        } else {
+            progressText.textContent = 'Almost done...';
+        }
+    }
+}
+
+/**
+ * 移除进度指示器
+ */
+function removeProgressIndicator(indicator) {
+    if (!indicator) return;
+    
+    // 先将进度条设置为100%
+    updateProgressIndicator(indicator, 100);
+    
+    // 0.5秒后删除元素
+    setTimeout(function() {
+        if (indicator && indicator.parentNode) {
+            indicator.parentNode.removeChild(indicator);
+        }
+    }, 500);
+}
+
+/**
+ * 预加载完整图片数据
+ */
+function preloadFullImages(imageIds) {
+    if (!db || !imageIds || imageIds.length === 0) return;
+    
+    console.log(`预加载 ${imageIds.length} 张图片完整数据`);
+    const transaction = db.transaction([IMAGES_STORE], 'readonly');
+    const store = transaction.objectStore(IMAGES_STORE);
+    
+    imageIds.forEach(function(id) {
+        store.get(id).onsuccess = function() {
+            // 仅预加载，不处理结果
         };
-        img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
+    });
 }
 
 /**
@@ -513,130 +742,6 @@ function syncToFrontend(imageData) {
     } catch (e) {
         console.error('同步到前端时出错:', e);
     }
-}
-
-/**
- * 从存储获取所有图片
- * @param {string} category - 图片分类 (optional)
- * @param {number} page - 页码 (从1开始)
- * @param {number} limit - 每页图片数量
- * @param {Function} callback - 回调函数，参数为图片对象数组
- */
-function getAllImages(params, callback) {
-    const category = params.category || 'all';
-    const page = params.page || 1;
-    const limit = params.limit || 20;
-    const sort = params.sort || 'newest';
-    
-    if (!db) {
-        console.error('数据库未初始化，回退到localStorage');
-        fallbackToLocalStorage(params, callback);
-        return;
-    }
-    
-    // 尝试同时从两个存储区获取数据，确保不遗漏
-    const thumbnailTransaction = db.transaction([THUMBNAILS_STORE, IMAGES_STORE], 'readonly');
-    const thumbnailStore = thumbnailTransaction.objectStore(THUMBNAILS_STORE);
-    const imageStore = thumbnailTransaction.objectStore(IMAGES_STORE);
-    
-    // 获取所有缩略图
-    let thumbnailRequest;
-    if (category !== 'all') {
-        const index = thumbnailStore.index('category');
-        thumbnailRequest = index.getAll(category);
-    } else {
-        thumbnailRequest = thumbnailStore.getAll();
-    }
-    
-    thumbnailRequest.onsuccess = function(event) {
-        let thumbnails = event.target.result || [];
-        
-        // 获取所有完整图片 - 以防缩略图缺少一些元数据
-        const imageRequest = imageStore.getAll();
-        
-        imageRequest.onsuccess = function(event) {
-            const fullImages = event.target.result || [];
-            
-            // 合并数据，确保缩略图有完整的元数据
-            thumbnails = thumbnails.map(thumb => {
-                const fullImage = fullImages.find(img => img.id === thumb.id);
-                if (fullImage) {
-                    return {
-                        ...thumb,
-                        category: thumb.category || fullImage.category,
-                        description: fullImage.description,
-                        uploadDate: fullImage.uploadDate
-                    };
-                }
-                return thumb;
-            });
-            
-            // 如果没有数据，尝试从localStorage中获取
-            if (thumbnails.length === 0) {
-                console.log('IndexedDB中没有数据，回退到localStorage');
-                fallbackToLocalStorage(params, callback);
-                return;
-            }
-            
-            // 排序
-            if (sort === 'newest') {
-                thumbnails.sort((a, b) => {
-                    const dateA = a.uploadDate ? new Date(a.uploadDate) : new Date(0);
-                    const dateB = b.uploadDate ? new Date(b.uploadDate) : new Date(0);
-                    return dateB - dateA;
-                });
-            } else if (sort === 'oldest') {
-                thumbnails.sort((a, b) => {
-                    const dateA = a.uploadDate ? new Date(a.uploadDate) : new Date(0);
-                    const dateB = b.uploadDate ? new Date(b.uploadDate) : new Date(0);
-                    return dateA - dateB;
-                });
-            } else if (sort === 'name') {
-                thumbnails.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-            }
-            
-            // 分页
-            const start = (page - 1) * limit;
-            const end = start + limit;
-            const pagedThumbnails = thumbnails.slice(start, end);
-            
-            // 将数据转换为统一格式
-            const formattedImages = pagedThumbnails.map(img => ({
-                id: img.id,
-                name: img.name,
-                category: img.category || 'scenery',
-                description: img.description || '',
-                imageUrl: img.imageUrl,  // 缩略图URL
-                url: img.imageUrl,       // 兼容前端显示
-                uploadDate: img.uploadDate || new Date().toISOString()
-            }));
-            
-            // 计算总页数
-            const totalPages = Math.ceil(thumbnails.length / limit);
-            
-            // 返回结果
-            callback({
-                images: formattedImages,
-                pagination: {
-                    currentPage: page,
-                    totalPages: totalPages,
-                    totalItems: thumbnails.length,
-                    hasNext: page < totalPages,
-                    hasPrev: page > 1
-                }
-            });
-        };
-        
-        imageRequest.onerror = function(event) {
-            console.error('获取完整图片时出错:', event.target.error);
-            fallbackToLocalStorage(params, callback);
-        };
-    };
-    
-    thumbnailRequest.onerror = function(event) {
-        console.error('获取缩略图时出错:', event.target.error);
-        fallbackToLocalStorage(params, callback);
-    };
 }
 
 /**
@@ -927,6 +1032,93 @@ function updateImage(imageData, file, callback) {
             if (typeof callback === 'function') callback(false);
         };
     }
+}
+
+/**
+ * 处理图片文件
+ * @param {File} file - 图片文件
+ * @param {Function} callback - 回调函数，参数为处理后的图片URL和缩略图URL
+ */
+function processImageFile(file, callback) {
+    // 检查文件是否为图片
+    if (!file || !file.type.match('image.*')) {
+        console.error('无效的图片文件');
+        callback(null);
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            try {
+                // 1. 创建高质量主图
+                const mainCanvas = document.createElement('canvas');
+                const mainCtx = mainCanvas.getContext('2d');
+                
+                // 使用更大的尺寸来保持图片质量，同时限制大小以防止内存问题
+                // 最大尺寸增加到2000x1500以支持高分辨率设备
+                const MAX_WIDTH = 2000;
+                const MAX_HEIGHT = 1500;
+                
+                let width = img.width;
+                let height = img.height;
+                
+                // 按比例缩放到最大尺寸
+                if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+                    const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+                    width = Math.floor(width * ratio);
+                    height = Math.floor(height * ratio);
+                }
+                
+                // 设置画布尺寸
+                mainCanvas.width = width;
+                mainCanvas.height = height;
+                
+                // 使用高质量绘制
+                mainCtx.imageSmoothingEnabled = true;
+                mainCtx.imageSmoothingQuality = 'high';
+                mainCtx.drawImage(img, 0, 0, width, height);
+                
+                // 获取高质量图片URL（使用更高的质量参数0.92，平衡质量和文件大小）
+                const processedImageUrl = mainCanvas.toDataURL('image/jpeg', 0.92);
+                
+                // 2. 生成缩略图
+                const thumbnailUrl = generateThumbnail(img, 300, 200);
+                
+                // 返回处理后的图片URL
+                callback(processedImageUrl, thumbnailUrl);
+            } catch (error) {
+                console.error('处理图片时出错:', error);
+                
+                // 出错时尝试不处理直接使用原图
+                try {
+                    callback(event.target.result, event.target.result);
+                } catch (fallbackError) {
+                    console.error('使用原图回退也失败:', fallbackError);
+                    callback(null);
+                }
+            }
+        };
+        
+        // 处理图片加载错误
+        img.onerror = function() {
+            console.error('图片加载失败');
+            callback(null);
+        };
+        
+        // 开始加载图片
+        img.src = event.target.result;
+    };
+    
+    // 处理文件读取错误
+    reader.onerror = function() {
+        console.error('读取文件失败');
+        callback(null);
+    };
+    
+    // 开始读取文件
+    reader.readAsDataURL(file);
 }
 
 // 导出API函数

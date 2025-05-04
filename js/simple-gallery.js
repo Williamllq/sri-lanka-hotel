@@ -25,10 +25,13 @@
    * 从存储中获取图片数据
    */
   function getGalleryPictures() {
+    // 显示加载中状态
+    showLoadingState();
+    
     // 优先使用增强版存储服务
     if (window.ImageStorageService) {
       console.log('Using enhanced image storage service');
-      // 使用IndexedDB存储服务，获取所有图片的缩略图
+      // 使用IndexedDB存储服务，获取所有图片
       window.ImageStorageService.getAllImages({
         page: 1,
         limit: 100, // 加载更多图片
@@ -51,213 +54,174 @@
   }
   
   /**
+   * 显示图片加载中状态
+   */
+  function showLoadingState() {
+    const gallerySection = document.querySelector('.modern-gallery-container');
+    if (!gallerySection) return;
+    
+    gallerySection.innerHTML = `
+      <div class="loading-gallery">
+        <i class="fas fa-spinner"></i>
+        <p>加载精彩图片中...</p>
+      </div>
+    `;
+  }
+  
+  /**
    * 从localStorage加载图片
    */
   function loadImagesFromLocalStorage() {
     try {
-      // 从所有可能的来源收集图片 - 合并多个来源以保证不丢失图片
-      let allPictures = [];
+      // 尝试从adminPictures获取
+      const adminPicturesStr = localStorage.getItem('adminPictures');
+      const adminPictures = adminPicturesStr ? JSON.parse(adminPicturesStr) : [];
       
       // 尝试从sitePictures获取
-      const siteData = localStorage.getItem('sitePictures');
-      if (siteData) {
-        try {
-          const sitePics = JSON.parse(siteData);
-          if (sitePics && Array.isArray(sitePics) && sitePics.length > 0) {
-            console.log(`Found ${sitePics.length} images in sitePictures`);
-            sitePics.forEach(pic => {
-              if (pic && pic.id) {
-                allPictures.push({
-                  id: pic.id,
-                  name: pic.name || 'Unnamed Picture',
-                  category: pic.category || 'scenery',
-                  description: pic.description || '',
-                  url: pic.url || '',
-                  uploadDate: pic.uploadDate || new Date().toISOString()
-                });
-              }
-            });
-          }
-        } catch (e) {
-          console.error('Error parsing sitePictures:', e);
+      const sitePicturesStr = localStorage.getItem('sitePictures');
+      const sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+      
+      // 合并去重
+      let allPictures = [...adminPictures];
+      
+      // 添加sitePictures中不重复的图片
+      sitePictures.forEach(sitePic => {
+        if (!allPictures.some(pic => pic.id === sitePic.id)) {
+          // 转换sitePicture格式为统一格式
+          allPictures.push({
+            id: sitePic.id,
+            name: sitePic.name,
+            category: sitePic.category,
+            description: sitePic.description || '',
+            imageUrl: sitePic.url || sitePic.imageUrl,
+            uploadDate: sitePic.uploadDate || new Date().toISOString()
+          });
         }
-      }
+      });
       
-      // 尝试从adminPictures获取
-      const adminData = localStorage.getItem('adminPictures');
-      if (adminData) {
-        try {
-          const adminPics = JSON.parse(adminData);
-          if (adminPics && Array.isArray(adminPics) && adminPics.length > 0) {
-            console.log(`Found ${adminPics.length} images in adminPictures`);
-            adminPics.forEach(pic => {
-              if (pic && pic.id) {
-                // 检查是否已存在此ID的图片
-                const existingIndex = allPictures.findIndex(p => p.id === pic.id);
-                if (existingIndex === -1) {
-                  // 不存在，添加新图片
-                  allPictures.push({
-                    id: pic.id,
-                    name: pic.name || 'Unnamed Picture',
-                    category: pic.category || 'scenery',
-                    description: pic.description || '',
-                    url: pic.imageUrl || '',
-                    uploadDate: pic.uploadDate || new Date().toISOString()
-                  });
-                }
-              }
-            });
-          }
-        } catch (e) {
-          console.error('Error parsing adminPictures:', e);
-        }
-      }
+      console.log(`Loaded ${allPictures.length} images from localStorage`);
       
-      // 移除URL为空的图片
-      allPictures = allPictures.filter(pic => pic.url && pic.url.trim() !== '');
-      
-      // 检查是否有有效的图片
       if (allPictures.length > 0) {
-        console.log(`Total unique pictures found: ${allPictures.length}`);
         setupGalleryWithPictures(allPictures);
       } else {
-        console.log('No valid images found in localStorage, using default images');
-        setupGalleryWithPictures(getDefaultImages());
+        // 没有图片时加载默认图片
+        loadDefaultPictures();
       }
     } catch (e) {
       console.error('Error loading images from localStorage:', e);
-      // 出错时使用默认图片
-      setupGalleryWithPictures(getDefaultImages());
+      loadDefaultPictures();
     }
   }
   
   /**
-   * 设置图库并显示图片
-   * @param {Array} pictures - 图片数据数组
+   * 加载默认图片（确保始终有图片显示）
+   */
+  function loadDefaultPictures() {
+    console.log('Loading default pictures');
+    
+    // 默认图片数据
+    const defaultPictures = [
+      {
+        id: 'default_1',
+        name: 'Scenic Mountains',
+        category: 'Scenery',
+        description: 'Beautiful mountain landscape in Sri Lanka',
+        imageUrl: 'images/gallery/scenic-mountains.jpg'
+      },
+      {
+        id: 'default_2',
+        name: 'Tea Plantation',
+        category: 'Scenery',
+        description: 'Famous tea plantations of Sri Lanka',
+        imageUrl: 'images/gallery/tea-plantation.jpg'
+      },
+      {
+        id: 'default_3',
+        name: 'Exotic Wildlife',
+        category: 'Wildlife',
+        description: 'Sri Lankan elephant in its natural habitat',
+        imageUrl: 'images/gallery/wildlife.jpg'
+      },
+      {
+        id: 'default_4',
+        name: 'Buddhist Temple',
+        category: 'Culture',
+        description: 'Ancient Buddhist temple with traditional architecture',
+        imageUrl: 'images/gallery/temple.jpg'
+      },
+      {
+        id: 'default_5',
+        name: 'Traditional Food',
+        category: 'Food',
+        description: 'Delicious traditional Sri Lankan cuisine',
+        imageUrl: 'images/gallery/food.jpg'
+      },
+      {
+        id: 'default_6',
+        name: 'Beautiful Beach',
+        category: 'Beach',
+        description: 'Pristine beaches of Sri Lanka',
+        imageUrl: 'images/gallery/beach.jpg'
+      }
+    ];
+    
+    setupGalleryWithPictures(defaultPictures);
+  }
+  
+  /**
+   * 使用图片数据设置画廊
    */
   function setupGalleryWithPictures(pictures) {
-    // 移除无效的图片数据
-    const validPictures = pictures.filter(pic => pic && pic.id && (pic.url || pic.imageUrl));
-    
-    if (validPictures.length === 0) {
-      console.warn('No valid pictures found, using default images');
-      setupGalleryWithPictures(getDefaultImages());
-      return;
-    }
-
-    // 规范化图片数据 - 确保数据格式统一
-    const normalizedPictures = validPictures.map(pic => ({
-      id: pic.id,
-      name: pic.name || 'Unnamed Picture',
-      category: normalizeCategory(pic.category || 'scenery'),
-      description: pic.description || '',
-      url: pic.url || pic.imageUrl || '', // 兼容不同的命名格式
-      uploadDate: pic.uploadDate || new Date().toISOString()
-    }));
-    
     // 设置分类按钮事件
-    setupFilterButtons(normalizedPictures);
+    setupFilterButtons(pictures);
     
     // 默认显示所有图片
-    displayPicturesByCategory(normalizedPictures, 'all');
+    displayPicturesByCategory(pictures, 'all');
   }
   
   /**
-   * 规范化图片分类
-   * @param {string} category - 原始分类名
-   * @returns {string} 规范化后的分类名
-   */
-  function normalizeCategory(category) {
-    if (!category) return 'scenery';
-    
-    const lowerCategory = category.toLowerCase().trim();
-    
-    // 基本分类映射
-    const categoryMap = {
-      'scenery': 'scenery',
-      'scene': 'scenery',
-      'landscapes': 'scenery',
-      'landscape': 'scenery',
-      
-      'wildlife': 'wildlife',
-      'animals': 'wildlife',
-      'animal': 'wildlife',
-      
-      'culture': 'culture',
-      'cultural': 'culture',
-      'tradition': 'culture',
-      'traditions': 'culture',
-      
-      'food': 'food',
-      'cuisine': 'food',
-      'dish': 'food',
-      'dishes': 'food',
-      
-      'beach': 'beach',
-      'beaches': 'beach',
-      'coastal': 'beach',
-      'coast': 'beach',
-      'sea': 'beach'
-    };
-    
-    return categoryMap[lowerCategory] || 'scenery';
-  }
-  
-  /**
-   * 设置筛选按钮事件
-   * @param {Array} pictures - 图片数组
+   * 设置分类按钮事件处理
    */
   function setupFilterButtons(pictures) {
-    const filterContainer = document.querySelector('.gallery-filter');
-    if (!filterContainer) return;
+    // 获取所有分类按钮
+    const filterButtons = document.querySelectorAll('.gallery-filter-btn');
+    if (!filterButtons.length) {
+      console.error('Gallery filter buttons not found');
+      return;
+    }
     
-    // 清空现有按钮
-    filterContainer.innerHTML = '';
-    
-    // 获取可用分类
-    const categories = ['all', 'scenery', 'wildlife', 'culture', 'food', 'beach'];
-    
-    // 移除没有图片的分类
-    const availableCategories = categories.filter(cat => {
-      if (cat === 'all') return true;
-      return pictures.some(pic => pic.category === cat);
+    // 移除所有现有的点击事件（防止重复绑定）
+    filterButtons.forEach(btn => {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
     });
     
-    // 创建筛选按钮
-    availableCategories.forEach(category => {
-      const btn = document.createElement('button');
-      btn.className = 'gallery-filter-btn';
-      btn.setAttribute('data-category', category);
-      
-      // 设置按钮文本
-      if (category === 'all') {
-        btn.textContent = 'All';
-      } else {
-        // 首字母大写
-        btn.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-      }
-      
-      // 添加按钮点击事件
+    // 重新获取按钮
+    const updatedButtons = document.querySelectorAll('.gallery-filter-btn');
+    
+    // 设置点击事件
+    updatedButtons.forEach(btn => {
       btn.addEventListener('click', function() {
-        // 移除所有按钮的active类
-        document.querySelectorAll('.gallery-filter-btn').forEach(button => {
-          button.classList.remove('active');
-        });
+        // 移除所有按钮的活动状态
+        updatedButtons.forEach(b => b.classList.remove('active'));
         
-        // 给当前按钮添加active类
+        // 将当前按钮设置为活动状态
         this.classList.add('active');
         
-        // 显示对应分类的图片
+        // 获取分类
+        const category = this.getAttribute('data-category');
+        console.log(`Filtering by category: ${category}`);
+        
+        // 显示所选分类的图片
         displayPicturesByCategory(pictures, category);
       });
-      
-      // 添加到筛选容器
-      filterContainer.appendChild(btn);
     });
     
-    // 默认选中All按钮
-    const allBtn = filterContainer.querySelector('[data-category="all"]');
-    if (allBtn) allBtn.classList.add('active');
+    // 默认选中"All"按钮
+    const allButton = document.querySelector('.gallery-filter-btn[data-category="all"]');
+    if (allButton) {
+      allButton.classList.add('active');
+    }
   }
   
   /**
@@ -310,7 +274,7 @@
       thumbnail.setAttribute('data-id', picture.id);
       
       // 设置缩略图内容
-      thumbnail.innerHTML = `<img src="${picture.url}" alt="${picture.name}">`;
+      thumbnail.innerHTML = `<img src="${picture.imageUrl}" alt="${picture.name}">`;
       
       // 添加点击事件
       thumbnail.addEventListener('click', function() {
@@ -350,7 +314,7 @@
       // 成功加载后更新特色图片
       container.innerHTML = `
         <div class="featured-image">
-          <img src="${picture.url}" alt="${picture.name}">
+          <img src="${picture.imageUrl}" alt="${picture.name}">
         </div>
         <div class="featured-caption">
           <h3 class="featured-title">${picture.name}</h3>
@@ -378,7 +342,7 @@
     };
     
     // 开始加载图片
-    img.src = picture.url;
+    img.src = picture.imageUrl;
   }
   
   /**
@@ -431,54 +395,5 @@
         setupCarousel(featuredContainer, pictures, thumbnailsContainer);
       }
     });
-  }
-  
-  /**
-   * 获取默认图片
-   * @returns {Array} 默认图片数组
-   */
-  function getDefaultImages() {
-    return [
-      {
-        id: 'default_1',
-        name: 'Beautiful Beaches in Sri Lanka',
-        category: 'beach',
-        description: 'Explore the pristine beaches of Sri Lanka',
-        url: 'https://images.unsplash.com/photo-1589308078059-be1415eab4c3?q=80&w=1000',
-        uploadDate: new Date().toISOString()
-      },
-      {
-        id: 'default_2',
-        name: 'Sri Lankan Wildlife',
-        category: 'wildlife',
-        description: 'Experience the diverse wildlife of Sri Lanka',
-        url: 'https://images.unsplash.com/photo-1544535830-d4ae39e3e711?q=80&w=1000',
-        uploadDate: new Date().toISOString()
-      },
-      {
-        id: 'default_3',
-        name: 'Cultural Heritage',
-        category: 'culture',
-        description: 'Discover the rich cultural heritage of Sri Lanka',
-        url: 'https://images.unsplash.com/photo-1556195332-95503f664ced?q=80&w=1000',
-        uploadDate: new Date().toISOString()
-      },
-      {
-        id: 'default_4',
-        name: 'Sri Lankan Cuisine',
-        category: 'food',
-        description: 'Taste the delicious flavors of Sri Lankan cuisine',
-        url: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1000',
-        uploadDate: new Date().toISOString()
-      },
-      {
-        id: 'default_5',
-        name: 'Scenic Landscapes',
-        category: 'scenery',
-        description: 'Enjoy the breathtaking landscapes of Sri Lanka',
-        url: 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?q=80&w=1000',
-        uploadDate: new Date().toISOString()
-      }
-    ];
   }
 })(); 

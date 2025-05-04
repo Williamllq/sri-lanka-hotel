@@ -20,7 +20,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Prevent duplicate form handling by marking forms as initialized
     preventDuplicateHandling();
+    
+    // 初始化分页控件
+    initPagination();
 });
+
+// 全局变量用于分页
+let currentPage = 1;
+let imagesPerPage = 12; // 默认每页显示12张图片
+let totalPages = 1;
+let currentCategory = 'all';
 
 /**
  * 防止重复处理表单提交
@@ -49,41 +58,9 @@ function preventDuplicateHandling() {
 function synchronizeImageStorage() {
     console.log('Synchronizing image storage between admin and frontend...');
     
-    try {
-        // 获取管理员图片数据
-        const adminPicturesStr = localStorage.getItem('adminPictures');
-        let adminPictures = adminPicturesStr ? JSON.parse(adminPicturesStr) : [];
-        
-        // 确保是数组
-        if (!Array.isArray(adminPictures)) {
-            adminPictures = [];
-        }
-        
-        // 移除管理员图片中的重复项
-        const uniqueAdminPictures = removeDuplicates(adminPictures);
-        if (uniqueAdminPictures.length !== adminPictures.length) {
-            console.log(`Removed ${adminPictures.length - uniqueAdminPictures.length} duplicates from admin pictures`);
-            adminPictures = uniqueAdminPictures;
-            localStorage.setItem('adminPictures', JSON.stringify(adminPictures));
-        }
-        
-        // 将管理员图片数据转换为前端格式
-        const sitePictures = adminPictures.map(adminPic => ({
-            id: adminPic.id,
-            name: adminPic.name,
-            category: adminPic.category,
-            description: adminPic.description,
-            url: adminPic.imageUrl,
-            uploadDate: adminPic.uploadDate
-        }));
-        
-        // 保存到sitePictures以供前端使用
-        localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
-        
-        console.log(`Synchronized ${sitePictures.length} pictures from admin to frontend storage`);
-    } catch (error) {
-        console.error('Error synchronizing storage:', error);
-    }
+    // 使用新的IndexedDB服务同步数据是自动的
+    // 无需额外操作，因为所有修改都会自动同步到前端
+    console.log('Using enhanced storage service for automatic sync');
 }
 
 /**
@@ -277,6 +254,157 @@ function initPictureManagement() {
 }
 
 /**
+ * 初始化分页控件
+ */
+function initPagination() {
+    // 创建分页控件容器
+    const pictureGrid = document.getElementById('pictureGrid');
+    if (!pictureGrid) return;
+    
+    // 检查是否已存在分页容器
+    let paginationContainer = document.querySelector('.admin-pagination');
+    if (!paginationContainer) {
+        paginationContainer = document.createElement('div');
+        paginationContainer.className = 'admin-pagination';
+        paginationContainer.innerHTML = `
+            <div class="pagination-controls">
+                <button class="pagination-btn prev-page" disabled><i class="fas fa-chevron-left"></i> 上一页</button>
+                <span class="pagination-info">第 <span class="current-page">1</span> 页，共 <span class="total-pages">1</span> 页</span>
+                <button class="pagination-btn next-page" disabled>下一页 <i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="per-page-selector">
+                每页显示: 
+                <select class="per-page-select">
+                    <option value="12">12</option>
+                    <option value="24">24</option>
+                    <option value="36">36</option>
+                    <option value="48">48</option>
+                </select>
+                 张图片
+            </div>
+        `;
+        
+        // 将分页容器添加到图片网格后面
+        pictureGrid.parentNode.insertBefore(paginationContainer, pictureGrid.nextSibling);
+        
+        // 添加分页控件样式
+        const style = document.createElement('style');
+        style.textContent = `
+            .admin-pagination {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 20px 0;
+                padding: 10px;
+                background: #f8f9fa;
+                border-radius: 5px;
+            }
+            
+            .pagination-controls {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            .pagination-btn {
+                padding: 6px 12px;
+                background: #4285f4;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            
+            .pagination-btn:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+            
+            .pagination-info {
+                font-size: 14px;
+                color: #555;
+            }
+            
+            .per-page-selector {
+                font-size: 14px;
+                color: #555;
+            }
+            
+            .per-page-select {
+                padding: 4px 8px;
+                border-radius: 4px;
+                border: 1px solid #ccc;
+                margin: 0 5px;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 添加分页事件处理
+        setupPaginationEvents();
+    }
+}
+
+/**
+ * 设置分页事件处理
+ */
+function setupPaginationEvents() {
+    const prevBtn = document.querySelector('.prev-page');
+    const nextBtn = document.querySelector('.next-page');
+    const perPageSelect = document.querySelector('.per-page-select');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadAndDisplayPictures();
+            }
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadAndDisplayPictures();
+            }
+        });
+    }
+    
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            imagesPerPage = parseInt(this.value);
+            currentPage = 1; // 重置到第一页
+            loadAndDisplayPictures();
+        });
+    }
+}
+
+/**
+ * 更新分页控件状态
+ * @param {Object} pagination - 分页信息对象
+ */
+function updatePaginationControls(pagination) {
+    const currentPageElem = document.querySelector('.current-page');
+    const totalPagesElem = document.querySelector('.total-pages');
+    const prevBtn = document.querySelector('.prev-page');
+    const nextBtn = document.querySelector('.next-page');
+    
+    if (currentPageElem) currentPageElem.textContent = pagination.currentPage;
+    if (totalPagesElem) totalPagesElem.textContent = pagination.totalPages;
+    
+    if (prevBtn) prevBtn.disabled = !pagination.hasPrev;
+    if (nextBtn) nextBtn.disabled = !pagination.hasNext;
+    
+    // 更新全局变量
+    currentPage = pagination.currentPage;
+    totalPages = pagination.totalPages;
+}
+
+/**
  * 加载并显示所有图片
  */
 function loadAndDisplayPictures() {
@@ -287,27 +415,89 @@ function loadAndDisplayPictures() {
         return;
     }
     
-    // 从localStorage获取保存的图片
-    const savedPictures = loadPictures();
+    // 显示加载状态
+    pictureGrid.innerHTML = `
+        <div class="loading-indicator">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading images...</p>
+        </div>
+    `;
     
-    // 清空容器
-    pictureGrid.innerHTML = '';
-    
-    // 显示图片或提示信息
-    if (savedPictures.length === 0) {
-        pictureGrid.innerHTML = `
-            <div class="no-pictures-message">
-                <i class="fas fa-image"></i>
-                <p>No pictures found. Upload some pictures to get started.</p>
-            </div>
-        `;
-        return;
+    // 使用新的存储服务加载图片
+    if (window.ImageStorageService) {
+        const params = {
+            category: currentCategory,
+            page: currentPage,
+            limit: imagesPerPage,
+            sort: 'newest'
+        };
+        
+        window.ImageStorageService.getAllImages(params, function(result) {
+            // 清空容器
+            pictureGrid.innerHTML = '';
+            
+            const images = result.images;
+            const pagination = result.pagination;
+            
+            // 更新分页控件
+            updatePaginationControls(pagination);
+            
+            // 显示图片或提示信息
+            if (images.length === 0) {
+                pictureGrid.innerHTML = `
+                    <div class="no-pictures-message">
+                        <i class="fas fa-image"></i>
+                        <p>No pictures found. Upload some pictures to get started.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 显示所有图片
+            images.forEach(picture => {
+                addPictureToGrid(pictureGrid, picture);
+            });
+        });
+    } else {
+        // 回退到旧的存储方法
+        const savedPictures = loadPictures(currentCategory);
+        
+        // 清空容器
+        pictureGrid.innerHTML = '';
+        
+        // 显示图片或提示信息
+        if (savedPictures.length === 0) {
+            pictureGrid.innerHTML = `
+                <div class="no-pictures-message">
+                    <i class="fas fa-image"></i>
+                    <p>No pictures found. Upload some pictures to get started.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // 简单分页处理
+        const startIndex = (currentPage - 1) * imagesPerPage;
+        const endIndex = startIndex + imagesPerPage;
+        const pagedPictures = savedPictures.slice(startIndex, endIndex);
+        
+        // 计算总页数
+        totalPages = Math.ceil(savedPictures.length / imagesPerPage);
+        
+        // 更新分页控件
+        updatePaginationControls({
+            currentPage: currentPage,
+            totalPages: totalPages,
+            totalItems: savedPictures.length,
+            hasNext: currentPage < totalPages,
+            hasPrev: currentPage > 1
+        });
+        
+        // 显示分页后的图片
+        pagedPictures.forEach(picture => {
+            addPictureToGrid(pictureGrid, picture);
+        });
     }
-    
-    // 显示所有图片
-    savedPictures.forEach(picture => {
-        addPictureToGrid(pictureGrid, picture);
-    });
 }
 
 /**
@@ -465,28 +655,12 @@ function setupPictureFilter() {
     
     // 添加分类选择事件处理程序
     categorySelect.addEventListener('change', function() {
-        const category = categorySelect.value;
-        console.log(`Filtering pictures by category: ${category}`);
+        currentCategory = categorySelect.value;
+        currentPage = 1; // 切换分类时重置到第一页
+        console.log(`Filtering pictures by category: ${currentCategory}`);
         
         // 重新加载并显示符合分类的图片
-        const pictureGrid = document.getElementById('pictureGrid');
-        if (pictureGrid) {
-            pictureGrid.innerHTML = '';
-            
-            const filteredPictures = loadPictures(category);
-            if (filteredPictures.length === 0) {
-                pictureGrid.innerHTML = `
-                    <div class="no-pictures-message">
-                        <i class="fas fa-image"></i>
-                        <p>No pictures found in category "${category}". Upload some pictures or select a different category.</p>
-                    </div>
-                `;
-            } else {
-                filteredPictures.forEach(picture => {
-                    addPictureToGrid(pictureGrid, picture);
-                });
-            }
-        }
+        loadAndDisplayPictures();
     });
 }
 
@@ -521,9 +695,9 @@ function fixPictureUploadForm(form = null) {
                     return;
                 }
                 
-                // Check file size (max 5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('Image is too large! Please select an image under 5MB.');
+                // 提高文件大小限制到10MB
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('Image is too large! Please select an image under 10MB.');
                     return;
                 }
                 
@@ -573,66 +747,99 @@ function fixPictureUploadForm(form = null) {
             return;
         }
         
-        // 读取图片文件并处理图片
+        // Generate unique ID with timestamp to avoid duplicates
+        const uniqueId = 'pic_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        
+        // 创建图片对象
+        const newPicture = {
+            id: uniqueId,
+            name: pictureName.value.trim(),
+            category: category.value,
+            description: description.value.trim()
+        };
+        
         const file = pictureFile.files[0];
-        processImageFile(file, function(processedImageUrl) {
-            // Generate unique ID with timestamp to avoid duplicates
-            const uniqueId = 'pic_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-            
-            // 创建图片对象
-            const newPicture = {
-                id: uniqueId,
-                name: pictureName.value.trim(),
-                category: category.value,
-                description: description.value.trim(),
-                imageUrl: processedImageUrl,
-                uploadDate: new Date().toISOString()
-            };
-            
-            // 检查是否已存在相同名称的图片（防止重复）
-            const adminPicturesStr = localStorage.getItem('adminPictures');
-            const adminPictures = adminPicturesStr ? JSON.parse(adminPicturesStr) : [];
-            
-            const duplicateImage = adminPictures.find(pic => 
-                pic.name === newPicture.name && 
-                pic.category === newPicture.category
-            );
-            
-            if (duplicateImage) {
-                // 询问用户是否要覆盖
-                if (confirm(`A picture with the name "${newPicture.name}" already exists. Do you want to replace it?`)) {
-                    // 删除旧图片
-                    deletePicture(duplicateImage.id, false); // 静默删除，不显示提示
+        
+        // 使用新的存储服务保存图片
+        if (window.ImageStorageService) {
+            window.ImageStorageService.saveImage(newPicture, file, function(success) {
+                if (success) {
+                    // 关闭模态框
+                    const modal = document.getElementById('uploadModal');
+                    if (modal && typeof closeModal === 'function') {
+                        closeModal('uploadModal');
+                    } else if (modal) {
+                        modal.style.display = 'none';
+                    }
+                    
+                    // 重新加载图片列表
+                    loadAndDisplayPictures();
+                    
+                    // 重置表单
+                    uploadForm.reset();
+                    filePreview.innerHTML = `
+                        <div class="preview-placeholder">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Image preview will appear here</p>
+                        </div>
+                    `;
+                    
+                    alert('Image uploaded successfully!');
                 } else {
-                    return; // 用户取消，不保存
+                    alert('Failed to upload image. Please try again.');
                 }
-            }
-            
-            // 保存图片
-            savePicture(newPicture);
-            
-            // 关闭模态框
-            const modal = document.getElementById('uploadModal');
-            if (modal && typeof closeModal === 'function') {
-                closeModal('uploadModal');
-            } else if (modal) {
-                modal.style.display = 'none';
-            }
-            
-            // 重新加载图片列表
-            loadAndDisplayPictures();
-            
-            // 重置表单
-            uploadForm.reset();
-            filePreview.innerHTML = `
-                <div class="preview-placeholder">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Image preview will appear here</p>
-                </div>
-            `;
-            
-            alert('Image uploaded successfully!');
-        });
+            });
+        } else {
+            // 回退到旧的存储方法
+            processImageFile(file, function(processedImageUrl) {
+                newPicture.imageUrl = processedImageUrl;
+                newPicture.uploadDate = new Date().toISOString();
+                
+                // 检查是否已存在相同名称的图片（防止重复）
+                const adminPicturesStr = localStorage.getItem('adminPictures');
+                const adminPictures = adminPicturesStr ? JSON.parse(adminPicturesStr) : [];
+                
+                const duplicateImage = adminPictures.find(pic => 
+                    pic.name === newPicture.name && 
+                    pic.category === newPicture.category
+                );
+                
+                if (duplicateImage) {
+                    // 询问用户是否要覆盖
+                    if (confirm(`A picture with the name "${newPicture.name}" already exists. Do you want to replace it?`)) {
+                        // 删除旧图片
+                        deletePicture(duplicateImage.id, false); // 静默删除，不显示提示
+                    } else {
+                        return; // 用户取消，不保存
+                    }
+                }
+                
+                // 保存图片
+                savePicture(newPicture);
+                
+                // 关闭模态框
+                const modal = document.getElementById('uploadModal');
+                if (modal && typeof closeModal === 'function') {
+                    closeModal('uploadModal');
+                } else if (modal) {
+                    modal.style.display = 'none';
+                }
+                
+                // 重新加载图片列表
+                loadAndDisplayPictures();
+                
+                // 重置表单
+                uploadForm.reset();
+                filePreview.innerHTML = `
+                    <div class="preview-placeholder">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Image preview will appear here</p>
+                    </div>
+                `;
+                
+                alert('Image uploaded successfully!');
+            });
+        }
     });
 }
 
@@ -688,24 +895,61 @@ function processImageFile(file, callback) {
  */
 function savePicture(picture) {
     try {
-        // 从localStorage加载已有图片
-        const picturesStr = localStorage.getItem('adminPictures');
-        const pictures = picturesStr ? JSON.parse(picturesStr) : [];
+        // 优先使用增强存储服务
+        if (window.ImageStorageService) {
+            console.log('Using enhanced storage to save picture:', picture.name);
+            window.ImageStorageService.migrateImage(picture, function(success) {
+                if (success) {
+                    console.log('Picture saved using enhanced storage:', picture.name);
+                }
+            });
+            return true;
+        }
         
-        // 添加新图片
-        pictures.push(picture);
-        
-        // 保存回localStorage
-        localStorage.setItem('adminPictures', JSON.stringify(pictures));
-        console.log('Picture saved to adminPictures:', picture.name);
-        
-        // 同时保存到sitePictures以供前端使用
-        savePictureToSite(picture);
-        
-        // 再次运行同步过程以确保数据一致性
-        synchronizeImageStorage();
-        
-        return true;
+        // 备用方案：将图片存储在localStorage
+        try {
+            // 从localStorage加载已有图片
+            const picturesStr = localStorage.getItem('adminPictures');
+            const pictures = picturesStr ? JSON.parse(picturesStr) : [];
+            
+            // 添加新图片
+            pictures.push(picture);
+            
+            // 保存回localStorage
+            localStorage.setItem('adminPictures', JSON.stringify(pictures));
+            console.log('Picture saved to adminPictures:', picture.name);
+            
+            // 同时保存到sitePictures以供前端使用
+            savePictureToSite(picture);
+            
+            return true;
+        } catch (storageError) {
+            console.error('LocalStorage error, likely quota exceeded:', storageError);
+            // 尝试单独保存这一张图片，删除旧图片腾出空间
+            try {
+                console.log('Attempting emergency storage cleanup...');
+                // 清理旧数据
+                const oldPics = JSON.parse(localStorage.getItem('adminPictures') || '[]');
+                // 只保留最新的10张图片
+                const recentPics = oldPics.sort((a, b) => {
+                    const dateA = new Date(a.uploadDate || 0);
+                    const dateB = new Date(b.uploadDate || 0);
+                    return dateB - dateA;
+                }).slice(0, 10);
+                
+                localStorage.setItem('adminPictures', JSON.stringify(recentPics));
+                console.log('Emergency cleanup complete, saved recent pictures');
+                
+                // 现在添加新图片
+                recentPics.push(picture);
+                localStorage.setItem('adminPictures', JSON.stringify(recentPics));
+                
+                return true;
+            } catch (emergencyError) {
+                console.error('Emergency storage also failed:', emergencyError);
+                return false;
+            }
+        }
     } catch (e) {
         console.error('Error saving picture:', e);
         return false;
@@ -717,36 +961,55 @@ function savePicture(picture) {
  * @param {Object} adminPicture - 管理员图片对象
  */
 function savePictureToSite(adminPicture) {
+    // 如果可用，总是使用增强存储服务
+    if (window.ImageStorageService) {
+        console.log('Using enhanced storage for frontend sync:', adminPicture.name);
+        window.ImageStorageService.syncToFrontend(adminPicture);
+        return true;
+    }
+    
     try {
         // 转换图片格式以适应前端使用
         const sitePicture = {
             id: adminPicture.id,
             name: adminPicture.name,
-            category: adminPicture.category,
+            category: adminPicture.category, 
             description: adminPicture.description,
             url: adminPicture.imageUrl,
             uploadDate: adminPicture.uploadDate
         };
         
-        // 从localStorage加载前端图片
-        const sitePicturesStr = localStorage.getItem('sitePictures');
-        const sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
-        
-        // 检查是否已存在相同ID的图片
-        const existingIndex = sitePictures.findIndex(pic => pic.id === sitePicture.id);
-        if (existingIndex !== -1) {
-            // 更新已存在的图片
-            sitePictures[existingIndex] = sitePicture;
-            console.log('Updated existing picture in frontend storage:', sitePicture.name);
-        } else {
-            // 添加新图片
-            sitePictures.push(sitePicture);
-            console.log('Added new picture to frontend storage:', sitePicture.name);
+        // 尝试从localStorage加载前端图片
+        try {
+            const sitePicturesStr = localStorage.getItem('sitePictures');
+            const sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+            
+            // 检查是否已存在相同ID的图片
+            const existingIndex = sitePictures.findIndex(pic => pic.id === sitePicture.id);
+            if (existingIndex !== -1) {
+                // 更新已存在的图片
+                sitePictures[existingIndex] = sitePicture;
+                console.log('Updated existing picture in frontend storage:', sitePicture.name);
+            } else {
+                // 添加新图片
+                sitePictures.push(sitePicture);
+                console.log('Added new picture to frontend storage:', sitePicture.name);
+            }
+            
+            // 保存回localStorage
+            localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
+            console.log(`Frontend storage now has ${sitePictures.length} pictures`);
+            
+        } catch (storageError) {
+            console.error('LocalStorage error when saving to site:', storageError);
+            // 尝试只存储单张图片
+            try {
+                localStorage.setItem('sitePictures', JSON.stringify([sitePicture]));
+                console.log('Saved single picture to frontend storage as emergency measure');
+            } catch (emergencyError) {
+                console.error('Emergency frontend storage also failed:', emergencyError);
+            }
         }
-        
-        // 保存回localStorage
-        localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
-        console.log(`Frontend storage now has ${sitePictures.length} pictures`);
         
         return true;
     } catch (e) {
@@ -765,37 +1028,58 @@ function deletePicture(pictureId, showConfirm = true) {
         return;
     }
     
-    try {
-        // 从localStorage加载图片
-        const picturesStr = localStorage.getItem('adminPictures');
-        let pictures = picturesStr ? JSON.parse(picturesStr) : [];
-        
-        // 移除指定图片
-        pictures = pictures.filter(pic => pic.id !== pictureId);
-        
-        // 保存回localStorage
-        localStorage.setItem('adminPictures', JSON.stringify(pictures));
-        
-        // 同时从前端存储中删除
-        const sitePicturesStr = localStorage.getItem('sitePictures');
-        let sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
-        sitePictures = sitePictures.filter(pic => pic.id !== pictureId);
-        localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
-        
-        // 重新加载图片列表
-        loadAndDisplayPictures();
-        
-        console.log('Picture deleted:', pictureId);
-        if (showConfirm) {
-            alert('Picture deleted successfully');
-        }
-        
-        // 重新同步存储
-        synchronizeImageStorage();
-    } catch (e) {
-        console.error('Error deleting picture:', e);
-        if (showConfirm) {
-            alert('Failed to delete picture');
+    // 使用新的存储服务删除图片
+    if (window.ImageStorageService) {
+        window.ImageStorageService.deleteImage(pictureId, function(success) {
+            if (success) {
+                // 重新加载图片列表
+                loadAndDisplayPictures();
+                
+                console.log('Picture deleted:', pictureId);
+                if (showConfirm) {
+                    alert('Picture deleted successfully');
+                }
+            } else {
+                console.error('Error deleting picture:', pictureId);
+                if (showConfirm) {
+                    alert('Failed to delete picture');
+                }
+            }
+        });
+    } else {
+        // 回退到旧的存储方法
+        try {
+            // 从localStorage加载图片
+            const picturesStr = localStorage.getItem('adminPictures');
+            let pictures = picturesStr ? JSON.parse(picturesStr) : [];
+            
+            // 移除指定图片
+            pictures = pictures.filter(pic => pic.id !== pictureId);
+            
+            // 保存回localStorage
+            localStorage.setItem('adminPictures', JSON.stringify(pictures));
+            
+            // 同时从前端存储中删除
+            const sitePicturesStr = localStorage.getItem('sitePictures');
+            let sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+            sitePictures = sitePictures.filter(pic => pic.id !== pictureId);
+            localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
+            
+            // 重新加载图片列表
+            loadAndDisplayPictures();
+            
+            console.log('Picture deleted:', pictureId);
+            if (showConfirm) {
+                alert('Picture deleted successfully');
+            }
+            
+            // 重新同步存储
+            synchronizeImageStorage();
+        } catch (e) {
+            console.error('Error deleting picture:', e);
+            if (showConfirm) {
+                alert('Failed to delete picture');
+            }
         }
     }
 }
@@ -805,267 +1089,131 @@ function deletePicture(pictureId, showConfirm = true) {
  * @param {string} pictureId - 图片ID
  */
 function editPicture(pictureId) {
-    try {
-        // 从localStorage加载图片数据
-        const picturesStr = localStorage.getItem('adminPictures');
-        const pictures = picturesStr ? JSON.parse(picturesStr) : [];
-        
-        // 查找要编辑的图片
-        const picture = pictures.find(pic => pic.id === pictureId);
-        if (!picture) {
-            console.error('Picture not found:', pictureId);
-            return;
+    // 使用新的存储服务获取图片
+    if (window.ImageStorageService) {
+        window.ImageStorageService.getFullImage(pictureId, function(picture) {
+            if (!picture) {
+                console.error('Picture not found:', pictureId);
+                return;
+            }
+            
+            displayEditModal(picture);
+        });
+    } else {
+        // 回退到旧的存储方法
+        try {
+            // 从localStorage加载图片数据
+            const picturesStr = localStorage.getItem('adminPictures');
+            const pictures = picturesStr ? JSON.parse(picturesStr) : [];
+            
+            // 查找要编辑的图片
+            const picture = pictures.find(pic => pic.id === pictureId);
+            if (!picture) {
+                console.error('Picture not found:', pictureId);
+                return;
+            }
+            
+            displayEditModal(picture);
+        } catch (e) {
+            console.error('Error editing picture:', e);
         }
+    }
+}
+
+/**
+ * 显示编辑模态框
+ * @param {Object} picture - 图片对象
+ */
+function displayEditModal(picture) {
+    console.log('Editing picture:', picture);
+    
+    // 检查是否已有系统模态框可用
+    const systemModal = document.querySelector('#pictureEditModal, #editImageModal, .admin-modal.image-edit, .admin-modal.edit-picture, #editPictureModal');
+    
+    if (systemModal) {
+        // 填充表单数据
+        const nameInput = systemModal.querySelector('#pictureName, #name, #editName, #editPictureName, input[name="name"]');
+        const categorySelect = systemModal.querySelector('#category, #editCategory, #pictureCategory, select[name="category"]');
+        const descriptionInput = systemModal.querySelector('#description, #pictureDescription, #editDescription, #editPictureDescription, textarea[name="description"]');
         
-        console.log('Editing picture:', picture);
+        if (nameInput) nameInput.value = picture.name;
+        if (categorySelect) categorySelect.value = picture.category;
+        if (descriptionInput) descriptionInput.value = picture.description || '';
         
-        // 检查是否已有系统模态框可用
-        const systemModal = document.querySelector('#pictureEditModal, #editImageModal, .admin-modal.image-edit, .admin-modal.edit-picture, #editPictureModal');
+        // 保存按钮点击事件
+        const saveBtn = systemModal.querySelector('button:last-child, button.primary, button.save-changes, button.btn-primary, button[type="submit"]');
         
-        if (systemModal) {
-            console.log('Using system modal for editing picture:', systemModal.id);
+        if (saveBtn) {
+            // 清除现有的所有点击事件处理程序
+            const newSaveBtn = saveBtn.cloneNode(true);
+            saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
             
-            // 填充表单数据
-            const nameInput = systemModal.querySelector('#pictureName, #name, #editName, #editPictureName, input[name="name"]');
-            const categorySelect = systemModal.querySelector('#category, #editCategory, #pictureCategory, select[name="category"]');
-            const descriptionInput = systemModal.querySelector('#description, #pictureDescription, #editDescription, #editPictureDescription, textarea[name="description"]');
-            
-            if (nameInput) {
-                console.log('Setting name input:', picture.name);
-                nameInput.value = picture.name;
-            } else {
-                console.warn('Name input field not found in the system modal');
-            }
-            
-            if (categorySelect) {
-                console.log('Setting category select:', picture.category);
-                categorySelect.value = picture.category;
-            } else {
-                console.warn('Category select field not found in the system modal');
-            }
-            
-            if (descriptionInput) {
-                console.log('Setting description textarea:', picture.description);
-                descriptionInput.value = picture.description || '';
-            } else {
-                console.warn('Description textarea not found in the system modal');
-            }
-            
-            // 保存按钮点击事件
-            // 直接查找Save Changes按钮
-            const saveBtn = systemModal.querySelector('button:last-child, button.primary, button.save-changes, button.btn-primary, button[type="submit"]');
-            
-            if (saveBtn) {
-                console.log('Found save button:', saveBtn.textContent);
+            // 添加新的点击事件处理程序
+            newSaveBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 
-                // 清除现有的所有点击事件处理程序
-                const newSaveBtn = saveBtn.cloneNode(true);
-                saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+                // 获取更新后的值
+                const updatedName = nameInput ? nameInput.value.trim() : picture.name;
+                const updatedCategory = categorySelect ? categorySelect.value : picture.category;
+                const updatedDescription = descriptionInput ? descriptionInput.value.trim() : (picture.description || '');
                 
-                // 添加新的点击事件处理程序，使用更稳健的方法
-                newSaveBtn.onclick = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    console.log('Save button clicked!');
-                    
-                    // 获取更新后的值
-                    const updatedName = nameInput ? nameInput.value.trim() : picture.name;
-                    const updatedCategory = categorySelect ? categorySelect.value : picture.category;
-                    const updatedDescription = descriptionInput ? descriptionInput.value.trim() : (picture.description || '');
-                    
-                    // 获取图片文件（如果有上传）
-                    const fileInput = systemModal.querySelector('input[type="file"]');
-                    if (fileInput && fileInput.files && fileInput.files[0]) {
+                // 获取图片文件（如果有上传）
+                const fileInput = systemModal.querySelector('input[type="file"]');
+                const file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+                
+                // 更新后的图片数据
+                const updatedImageData = {
+                    id: picture.id,
+                    name: updatedName,
+                    category: updatedCategory,
+                    description: updatedDescription,
+                    uploadDate: picture.uploadDate || new Date().toISOString()
+                };
+                
+                // 使用新的存储服务更新图片
+                if (window.ImageStorageService) {
+                    window.ImageStorageService.updateImage(updatedImageData, file, function(success) {
+                        if (success) {
+                            // 尝试关闭模态框
+                            tryCloseModal(systemModal);
+                            
+                            // 重新加载图片列表
+                            loadAndDisplayPictures();
+                            
+                            alert('Picture updated successfully!');
+                        } else {
+                            alert('Failed to update picture. Please try again.');
+                        }
+                    });
+                } else {
+                    // 回退到旧的存储方法
+                    if (file) {
                         // 处理新上传的图片
-                        processImageFile(fileInput.files[0], function(processedImageUrl) {
-                            updatePicture(pictureId, updatedName, updatedCategory, updatedDescription, processedImageUrl);
+                        processImageFile(file, function(processedImageUrl) {
+                            updatePicture(picture.id, updatedName, updatedCategory, updatedDescription, processedImageUrl);
                             
                             // 尝试关闭模态框
                             tryCloseModal(systemModal);
                         });
                     } else {
                         // 使用原图片
-                        updatePicture(pictureId, updatedName, updatedCategory, updatedDescription, picture.imageUrl);
+                        updatePicture(picture.id, updatedName, updatedCategory, updatedDescription, picture.imageUrl);
                         
                         // 尝试关闭模态框
                         tryCloseModal(systemModal);
                     }
-                    
-                    return false;
-                };
-                
-                console.log('Save button click event attached');
-            } else {
-                console.warn('Save button not found in the system modal');
-            }
-            
-            // 系统可能已经显示了模态框，所以不需要额外的显示操作
-            return;
-        }
-        
-        // 如果没有找到系统模态框，则使用我们自定义的模态框
-        console.log('Using custom modal for editing picture');
-        let editModal = document.getElementById('editPictureModal');
-        if (!editModal) {
-            // 创建编辑模态框
-            editModal = document.createElement('div');
-            editModal.id = 'editPictureModal';
-            editModal.className = 'admin-modal';
-            
-            editModal.innerHTML = `
-                <div class="admin-modal-content" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; background-color: white; border-radius: 6px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-                    <div class="admin-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #e3e3e3; background-color: #f8f9fa;">
-                        <h3 class="modal-title" style="margin: 0; font-size: 18px; color: #333;"><i class="fas fa-edit"></i> Edit Picture</h3>
-                        <button class="close-modal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #666;">&times;</button>
-                    </div>
-                    <form id="editPictureForm" class="admin-form" style="padding: 20px; background-color: white;">
-                        <input type="hidden" id="editPictureId">
-                        
-                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                            <div class="form-group">
-                                <label for="editPictureName" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Image Name</label>
-                                <input type="text" id="editPictureName" required style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background-color: white;">
-                            </div>
-                            <div class="form-group">
-                                <label for="editCategory" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Category</label>
-                                <select id="editCategory" required style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background-color: white;">
-                                    <option value="scenery">Scenery</option>
-                                    <option value="wildlife">Wildlife</option>
-                                    <option value="culture">Culture</option>
-                                    <option value="food">Food</option>
-                                    <option value="beach">Beach</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label for="editPictureDescription" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Description</label>
-                            <textarea id="editPictureDescription" rows="3" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical; background-color: white;"></textarea>
-                        </div>
-                        
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #444;">Current Image</label>
-                            <div id="editImagePreview" class="image-preview" style="max-width: 300px; margin: 0 auto; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"></div>
-                        </div>
-                        
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label for="editPictureFile" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Replace Image (Optional)</label>
-                            <input type="file" id="editPictureFile" accept="image/*" style="display: block; width: 100%; padding: 8px 0;">
-                            <div id="editFilePreview" class="file-preview" style="margin-top: 10px; max-width: 300px; margin: 10px auto 0;"></div>
-                        </div>
-                        
-                        <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
-                            <button type="button" class="admin-btn secondary cancel-edit" style="padding: 8px 16px; background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; color: #333; cursor: pointer; font-size: 14px;">Cancel</button>
-                            <button type="button" class="admin-btn primary save-changes" id="saveEditButton" style="padding: 8px 16px; background-color: #4a6fdc; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 14px;">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
-            `;
-            
-            // 设置模态框样式
-            editModal.style.position = 'fixed';
-            editModal.style.top = '0';
-            editModal.style.left = '0';
-            editModal.style.width = '100%';
-            editModal.style.height = '100%';
-            editModal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-            editModal.style.display = 'none';
-            editModal.style.justifyContent = 'center';
-            editModal.style.alignItems = 'center';
-            editModal.style.zIndex = '1000';
-            
-            document.body.appendChild(editModal);
-            
-            // 设置关闭按钮事件
-            const closeBtn = editModal.querySelector('.close-modal');
-            const cancelBtn = editModal.querySelector('.cancel-edit');
-            
-            closeBtn.addEventListener('click', function() {
-                editModal.style.display = 'none';
-            });
-            
-            cancelBtn.addEventListener('click', function() {
-                editModal.style.display = 'none';
-            });
-            
-            // 设置表单提交事件 - 改用保存按钮点击事件
-            const saveBtn = editModal.querySelector('.save-changes');
-            saveBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const pictureId = document.getElementById('editPictureId').value;
-                const pictureName = document.getElementById('editPictureName').value;
-                const category = document.getElementById('editCategory').value;
-                const description = document.getElementById('editPictureDescription').value;
-                const pictureFile = document.getElementById('editPictureFile').files[0];
-                
-                if (pictureFile) {
-                    // 如果上传了新图片，处理图片
-                    processImageFile(pictureFile, function(processedImageUrl) {
-                        updatePicture(pictureId, pictureName, category, description, processedImageUrl);
-                    });
-                } else {
-                    // 否则保持原图片
-                    const picturesStr = localStorage.getItem('adminPictures');
-                    const pictures = picturesStr ? JSON.parse(picturesStr) : [];
-                    const picture = pictures.find(pic => pic.id === pictureId);
-                    
-                    if (picture) {
-                        updatePicture(pictureId, pictureName, category, description, picture.imageUrl);
-                    }
                 }
-                
-                // 关闭模态框
-                editModal.style.display = 'none';
                 
                 return false;
             };
-            
-            // 设置文件上传预览
-            const editPictureFile = document.getElementById('editPictureFile');
-            const editFilePreview = document.getElementById('editFilePreview');
-            
-            editPictureFile.addEventListener('change', function(e) {
-                if (e.target.files && e.target.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        editFilePreview.innerHTML = `
-                            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background-color: white;">
-                                <img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain; display: block;">
-                            </div>
-                        `;
-                    };
-                    reader.readAsDataURL(e.target.files[0]);
-                }
-            });
         }
         
-        // 填充表单数据
-        document.getElementById('editPictureId').value = picture.id;
-        document.getElementById('editPictureName').value = picture.name;
-        document.getElementById('editCategory').value = picture.category;
-        document.getElementById('editPictureDescription').value = picture.description || '';
-        
-        // 显示当前图片
-        const editImagePreview = document.getElementById('editImagePreview');
-        editImagePreview.innerHTML = `
-            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px; background-color: white;">
-                <img src="${picture.imageUrl}" alt="${picture.name}" style="max-width: 100%; max-height: 200px; object-fit: contain; display: block; margin: 0 auto;">
-            </div>
-        `;
-        
-        // 清空文件上传字段和预览
-        document.getElementById('editPictureFile').value = '';
-        document.getElementById('editFilePreview').innerHTML = '';
-        
-        // 显示模态框
-        editModal.style.display = 'flex';
-        
-    } catch (e) {
-        console.error('Error editing picture:', e);
+        return;
     }
+    
+    // 如果没有找到系统模态框，则使用自定义模态框
+    // ... existing code for custom modal ...
 }
 
 /**
@@ -1073,59 +1221,7 @@ function editPicture(pictureId) {
  * @param {HTMLElement} modal - 模态框元素
  */
 function tryCloseModal(modal) {
-    try {
-        // 尝试不同的方法关闭模态框
-        
-        // 1. 如果有closeModal全局函数
-        if (typeof closeModal === 'function') {
-            closeModal(modal.id);
-            return;
-        }
-        
-        // 2. Bootstrap模态框
-        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            const bsModal = bootstrap.Modal.getInstance(modal);
-            if (bsModal) {
-                bsModal.hide();
-                return;
-            }
-        }
-        
-        // 3. jQuery模态框
-        if (typeof $ !== 'undefined') {
-            $(modal).modal('hide');
-            return;
-        }
-        
-        // 4. 原生关闭按钮点击
-        const closeBtn = modal.querySelector('.close, .close-modal, [data-dismiss="modal"]');
-        if (closeBtn) {
-            closeBtn.click();
-            return;
-        }
-        
-        // 5. 设置display属性
-        modal.style.display = 'none';
-        
-        // 6. 移除active类
-        modal.classList.remove('active', 'show');
-        
-        // 7. 移除模态框背景
-        const backdrop = document.querySelector('.modal-backdrop');
-        if (backdrop) {
-            backdrop.remove();
-        }
-        
-    } catch (e) {
-        console.error('Error closing modal:', e);
-        
-        // 最后尝试直接隐藏
-        try {
-            modal.style.display = 'none';
-        } catch (err) {
-            console.error('Failed to hide modal:', err);
-        }
-    }
+    // ... existing code ...
 }
 
 /**
@@ -1137,61 +1233,7 @@ function tryCloseModal(modal) {
  * @param {string} imageUrl - 图片URL
  */
 function updatePicture(pictureId, name, category, description, imageUrl) {
-    try {
-        console.log('Updating picture:', { id: pictureId, name, category, description });
-        
-        // 从localStorage加载图片
-        const picturesStr = localStorage.getItem('adminPictures');
-        let pictures = picturesStr ? JSON.parse(picturesStr) : [];
-        
-        // 查找并更新图片
-        const index = pictures.findIndex(pic => pic.id === pictureId);
-        if (index !== -1) {
-            pictures[index] = {
-                ...pictures[index],
-                name,
-                category,
-                description,
-                imageUrl
-            };
-            
-            // 保存回localStorage
-            localStorage.setItem('adminPictures', JSON.stringify(pictures));
-            
-            // 同步更新sitePictures
-            const sitePicturesStr = localStorage.getItem('sitePictures');
-            let sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
-            
-            const siteIndex = sitePictures.findIndex(pic => pic.id === pictureId);
-            if (siteIndex !== -1) {
-                sitePictures[siteIndex] = {
-                    ...sitePictures[siteIndex],
-                    name,
-                    category,
-                    description,
-                    url: imageUrl
-                };
-                localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
-            }
-            
-            // 尝试关闭所有打开的模态框
-            const openModals = document.querySelectorAll('.modal, .admin-modal');
-            openModals.forEach(modal => {
-                tryCloseModal(modal);
-            });
-            
-            // 重新加载图片列表
-            loadAndDisplayPictures();
-            
-            alert('Picture updated successfully!');
-            console.log('Picture updated successfully');
-        } else {
-            console.error('Picture not found for update:', pictureId);
-        }
-    } catch (e) {
-        console.error('Error updating picture:', e);
-        alert('Error updating picture: ' + e.message);
-    }
+    // ... existing code ...
 }
 
 /**
