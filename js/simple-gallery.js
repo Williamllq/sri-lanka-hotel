@@ -18,300 +18,396 @@
     if (!document.querySelector('.gallery-filter')) return;
     
     // 获取图片数据
-    const pictures = getGalleryPictures();
-    
-    // 设置分类按钮事件
-    setupFilterButtons(pictures);
-    
-    // 默认显示所有图片
-    displayPicturesByCategory(pictures, 'all');
+    getGalleryPictures();
   }
   
   /**
    * 从存储中获取图片数据
    */
   function getGalleryPictures() {
-    // 尝试从localStorage获取图片
-    try {
-      // 优先从adminPictures获取 - 这是管理员上传的图片
-      const adminData = localStorage.getItem('adminPictures');
-      if (adminData) {
-        const adminPics = JSON.parse(adminData);
-        if (Array.isArray(adminPics) && adminPics.length > 0) {
-          console.log(`Found ${adminPics.length} pictures in adminPictures`);
-          return normalizeImages(adminPics);
+    // 优先使用增强版存储服务
+    if (window.ImageStorageService) {
+      console.log('Using enhanced image storage service');
+      // 使用IndexedDB存储服务，获取所有图片的缩略图
+      window.ImageStorageService.getAllImages({
+        page: 1,
+        limit: 100, // 加载更多图片
+        sort: 'newest'
+      }, function(result) {
+        if (result && result.images && result.images.length > 0) {
+          console.log(`Loaded ${result.images.length} images from enhanced storage`);
+          setupGalleryWithPictures(result.images);
+        } else {
+          // 回退到localStorage
+          console.log('No images found in enhanced storage, falling back to localStorage');
+          loadImagesFromLocalStorage();
         }
-      }
-      
-      // 尝试从sitePictures获取
+      });
+    } else {
+      // 回退到旧方法
+      console.log('Enhanced storage service not available, using localStorage');
+      loadImagesFromLocalStorage();
+    }
+  }
+  
+  /**
+   * 从localStorage加载图片
+   */
+  function loadImagesFromLocalStorage() {
+    try {
+      // 优先从sitePictures获取 - 这是前端显示的格式
       const siteData = localStorage.getItem('sitePictures');
       if (siteData) {
         const sitePics = JSON.parse(siteData);
-        if (Array.isArray(sitePics) && sitePics.length > 0) {
-          console.log(`Found ${sitePics.length} pictures in sitePictures`);
-          return normalizeImages(sitePics);
+        if (sitePics && sitePics.length > 0) {
+          console.log(`Loaded ${sitePics.length} images from sitePictures`);
+          setupGalleryWithPictures(sitePics);
+          return;
         }
       }
-    } catch (e) {
-      console.error('Error loading pictures from storage:', e);
-    }
-    
-    // 从默认图片中获取
-    return getDefaultPictures();
-  }
-  
-  /**
-   * 获取默认图片
-   */
-  function getDefaultPictures() {
-    const defaultPics = [];
-    
-    // 从隐藏的gallery-grid中获取图片
-    const galleryItems = document.querySelectorAll('.gallery-grid .gallery-item');
-    if (galleryItems && galleryItems.length > 0) {
-      console.log(`Loading ${galleryItems.length} default pictures`);
       
-      galleryItems.forEach((item, index) => {
-        const img = item.querySelector('img');
-        if (!img || !img.src) return;
-        
-        const title = item.querySelector('.gallery-item-title');
-        const desc = item.querySelector('.gallery-item-desc');
-        const category = item.getAttribute('data-category') || 'scenery';
-        
-        defaultPics.push({
-          id: `default_${index}`,
-          name: title ? title.textContent : 'Sri Lanka',
-          category: category.toLowerCase(),
-          description: desc ? desc.textContent : 'Discover Sri Lanka',
-          url: img.src
-        });
-      });
-    }
-    
-    return defaultPics;
-  }
-  
-  /**
-   * 标准化图片数据
-   */
-  function normalizeImages(images) {
-    return images.map(img => {
-      // 确保URL字段存在
-      let url = img.url || img.imageUrl || '';
-      
-      // 处理相对路径
-      if (url && !url.match(/^(https?:\/\/|data:image|\/)/i) && !url.startsWith('images/')) {
-        url = 'images/' + url;
+      // 如果sitePictures为空，尝试获取adminPictures
+      const adminData = localStorage.getItem('adminPictures');
+      if (adminData) {
+        const adminPics = JSON.parse(adminData);
+        if (adminPics && adminPics.length > 0) {
+          console.log(`Converting ${adminPics.length} images from adminPictures`);
+          // 转换格式
+          const convertedPics = adminPics.map(pic => ({
+            id: pic.id,
+            name: pic.name,
+            category: pic.category,
+            description: pic.description || '',
+            url: pic.imageUrl, // 关键区别：admin存储用imageUrl，site存储用url
+            uploadDate: pic.uploadDate
+          }));
+          setupGalleryWithPictures(convertedPics);
+          return;
+        }
       }
       
-      // 标准化类别
-      let category = (img.category || 'scenery').toLowerCase();
-      
-      return {
-        id: img.id || `img_${Math.floor(Math.random() * 10000)}`,
-        name: img.name || img.title || 'Sri Lanka Image',
-        category: category,
-        description: img.description || '',
-        url: url
-      };
-    }).filter(img => img.url && img.url.trim() !== '');
+      // 如果都没有，显示默认图片
+      console.log('No images found in localStorage, using default images');
+      setupGalleryWithPictures(getDefaultImages());
+    } catch (e) {
+      console.error('Error loading images from localStorage:', e);
+      // 出错时使用默认图片
+      setupGalleryWithPictures(getDefaultImages());
+    }
   }
   
   /**
-   * 设置筛选按钮
+   * 设置图库并显示图片
+   * @param {Array} pictures - 图片数据数组
+   */
+  function setupGalleryWithPictures(pictures) {
+    // 规范化图片数据 - 确保数据格式统一
+    const normalizedPictures = pictures.map(pic => ({
+      id: pic.id,
+      name: pic.name,
+      category: normalizeCategory(pic.category),
+      description: pic.description || '',
+      url: pic.url || pic.imageUrl, // 兼容不同的命名格式
+      uploadDate: pic.uploadDate
+    }));
+    
+    // 设置分类按钮事件
+    setupFilterButtons(normalizedPictures);
+    
+    // 默认显示所有图片
+    displayPicturesByCategory(normalizedPictures, 'all');
+  }
+  
+  /**
+   * 规范化图片分类
+   * @param {string} category - 原始分类名
+   * @returns {string} 规范化后的分类名
+   */
+  function normalizeCategory(category) {
+    if (!category) return 'scenery';
+    
+    const lowerCategory = category.toLowerCase().trim();
+    
+    // 基本分类映射
+    const categoryMap = {
+      'scenery': 'scenery',
+      'scene': 'scenery',
+      'landscapes': 'scenery',
+      'landscape': 'scenery',
+      
+      'wildlife': 'wildlife',
+      'animals': 'wildlife',
+      'animal': 'wildlife',
+      
+      'culture': 'culture',
+      'cultural': 'culture',
+      'tradition': 'culture',
+      'traditions': 'culture',
+      
+      'food': 'food',
+      'cuisine': 'food',
+      'dish': 'food',
+      'dishes': 'food',
+      
+      'beach': 'beach',
+      'beaches': 'beach',
+      'coastal': 'beach',
+      'coast': 'beach',
+      'sea': 'beach'
+    };
+    
+    return categoryMap[lowerCategory] || 'scenery';
+  }
+  
+  /**
+   * 设置筛选按钮事件
+   * @param {Array} pictures - 图片数组
    */
   function setupFilterButtons(pictures) {
-    const buttons = document.querySelectorAll('.gallery-filter-btn');
-    if (!buttons || buttons.length === 0) return;
+    const filterContainer = document.querySelector('.gallery-filter');
+    if (!filterContainer) return;
     
-    // 确保所有按钮都有正确的data-filter属性
-    buttons.forEach(btn => {
-      if (!btn.hasAttribute('data-filter')) {
-        const category = btn.textContent.trim().toLowerCase();
-        btn.setAttribute('data-filter', category);
-      }
-      
-      // 移除旧的事件监听器并创建新的按钮
-      const newBtn = btn.cloneNode(true);
-      if (btn.parentNode) {
-        btn.parentNode.replaceChild(newBtn, btn);
-      }
+    // 清空现有按钮
+    filterContainer.innerHTML = '';
+    
+    // 获取可用分类
+    const categories = ['all', 'scenery', 'wildlife', 'culture', 'food', 'beach'];
+    
+    // 移除没有图片的分类
+    const availableCategories = categories.filter(cat => {
+      if (cat === 'all') return true;
+      return pictures.some(pic => pic.category === cat);
     });
     
-    // 获取重新创建的按钮集合并添加点击事件
-    const refreshedButtons = document.querySelectorAll('.gallery-filter-btn');
-    refreshedButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        // 更新按钮状态 - 清除所有活动状态，只设置当前按钮为活动
-        refreshedButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    // 创建筛选按钮
+    availableCategories.forEach(category => {
+      const btn = document.createElement('button');
+      btn.className = 'gallery-filter-btn';
+      btn.setAttribute('data-category', category);
+      
+      // 设置按钮文本
+      if (category === 'all') {
+        btn.textContent = 'All';
+      } else {
+        // 首字母大写
+        btn.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+      }
+      
+      // 添加按钮点击事件
+      btn.addEventListener('click', function() {
+        // 移除所有按钮的active类
+        document.querySelectorAll('.gallery-filter-btn').forEach(button => {
+          button.classList.remove('active');
+        });
         
-        // 获取类别
-        const category = btn.getAttribute('data-filter');
+        // 给当前按钮添加active类
+        this.classList.add('active');
+        
+        // 显示对应分类的图片
         displayPicturesByCategory(pictures, category);
       });
+      
+      // 添加到筛选容器
+      filterContainer.appendChild(btn);
     });
     
-    // 默认选中第一个按钮
-    if (refreshedButtons.length > 0) {
-      refreshedButtons[0].classList.add('active');
-    }
+    // 默认选中All按钮
+    const allBtn = filterContainer.querySelector('[data-category="all"]');
+    if (allBtn) allBtn.classList.add('active');
   }
   
   /**
-   * 按类别显示图片
+   * 根据分类显示图片
+   * @param {Array} pictures - 图片数组
+   * @param {string} category - 分类名称
    */
   function displayPicturesByCategory(pictures, category) {
-    if (!pictures || pictures.length === 0) {
-      showEmptyGallery();
-      return;
-    }
-    
-    // 过滤图片
-    const filteredPics = category === 'all' 
+    // 筛选图片
+    const filteredPictures = category === 'all' 
       ? pictures 
       : pictures.filter(pic => pic.category === category);
-    
-    console.log(`Displaying ${filteredPics.length} pictures for category: ${category}`);
-    
-    if (filteredPics.length === 0) {
-      showEmptyGallery();
-      return;
-    }
-    
-    // 显示图片
-    displayGallery(filteredPics);
-    
-    // 启动轮播
-    startCarousel(filteredPics);
-  }
-  
-  /**
-   * 显示图库
-   */
-  function displayGallery(pictures) {
-    const featuredImage = document.querySelector('.featured-image');
-    const featuredTitle = document.querySelector('.featured-title');
-    const featuredDesc = document.querySelector('.featured-desc');
-    const thumbnailsContainer = document.querySelector('.gallery-thumbnails');
-    
-    if (!featuredImage || !featuredTitle || !featuredDesc || !thumbnailsContainer) {
-      console.error('Gallery containers not found');
-      return;
-    }
-    
-    // 显示第一张图片作为特色图片
-    const mainPic = pictures[0];
-    featuredImage.innerHTML = `<img src="${mainPic.url}" alt="${mainPic.name}" onerror="this.src='images/placeholder.jpg'">`;
-    featuredTitle.textContent = mainPic.name;
-    featuredDesc.textContent = mainPic.description || '';
-    
-    // 清空并重新填充缩略图
-    thumbnailsContainer.innerHTML = '';
-    
-    // 显示缩略图
-    pictures.forEach((pic, index) => {
-      const thumbElem = document.createElement('div');
-      thumbElem.className = 'gallery-thumbnail' + (index === 0 ? ' active' : '');
-      thumbElem.innerHTML = `<img src="${pic.url}" alt="${pic.name}" onerror="this.src='images/placeholder.jpg'">`;
       
-      // 点击缩略图时更新特色图片
-      thumbElem.addEventListener('click', () => {
-        // 更新活动状态
-        document.querySelectorAll('.gallery-thumbnail').forEach(t => 
-          t.classList.remove('active'));
-        thumbElem.classList.add('active');
-        
-        // 更新特色图片
-        featuredImage.innerHTML = `<img src="${pic.url}" alt="${pic.name}" onerror="this.src='images/placeholder.jpg'">`;
-        featuredTitle.textContent = pic.name;
-        featuredDesc.textContent = pic.description || '';
-        
-        // 重置轮播计时器
-        stopCarousel();
-        startCarousel(pictures);
-      });
-      
-      thumbnailsContainer.appendChild(thumbElem);
-    });
-  }
-  
-  /**
-   * 显示空图库提示
-   */
-  function showEmptyGallery() {
-    const featuredImage = document.querySelector('.featured-image');
-    const featuredTitle = document.querySelector('.featured-title');
-    const featuredDesc = document.querySelector('.featured-desc');
-    const thumbnailsContainer = document.querySelector('.gallery-thumbnails');
+    console.log(`Displaying ${filteredPictures.length} ${category} pictures`);
     
-    if (featuredImage) {
-      featuredImage.innerHTML = `
+    // 查找图库容器
+    const galleryContainer = document.querySelector('.modern-gallery-container');
+    if (!galleryContainer) return;
+    
+    // 清空容器
+    galleryContainer.innerHTML = '';
+    
+    // 如果没有图片，显示提示信息
+    if (filteredPictures.length === 0) {
+      galleryContainer.innerHTML = `
         <div class="empty-category">
-          <i class="fas fa-images"></i>
-          <p>No images in this category</p>
+          <i class="fas fa-image"></i>
+          <p>No images found in category "${category}"</p>
         </div>
       `;
+      return;
     }
     
-    if (featuredTitle) featuredTitle.textContent = 'No Images Available';
-    if (featuredDesc) featuredDesc.textContent = 'Please upload images in the admin panel';
-    if (thumbnailsContainer) thumbnailsContainer.innerHTML = '';
+    // 创建特色图片容器
+    const featuredContainer = document.createElement('div');
+    featuredContainer.className = 'featured-image-container';
+    
+    // 创建缩略图容器
+    const thumbnailsContainer = document.createElement('div');
+    thumbnailsContainer.className = 'gallery-thumbnails';
+    
+    // 添加特色图片（默认显示第一张）
+    displayFeaturedImage(featuredContainer, filteredPictures[0]);
+    
+    // 添加所有缩略图
+    filteredPictures.forEach((picture, index) => {
+      // 创建缩略图
+      const thumbnail = document.createElement('div');
+      thumbnail.className = `gallery-thumbnail ${index === 0 ? 'active' : ''}`;
+      thumbnail.setAttribute('data-id', picture.id);
+      
+      // 设置缩略图内容
+      thumbnail.innerHTML = `<img src="${picture.url}" alt="${picture.name}">`;
+      
+      // 添加点击事件
+      thumbnail.addEventListener('click', function() {
+        // 更新特色图片
+        displayFeaturedImage(featuredContainer, picture);
+        
+        // 更新活动缩略图
+        document.querySelectorAll('.gallery-thumbnail').forEach(thumb => {
+          thumb.classList.remove('active');
+        });
+        this.classList.add('active');
+      });
+      
+      // 添加到缩略图容器
+      thumbnailsContainer.appendChild(thumbnail);
+    });
+    
+    // 将容器添加到图库
+    galleryContainer.appendChild(featuredContainer);
+    galleryContainer.appendChild(thumbnailsContainer);
+    
+    // 设置自动轮播
+    setupCarousel(featuredContainer, filteredPictures, thumbnailsContainer);
   }
   
-  // 轮播相关变量
-  let carouselTimer = null;
-  let currentIndex = 0;
+  /**
+   * 显示特色图片
+   * @param {HTMLElement} container - 特色图片容器
+   * @param {Object} picture - 图片对象
+   */
+  function displayFeaturedImage(container, picture) {
+    // 更新特色图片
+    container.innerHTML = `
+      <div class="featured-image">
+        <img src="${picture.url}" alt="${picture.name}">
+      </div>
+      <div class="featured-caption">
+        <h3 class="featured-title">${picture.name}</h3>
+        <p class="featured-desc">${picture.description || ''}</p>
+      </div>
+    `;
+  }
   
   /**
-   * 启动轮播
+   * 设置自动轮播功能
+   * @param {HTMLElement} featuredContainer - 特色图片容器
+   * @param {Array} pictures - 图片数组
+   * @param {HTMLElement} thumbnailsContainer - 缩略图容器
    */
-  function startCarousel(pictures) {
-    if (!pictures || pictures.length <= 1) return;
+  function setupCarousel(featuredContainer, pictures, thumbnailsContainer) {
+    if (pictures.length <= 1) return;
     
-    // 清除现有定时器
-    stopCarousel();
+    let currentIndex = 0;
+    const intervalTime = 5000; // 5秒切换一次
     
-    // 创建新定时器
-    carouselTimer = setInterval(() => {
+    const interval = setInterval(() => {
+      // 计算下一个索引
       currentIndex = (currentIndex + 1) % pictures.length;
-      const nextPic = pictures[currentIndex];
       
-      const featuredImage = document.querySelector('.featured-image');
-      const featuredTitle = document.querySelector('.featured-title');
-      const featuredDesc = document.querySelector('.featured-desc');
+      // 更新特色图片
+      displayFeaturedImage(featuredContainer, pictures[currentIndex]);
       
-      if (featuredImage && featuredTitle && featuredDesc) {
-        featuredImage.innerHTML = `<img src="${nextPic.url}" alt="${nextPic.name}" onerror="this.src='images/placeholder.jpg'">`;
-        featuredTitle.textContent = nextPic.name;
-        featuredDesc.textContent = nextPic.description || '';
-      }
-      
-      // 更新缩略图活动状态
-      document.querySelectorAll('.gallery-thumbnail').forEach((thumb, idx) => {
-        if (idx === currentIndex) {
+      // 更新缩略图选中状态
+      const thumbnails = thumbnailsContainer.querySelectorAll('.gallery-thumbnail');
+      thumbnails.forEach((thumb, index) => {
+        if (index === currentIndex) {
           thumb.classList.add('active');
         } else {
           thumb.classList.remove('active');
         }
       });
-    }, 5000);
+    }, intervalTime);
+    
+    // 当用户点击缩略图时重置计时器
+    const thumbnails = thumbnailsContainer.querySelectorAll('.gallery-thumbnail');
+    thumbnails.forEach((thumb, index) => {
+      thumb.addEventListener('click', () => {
+        currentIndex = index;
+        clearInterval(interval);
+        // 重启计时器
+        setupCarousel(featuredContainer, pictures, thumbnailsContainer);
+      });
+    });
+    
+    // 当用户离开页面时清除定时器
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearInterval(interval);
+      } else {
+        // 重新启动轮播
+        setupCarousel(featuredContainer, pictures, thumbnailsContainer);
+      }
+    });
   }
   
   /**
-   * 停止轮播
+   * 获取默认图片
+   * @returns {Array} 默认图片数组
    */
-  function stopCarousel() {
-    if (carouselTimer) {
-      clearInterval(carouselTimer);
-      carouselTimer = null;
-    }
+  function getDefaultImages() {
+    return [
+      {
+        id: 'default_1',
+        name: 'Beautiful Beaches in Sri Lanka',
+        category: 'beach',
+        description: 'Explore the pristine beaches of Sri Lanka',
+        url: 'https://images.unsplash.com/photo-1589308078059-be1415eab4c3?q=80&w=1000',
+        uploadDate: new Date().toISOString()
+      },
+      {
+        id: 'default_2',
+        name: 'Sri Lankan Wildlife',
+        category: 'wildlife',
+        description: 'Experience the diverse wildlife of Sri Lanka',
+        url: 'https://images.unsplash.com/photo-1544535830-d4ae39e3e711?q=80&w=1000',
+        uploadDate: new Date().toISOString()
+      },
+      {
+        id: 'default_3',
+        name: 'Cultural Heritage',
+        category: 'culture',
+        description: 'Discover the rich cultural heritage of Sri Lanka',
+        url: 'https://images.unsplash.com/photo-1556195332-95503f664ced?q=80&w=1000',
+        uploadDate: new Date().toISOString()
+      },
+      {
+        id: 'default_4',
+        name: 'Sri Lankan Cuisine',
+        category: 'food',
+        description: 'Taste the delicious flavors of Sri Lankan cuisine',
+        url: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1000',
+        uploadDate: new Date().toISOString()
+      },
+      {
+        id: 'default_5',
+        name: 'Scenic Landscapes',
+        category: 'scenery',
+        description: 'Enjoy the breathtaking landscapes of Sri Lanka',
+        url: 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?q=80&w=1000',
+        uploadDate: new Date().toISOString()
+      }
+    ];
   }
-  
-  // 将API暴露给全局作用域
-  window.simpleGallery = {
-    init: initGallery,
-    getGalleryPictures: getGalleryPictures
-  };
 })(); 
