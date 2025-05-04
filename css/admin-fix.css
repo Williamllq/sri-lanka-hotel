@@ -1,0 +1,179 @@
+/**
+ * Admin Fix CSS
+ * 修复管理员界面的样式问题，确保按钮和模态框可以正常点击和交互
+ */
+
+/* 确保按钮可点击 */
+.admin-btn,
+button,
+input[type="button"],
+input[type="submit"],
+.btn,
+.edit-picture,
+.delete-picture,
+.edit-hotel,
+.delete-hotel {
+    position: relative;
+    z-index: 900 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* 增强按钮点击区域 */
+.admin-btn, 
+.btn {
+    min-height: 36px;
+    min-width: 80px;
+    padding: 8px 16px;
+}
+
+/* 确保图标按钮可点击 */
+.action-buttons a,
+.action-buttons button,
+.admin-card-header button,
+.admin-card-header a {
+    position: relative;
+    z-index: 950 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* 修复模态框样式 */
+.admin-modal {
+    display: none;
+    position: fixed;
+    z-index: 1050 !important;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto !important;
+}
+
+.admin-modal.active {
+    display: flex !important;
+}
+
+.admin-modal .modal-content {
+    background-color: #fff;
+    margin: auto;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1060 !important;
+    position: relative;
+    pointer-events: auto !important;
+}
+
+/* 确保模态框内部的元素可以点击 */
+.admin-modal .modal-header,
+.admin-modal .modal-body,
+.admin-modal .modal-footer,
+.admin-modal form,
+.admin-modal input,
+.admin-modal select,
+.admin-modal textarea,
+.admin-modal button,
+.admin-modal label {
+    position: relative;
+    z-index: 1070 !important;
+    pointer-events: auto !important;
+}
+
+/* 修复关闭按钮 */
+.close-modal, 
+.admin-modal .close {
+    position: relative;
+    z-index: 1080 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    opacity: 0.8;
+}
+
+.close-modal:hover, 
+.admin-modal .close:hover {
+    opacity: 1;
+}
+
+/* 修复表单元素 */
+form input,
+form select,
+form textarea,
+form button {
+    position: relative;
+    z-index: 960 !important;
+    pointer-events: auto !important;
+}
+
+/* 修复侧边栏导航 */
+.admin-sidebar {
+    z-index: 1000 !important;
+}
+
+.sidebar-menu li a {
+    position: relative;
+    z-index: 1010 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* 修复文件上传控件 */
+input[type="file"] {
+    position: relative;
+    z-index: 970 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* 修复图片预览区域 */
+.file-preview {
+    position: relative;
+    z-index: 980 !important;
+    pointer-events: auto !important;
+}
+
+/* 确保模态框背景遮罩可以点击关闭 */
+body.modal-open .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1040 !important;
+    pointer-events: auto !important;
+}
+
+/* 修复悬浮在按钮上的效果 */
+.admin-btn:hover,
+.btn:hover {
+    opacity: 0.9;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* 修复图片网格布局中的按钮 */
+.picture-grid .picture-item .picture-actions {
+    position: relative;
+    z-index: 990 !important;
+    pointer-events: auto !important;
+}
+
+/* 修复切换按钮 */
+.admin-tabs .admin-tab {
+    position: relative;
+    z-index: 920 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* 修复不正常的点击事件穿透 */
+* {
+    pointer-events: auto;
+} 
