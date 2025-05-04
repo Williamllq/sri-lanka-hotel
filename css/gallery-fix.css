@@ -21,6 +21,8 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .gallery-filter-btn:hover {
@@ -29,9 +31,26 @@
 }
 
 .gallery-filter-btn.active {
-    background-color: #4a6fa5;
+    background-color: #4285f4;
     color: white;
-    border-color: #4a6fa5;
+    border-color: #4285f4;
+}
+
+/* 确保按钮呈现为单选样式 */
+.gallery-filter-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background-color: #4285f4;
+    transform: translateX(-50%);
+    transition: width 0.3s ease;
+}
+
+.gallery-filter-btn.active::after {
+    width: 80%;
 }
 
 /* 画廊容器样式 */
@@ -95,7 +114,7 @@
     gap: 10px;
     padding: 10px 0;
     scrollbar-width: thin;
-    scrollbar-color: #4a6fa5 #f0f0f0;
+    scrollbar-color: #4285f4 #f0f0f0;
 }
 
 .gallery-thumbnails::-webkit-scrollbar {
@@ -108,7 +127,7 @@
 }
 
 .gallery-thumbnails::-webkit-scrollbar-thumb {
-    background-color: #4a6fa5;
+    background-color: #4285f4;
     border-radius: 10px;
 }
 
@@ -150,8 +169,8 @@
 }
 
 .gallery-thumbnail.active::after {
-    background: rgba(74, 111, 165, 0.3);
-    border: 2px solid #4a6fa5;
+    background: rgba(66, 133, 244, 0.3);
+    border: 2px solid #4285f4;
 }
 
 /* 空类别显示 */

@@ -147,6 +147,25 @@
             }
         });
         
+        // 清除所有现有的active状态
+        // 这是多选问题的关键修复 - 确保初始状态只有一个按钮被激活
+        filterButtons.forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // 设置默认活动按钮
+        const defaultButton = Array.from(filterButtons).find(btn => 
+            btn.getAttribute('data-filter') === currentCategory
+        );
+        
+        if (defaultButton) {
+            defaultButton.classList.add('active');
+        } else if (filterButtons.length > 0) {
+            // 如果没有找到匹配的按钮，选择第一个作为默认
+            filterButtons[0].classList.add('active');
+            currentCategory = filterButtons[0].getAttribute('data-filter') || 'all';
+        }
+        
         // 重新设置所有按钮的事件监听器
         filterButtons.forEach(function(button) {
             // 移除旧的事件监听器
@@ -160,8 +179,8 @@
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // 更新按钮状态
-                filterButtons.forEach(btn => {
+                // 更新按钮状态 - 确保单选
+                document.querySelectorAll('.gallery-filter-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
                 newButton.classList.add('active');
@@ -186,15 +205,6 @@
                 
                 return false;
             });
-        });
-        
-        // 默认选中当前类别按钮
-        filterButtons.forEach(btn => {
-            if (btn.getAttribute('data-filter') === currentCategory) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
         });
     }
     
