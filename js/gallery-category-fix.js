@@ -34,27 +34,44 @@
     let currentFeatureIndex = 0;
     
     /**
-     * 初始化画廊修复
+     * 初始化图库修复
      */
     function initGalleryFix() {
-        // 获取所有图片
-        const pictures = getSiteImages();
-        if (!pictures || pictures.length === 0) {
-            console.warn('No pictures found for gallery');
-            // 尝试从隐藏图库中获取默认图片
-            extractDefaultImages();
+        console.log('Initializing gallery fix...');
+        
+        // 检查是否在前端页面
+        const isGalleryPage = document.querySelector('.gallery-section') || 
+                              document.querySelector('.gallery-filter') ||
+                              document.querySelector('.gallery-grid');
+        
+        if (!isGalleryPage) {
+            console.log('Not on gallery page, skipping gallery initialization');
             return;
         }
         
-        console.log(`Gallery fix found ${pictures.length} images`);
+        console.log('Gallery page detected, initializing gallery components');
         
-        // 设置筛选按钮点击事件
+        // 如果定义了增强版同步函数，先运行一次
+        if (window.adminPicturesSyncEnhance && 
+            typeof window.adminPicturesSyncEnhance.syncPictures === 'function') {
+            console.log('Running enhanced sync before initializing gallery');
+            window.adminPicturesSyncEnhance.syncPictures();
+        }
+        
+        // 提取默认图片
+        extractDefaultImages();
+        
+        // 获取图片
+        const pictures = getSiteImages();
+        console.log(`Gallery found ${pictures ? pictures.length : 0} pictures to display`);
+        
+        // 设置过滤按钮
         setupFilterButtons();
         
-        // 初始化显示默认类别 (不过滤，显示全部)
-        filterAndDisplayCategory(currentCategory);
+        // 初始化显示全部类别
+        filterAndDisplayCategory('all');
         
-        // 启动自动轮播
+        // 启动轮播
         startCarousel();
     }
     
@@ -396,6 +413,7 @@
                 const parsedData = JSON.parse(storageData);
                 if (Array.isArray(parsedData) && parsedData.length > 0) {
                     pictures = parsedData;
+                    console.log(`Found ${pictures.length} pictures in sitePictures storage`);
                 }
             }
             
@@ -404,47 +422,64 @@
                 const adminData = localStorage.getItem('adminPictures');
                 if (adminData) {
                     const adminPictures = JSON.parse(adminData);
-                    if (Array.isArray(adminPictures)) {
+                    if (Array.isArray(adminPictures) && adminPictures.length > 0) {
                         // 转换格式
                         pictures = adminPictures.map(pic => ({
-                            id: pic.id,
-                            name: pic.name || 'Untitled Image',
+                            id: pic.id || `admin_${Math.random().toString(36).substr(2, 9)}`,
+                            name: pic.name || pic.title || 'Sri Lanka Image',
                             category: pic.category || 'scenery',
                             description: pic.description || '',
                             url: pic.imageUrl || pic.url || '',
                             uploadDate: pic.uploadDate || new Date().toISOString()
                         }));
+                        console.log(`Converted ${pictures.length} pictures from adminPictures`);
+                        
+                        // 尝试使用增强版同步
+                        if (window.adminPicturesSyncEnhance && 
+                            typeof window.adminPicturesSyncEnhance.syncPictures === 'function') {
+                            window.adminPicturesSyncEnhance.syncPictures();
+                        }
                     }
                 }
             }
             
             // 如果仍然没有数据，使用静态图片
             if (!pictures || pictures.length === 0) {
-                const staticItems = document.querySelectorAll('.gallery-grid .gallery-item');
-                if (staticItems && staticItems.length > 0) {
-                    staticItems.forEach(item => {
-                        const img = item.querySelector('img');
-                        const title = item.querySelector('.gallery-item-title');
-                        const desc = item.querySelector('.gallery-item-desc');
-                        const category = item.getAttribute('data-category') || 'scenery';
-                        
-                        if (img) {
-                            pictures.push({
-                                id: 'static_' + pictures.length,
-                                name: title ? title.textContent : 'Sri Lanka',
-                                category: category,
-                                description: desc ? desc.textContent : 'Discover Sri Lanka',
-                                url: img.src,
-                                uploadDate: new Date().toISOString()
-                            });
-                        }
-                    });
-                }
+                console.log('No pictures found in storage, extracting from DOM');
+                pictures = extractDefaultImages() || [];
             }
             
-            // 验证图片URL
-            pictures = pictures.filter(pic => pic.url && typeof pic.url === 'string' && pic.url.trim() !== '');
+            // 验证图片URL和类别
+            pictures = pictures.filter(pic => {
+                // 检查URL是否有效
+                const hasValidUrl = pic.url && typeof pic.url === 'string' && pic.url.trim() !== '';
+                
+                // 标准化类别
+                if (hasValidUrl && pic.category) {
+                    // 转换为小写
+                    pic.category = pic.category.toLowerCase().trim();
+                    
+                    // 处理常见的类别变体
+                    if (['wildlife', 'wild', 'animals', 'animal'].includes(pic.category)) {
+                        pic.category = 'wildlife';
+                    } else if (['scenery', 'scene', 'landscape', 'landscapes'].includes(pic.category)) {
+                        pic.category = 'scenery';
+                    } else if (['culture', 'cultural', 'tradition', 'traditional'].includes(pic.category)) {
+                        pic.category = 'culture';
+                    } else if (['food', 'cuisine', 'foods'].includes(pic.category)) {
+                        pic.category = 'food';
+                    } else if (['beach', 'beaches', 'sea', 'ocean'].includes(pic.category)) {
+                        pic.category = 'beach';
+                    } else {
+                        // 如果无法匹配到标准类别，默认为scenery
+                        pic.category = 'scenery';
+                    }
+                }
+                
+                return hasValidUrl;
+            });
             
+            console.log(`Returning ${pictures.length} validated pictures for gallery`);
             return pictures;
         } catch (e) {
             console.error('Error getting site images:', e);
