@@ -1,0 +1,107 @@
+/**
+ * Admin Button Z-Index Fix
+ * This stylesheet fixes z-index issues with buttons in the admin interface
+ */
+
+/* Ensure all buttons have proper z-index and pointer events */
+.admin-btn,
+button[type="button"],
+button[type="submit"],
+.btn {
+    position: relative !important;
+    z-index: 1500 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* Make sure buttons inside modals have even higher z-index */
+.admin-modal .admin-btn,
+.admin-modal button[type="button"],
+.admin-modal button[type="submit"],
+.admin-modal .btn {
+    z-index: 2500 !important;
+}
+
+/* Fix for close buttons to be clickable */
+.close-modal,
+.cancel-upload,
+.cancel-btn,
+[data-dismiss="modal"] {
+    position: relative !important;
+    z-index: 2501 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* Fix for modal content to be clickable */
+.admin-modal .modal-content {
+    position: relative !important;
+    z-index: 2001 !important;
+    pointer-events: auto !important;
+}
+
+/* Fix for the modal backdrop */
+.modal-backdrop {
+    z-index: 1999 !important;
+}
+
+/* Make sure active modals are visible */
+.admin-modal.active {
+    display: flex !important;
+    z-index: 2000 !important;
+}
+
+/* Ensure edit and delete buttons are clickable */
+.edit-picture,
+.delete-picture,
+.edit-hotel,
+.delete-hotel {
+    position: relative !important;
+    z-index: 1501 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* Fix for the picture grid and card items */
+.picture-grid {
+    position: relative;
+    z-index: 10;
+}
+
+.picture-card {
+    position: relative;
+    z-index: 11;
+}
+
+.picture-card .picture-actions {
+    position: relative;
+    z-index: 12;
+}
+
+/* Specific fix for upload button and organize folders button */
+#uploadPictureBtn,
+#organizePicturesBtn,
+#saveCarouselOrderBtn,
+#addToCarouselBtn {
+    position: relative !important;
+    z-index: 1500 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* Form elements inside modals need to be interactive */
+.admin-modal form,
+.admin-modal input,
+.admin-modal select,
+.admin-modal textarea {
+    position: relative !important;
+    z-index: 2100 !important;
+    pointer-events: auto !important;
+}
+
+/* Fix for file input preview */
+.file-preview {
+    position: relative !important;
+    z-index: 2100 !important;
+    pointer-events: auto !important;
+} 
