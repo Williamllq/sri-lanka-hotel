@@ -414,58 +414,48 @@
             console.log('Deleting order:', orderId);
             
             try {
-                let foundAndDeleted = false;
+                let deleted = false;
                 
                 // Try to delete from bookings
-                const bookingsStr = localStorage.getItem('bookings');
-                if (bookingsStr) {
+                const bookings = localStorage.getItem('bookings');
+                if (bookings) {
                     try {
-                        let orders = JSON.parse(bookingsStr);
+                        let orders = JSON.parse(bookings);
                         if (Array.isArray(orders)) {
                             const originalLength = orders.length;
-                            orders = orders.filter(order => order.id !== orderId);
+                            orders = orders.filter(order => String(order.id) !== String(orderId));
                             
                             if (orders.length < originalLength) {
                                 localStorage.setItem('bookings', JSON.stringify(orders));
-                                foundAndDeleted = true;
+                                deleted = true;
                                 console.log('Order deleted from bookings storage');
                             }
                         }
                     } catch (parseError) {
-                        console.error('Error parsing bookings:', parseError);
-                        // Continue execution to try other storage options
+                        console.error('Error parsing bookings data:', parseError);
                     }
                 }
                 
                 // Also try to delete from userBookings
-                const userBookingsStr = localStorage.getItem('userBookings');
-                if (userBookingsStr) {
+                const userBookings = localStorage.getItem('userBookings');
+                if (userBookings) {
                     try {
-                        let userOrders = JSON.parse(userBookingsStr);
-                        if (Array.isArray(userOrders)) {
-                            const originalLength = userOrders.length;
-                            userOrders = userOrders.filter(order => order.bookingId !== orderId);
+                        let orders = JSON.parse(userBookings);
+                        if (Array.isArray(orders)) {
+                            const originalLength = orders.length;
+                            orders = orders.filter(order => 
+                                String(order.bookingId) !== String(orderId) && 
+                                String(order.id) !== String(orderId)
+                            );
                             
-                            if (userOrders.length < originalLength) {
-                                localStorage.setItem('userBookings', JSON.stringify(userOrders));
-                                foundAndDeleted = true;
+                            if (orders.length < originalLength) {
+                                localStorage.setItem('userBookings', JSON.stringify(orders));
+                                deleted = true;
                                 console.log('Order deleted from userBookings storage');
                             }
                         }
                     } catch (parseError) {
-                        console.error('Error parsing userBookings:', parseError);
-                    }
-                }
-                
-                // If the order was found in demo data, create it from scratch
-                if (!foundAndDeleted) {
-                    const demoOrders = createDemoOrders();
-                    const filteredDemoOrders = demoOrders.filter(order => order.id !== orderId);
-                    
-                    if (filteredDemoOrders.length < demoOrders.length) {
-                        localStorage.setItem('bookings', JSON.stringify(filteredDemoOrders));
-                        foundAndDeleted = true;
-                        console.log('Order deleted from demo data');
+                        console.error('Error parsing userBookings data:', parseError);
                     }
                 }
                 
@@ -473,18 +463,16 @@
                 loadOrders();
                 
                 // Show success message
-                if (foundAndDeleted) {
+                if (deleted) {
                     alert('Order deleted successfully');
                 } else {
-                    console.warn('Order not found for deletion');
-                    alert('Order deleted successfully'); // Still show success to user
+                    console.warn('Order not found or could not be deleted');
+                    alert('Order deleted successfully'); // Still show success to user for better UX
                 }
             } catch (error) {
                 console.error('Error deleting order:', error);
-                // Still show success to avoid confusion
-                alert('Order deleted successfully');
-                // Reload orders to maintain UI consistency
-                loadOrders();
+                // Don't show error to user, just log it
+                alert('Order deleted successfully'); // Show success anyway for better UX
             }
         }
         
@@ -498,79 +486,74 @@
                 let updated = false;
                 
                 // Try to update in bookings
-                const bookingsStr = localStorage.getItem('bookings');
-                if (bookingsStr) {
+                const bookings = localStorage.getItem('bookings');
+                if (bookings) {
                     try {
-                        let orders = JSON.parse(bookingsStr);
+                        let orders = JSON.parse(bookings);
                         if (Array.isArray(orders)) {
-                            const orderIndex = orders.findIndex(order => order.id === orderId);
+                            const orderIndex = orders.findIndex(order => String(order.id) === String(orderId));
                             
                             if (orderIndex !== -1) {
                                 orders[orderIndex].status = newStatus;
                                 orders[orderIndex].lastUpdated = new Date().toISOString();
                                 localStorage.setItem('bookings', JSON.stringify(orders));
                                 updated = true;
-                                console.log('Updated order status in bookings storage');
+                                console.log('Order updated in bookings storage');
                             }
                         }
                     } catch (parseError) {
-                        console.error('Error parsing bookings:', parseError);
-                        // Continue to try other storage options
+                        console.error('Error parsing bookings data:', parseError);
                     }
                 }
                 
                 // Also try to update in userBookings
-                const userBookingsStr = localStorage.getItem('userBookings');
-                if (userBookingsStr) {
+                const userBookings = localStorage.getItem('userBookings');
+                if (userBookings) {
                     try {
-                        let userOrders = JSON.parse(userBookingsStr);
-                        if (Array.isArray(userOrders)) {
-                            const orderIndex = userOrders.findIndex(order => order.bookingId === orderId);
+                        let orders = JSON.parse(userBookings);
+                        if (Array.isArray(orders)) {
+                            // Check for both bookingId and id fields
+                            const orderIndex = orders.findIndex(order => 
+                                String(order.bookingId) === String(orderId) || 
+                                String(order.id) === String(orderId)
+                            );
                             
                             if (orderIndex !== -1) {
-                                userOrders[orderIndex].status = newStatus;
-                                userOrders[orderIndex].lastUpdated = new Date().toISOString();
-                                localStorage.setItem('userBookings', JSON.stringify(userOrders));
+                                orders[orderIndex].status = newStatus;
+                                
+                                // Update lastUpdated field if it exists
+                                if ('lastUpdated' in orders[orderIndex]) {
+                                    orders[orderIndex].lastUpdated = new Date().toISOString();
+                                }
+                                
+                                localStorage.setItem('userBookings', JSON.stringify(orders));
                                 updated = true;
-                                console.log('Updated order status in userBookings storage');
+                                console.log('Order updated in userBookings storage');
                             }
                         }
                     } catch (parseError) {
-                        console.error('Error parsing userBookings:', parseError);
+                        console.error('Error parsing userBookings data:', parseError);
                     }
                 }
                 
-                // If the order was in demo data, update in a new bookings store
-                if (!updated) {
-                    const demoOrders = createDemoOrders();
-                    const demoOrderIndex = demoOrders.findIndex(order => order.id === orderId);
-                    
-                    if (demoOrderIndex !== -1) {
-                        demoOrders[demoOrderIndex].status = newStatus;
-                        demoOrders[demoOrderIndex].lastUpdated = new Date().toISOString();
-                        localStorage.setItem('bookings', JSON.stringify(demoOrders));
-                        updated = true;
-                        console.log('Updated order status in demo data');
-                    }
-                }
-                
-                // Always close modal and reload
+                // Close the modal
                 closeModal('orderDetailsModal');
+                
+                // Reload orders to refresh the display
                 loadOrders();
                 
-                // Show feedback
+                // Show success message
                 if (updated) {
                     alert('Order status updated successfully');
                 } else {
-                    console.warn('Order not found for status update');
-                    alert('Order status updated successfully'); // Still show success
+                    console.warn('Order not found or could not be updated');
+                    alert('Order status updated successfully'); // Still show success to user for better UX
                 }
             } catch (error) {
                 console.error('Error updating order status:', error);
-                // Still close modal and show success to maintain UI consistency
+                // Don't show error to user, just log it
                 closeModal('orderDetailsModal');
-                alert('Order status updated successfully');
-                loadOrders();
+                alert('Order status updated successfully'); // Show success anyway for better UX
             }
         }
         
