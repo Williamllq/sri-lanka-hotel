@@ -72,9 +72,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize hotel management
     initHotelManagement();
     
-    // Initialize transport settings
-    initTransportSettings();
-    
     // Initialize sidebar toggle
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
@@ -1343,10 +1340,232 @@ function initOrderManagement() {
 }
 
 // Transport Settings functionality
-// This function is now handled by transport-settings-fixed.js
 function initTransportSettings() {
-    console.log('Transport settings initialization delegated to transport-settings-fixed.js');
-    // The actual implementation is now in the dedicated file
+    console.log('Initializing transport settings...');
+    
+    // 获取保存按钮元素
+    const saveTransportSettingsBtn = document.getElementById('saveTransportSettingsBtn');
+    
+    if (!saveTransportSettingsBtn) {
+        console.error('Save transport settings button not found');
+        return;
+    }
+    
+    // 加载现有设置
+    loadTransportSettings();
+    
+    // 为保存按钮添加点击事件监听器
+    saveTransportSettingsBtn.addEventListener('click', saveTransportSettings);
+    console.log('Event listener added to saveTransportSettingsBtn');
+    
+    // 单独的保存函数
+    function saveTransportSettings() {
+        console.log('saveTransportSettings function called');
+        try {
+            // 获取表单值并转换为数字
+            const baseFareValue = parseFloat(document.getElementById('baseFare').value);
+            const ratePerKmValue = parseFloat(document.getElementById('ratePerKm').value);
+            const rushHourValue = parseFloat(document.getElementById('rushHourMultiplier').value);
+            const nightValue = parseFloat(document.getElementById('nightMultiplier').value);
+            const weekendValue = parseFloat(document.getElementById('weekendMultiplier').value);
+            const sedanValue = parseFloat(document.getElementById('sedanRate').value);
+            const suvValue = parseFloat(document.getElementById('suvRate').value);
+            const vanValue = parseFloat(document.getElementById('vanRate').value);
+            const luxuryValue = parseFloat(document.getElementById('luxuryRate').value);
+            
+            // 输出当前获取的值用于调试
+            console.log('Form values:', {
+                baseFare: baseFareValue,
+                ratePerKm: ratePerKmValue,
+                rushHour: rushHourValue,
+                night: nightValue,
+                weekend: weekendValue,
+                sedan: sedanValue,
+                suv: suvValue,
+                van: vanValue,
+                luxury: luxuryValue
+            });
+            
+            // 验证表单值是否有效
+            if (isNaN(baseFareValue) || isNaN(ratePerKmValue) || isNaN(rushHourValue) ||
+                isNaN(nightValue) || isNaN(weekendValue) || isNaN(sedanValue) ||
+                isNaN(suvValue) || isNaN(vanValue) || isNaN(luxuryValue)) {
+                throw new Error('无效的数值输入');
+            }
+            
+            // 创建设置对象
+            const transportSettings = {
+                baseFare: baseFareValue,
+                ratePerKm: ratePerKmValue,
+                rushHourMultiplier: rushHourValue,
+                nightMultiplier: nightValue,
+                weekendMultiplier: weekendValue,
+                vehicleRates: {
+                    sedan: sedanValue,
+                    suv: suvValue,
+                    van: vanValue,
+                    luxury: luxuryValue
+                },
+                lastUpdated: new Date().toISOString()
+            };
+            
+            console.log('Saving transport settings:', transportSettings);
+            
+            // 先尝试清除旧数据（解决可能的缓存问题）
+            try {
+                localStorage.removeItem('transportSettings');
+            } catch (e) {
+                console.warn('Failed to remove old settings:', e);
+            }
+            
+            // 保存到localStorage
+            try {
+                const settingsJSON = JSON.stringify(transportSettings);
+                console.log('Settings JSON:', settingsJSON);
+                localStorage.setItem('transportSettings', settingsJSON);
+                
+                // 同时保存到sessionStorage作为备份
+                sessionStorage.setItem('transportSettings', settingsJSON);
+                
+                // 验证保存结果
+                const savedData = localStorage.getItem('transportSettings');
+                console.log('Saved data retrieved:', savedData);
+                
+                if (savedData) {
+                    console.log('Transport settings saved successfully');
+                    alert('Transport settings saved successfully!');
+                } else {
+                    console.error('Failed to verify saved settings');
+                    alert('Failed to save settings. Please try again.');
+                }
+            } catch (e) {
+                console.error('Error saving to localStorage:', e);
+                alert('Error saving settings: ' + e.message);
+            }
+        } catch (error) {
+            console.error('Error in saveTransportSettings:', error);
+            alert('Error saving settings: ' + error.message);
+        }
+    }
+    
+    // 修复loadTransportSettings函数
+    function loadTransportSettings() {
+        console.log('Loading transport settings...');
+        
+        try {
+            // 获取form表单元素
+            const baseFare = document.getElementById('baseFare');
+            const ratePerKm = document.getElementById('ratePerKm');
+            const rushHourMultiplier = document.getElementById('rushHourMultiplier');
+            const nightMultiplier = document.getElementById('nightMultiplier');
+            const weekendMultiplier = document.getElementById('weekendMultiplier');
+            const sedanRate = document.getElementById('sedanRate');
+            const suvRate = document.getElementById('suvRate');
+            const vanRate = document.getElementById('vanRate');
+            const luxuryRate = document.getElementById('luxuryRate');
+            
+            // 检查元素是否存在
+            if (!baseFare || !ratePerKm || !rushHourMultiplier || !nightMultiplier || 
+                !weekendMultiplier || !sedanRate || !suvRate || !vanRate || !luxuryRate) {
+                console.error('One or more form elements not found');
+                return;
+            }
+            
+            // 尝试从多个来源获取设置
+            let settingsStr = localStorage.getItem('transportSettings');
+            
+            // 如果localStorage没有，尝试从sessionStorage获取
+            if (!settingsStr) {
+                settingsStr = sessionStorage.getItem('transportSettings');
+                console.log('Using settings from sessionStorage');
+            }
+            
+            console.log('Raw settings:', settingsStr);
+            
+            // 设置默认值（以防localStorage中没有值）
+            const defaultSettings = {
+                baseFare: 30,
+                ratePerKm: 0.5,
+                rushHourMultiplier: 1.5,
+                nightMultiplier: 1.3,
+                weekendMultiplier: 1.2,
+                vehicleRates: {
+                    sedan: 1.0,
+                    suv: 1.5,
+                    van: 1.8,
+                    luxury: 2.2
+                }
+            };
+            
+            if (!settingsStr) {
+                console.log('No settings found, using defaults');
+                // 使用默认值
+                baseFare.value = defaultSettings.baseFare;
+                ratePerKm.value = defaultSettings.ratePerKm;
+                rushHourMultiplier.value = defaultSettings.rushHourMultiplier;
+                nightMultiplier.value = defaultSettings.nightMultiplier;
+                weekendMultiplier.value = defaultSettings.weekendMultiplier;
+                sedanRate.value = defaultSettings.vehicleRates.sedan;
+                suvRate.value = defaultSettings.vehicleRates.suv;
+                vanRate.value = defaultSettings.vehicleRates.van;
+                luxuryRate.value = defaultSettings.vehicleRates.luxury;
+                
+                // 保存默认值到localStorage
+                try {
+                    localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
+                    console.log('Default settings saved to localStorage');
+                } catch (e) {
+                    console.warn('Failed to save default settings:', e);
+                }
+                return;
+            }
+            
+            try {
+                // 解析JSON
+                const settings = JSON.parse(settingsStr);
+                console.log('Parsed settings:', settings);
+                
+                // 设置表单值（带有回退默认值）
+                baseFare.value = settings.baseFare || defaultSettings.baseFare;
+                ratePerKm.value = settings.ratePerKm || defaultSettings.ratePerKm;
+                rushHourMultiplier.value = settings.rushHourMultiplier || defaultSettings.rushHourMultiplier;
+                nightMultiplier.value = settings.nightMultiplier || defaultSettings.nightMultiplier;
+                weekendMultiplier.value = settings.weekendMultiplier || defaultSettings.weekendMultiplier;
+                
+                // 处理车辆费率
+                const vehicleRates = settings.vehicleRates || defaultSettings.vehicleRates;
+                
+                sedanRate.value = vehicleRates.sedan || defaultSettings.vehicleRates.sedan;
+                suvRate.value = vehicleRates.suv || defaultSettings.vehicleRates.suv;
+                vanRate.value = vehicleRates.van || defaultSettings.vehicleRates.van;
+                luxuryRate.value = vehicleRates.luxury || defaultSettings.vehicleRates.luxury;
+                
+                console.log('Transport settings loaded successfully');
+            } catch (error) {
+                console.error('Error parsing transport settings:', error);
+                // 出错时使用默认值
+                baseFare.value = defaultSettings.baseFare;
+                ratePerKm.value = defaultSettings.ratePerKm;
+                rushHourMultiplier.value = defaultSettings.rushHourMultiplier;
+                nightMultiplier.value = defaultSettings.nightMultiplier;
+                weekendMultiplier.value = defaultSettings.weekendMultiplier;
+                sedanRate.value = defaultSettings.vehicleRates.sedan;
+                suvRate.value = defaultSettings.vehicleRates.suv;
+                vanRate.value = defaultSettings.vehicleRates.van;
+                luxuryRate.value = defaultSettings.vehicleRates.luxury;
+                
+                // 保存默认值到localStorage
+                try {
+                    localStorage.setItem('transportSettings', JSON.stringify(defaultSettings));
+                    console.log('Default settings saved to localStorage after error');
+                } catch (e) {
+                    console.warn('Failed to save default settings after error:', e);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading transport settings:', error);
+        }
+    }
 }
 
 // Settings Management functionality
