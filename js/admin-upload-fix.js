@@ -105,6 +105,23 @@
             modalContent.style.pointerEvents = 'auto';
         }
         
+        // 重置表单
+        const form = document.getElementById('uploadPictureForm');
+        if (form) {
+            form.reset();
+            
+            // 重置文件预览
+            const filePreview = form.querySelector('#filePreview');
+            if (filePreview) {
+                filePreview.innerHTML = `
+                    <div class="preview-placeholder">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Image preview will appear here</p>
+                    </div>
+                `;
+            }
+        }
+        
         // 修复关闭按钮
         const closeBtn = modal.querySelector('.close-modal');
         if (closeBtn) {
@@ -225,6 +242,13 @@
                 return false;
             }
             
+            // 添加上传状态提示
+            const uploadButton = newForm.querySelector('button[type="submit"]');
+            if (uploadButton) {
+                uploadButton.disabled = true;
+                uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            }
+            
             // 处理图片上传
             handleImageUpload(newForm);
             
@@ -248,143 +272,338 @@
         const categoryInput = form.querySelector('#uploadCategory');
         const descriptionInput = form.querySelector('#pictureDescription');
         
-        if (!fileInput || !nameInput || !categoryInput) {
-            console.error('Required form fields not found');
-            alert('表单字段缺失，请刷新页面再试');
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+            console.error('No file selected');
             return;
         }
         
         const file = fileInput.files[0];
-        if (!file) {
-            alert('请选择要上传的图片');
-            return;
-        }
+        const name = nameInput.value.trim();
+        const category = categoryInput.value;
+        const description = descriptionInput ? descriptionInput.value.trim() : '';
         
-        // 读取图片文件
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const imageUrl = e.target.result;
+        console.log('Processing image:', name, 'category:', category);
+        
+        // 创建一个新的图片对象
+        const imageId = 'img_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        
+        // 处理图片文件
+        processImageFile(file, function(result) {
+            if (!result) {
+                console.error('Image processing failed');
+                alert('图片处理失败，请重试');
+                
+                // 重置上传按钮
+                const uploadButton = form.querySelector('button[type="submit"]');
+                if (uploadButton) {
+                    uploadButton.disabled = false;
+                    uploadButton.innerHTML = 'Upload Image';
+                }
+                
+                return;
+            }
             
-            // 创建图片对象
+            // 创建图片数据对象
             const picture = {
-                id: 'pic_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-                name: nameInput.value.trim(),
-                category: categoryInput.value,
-                description: descriptionInput ? descriptionInput.value.trim() : '',
-                imageUrl: imageUrl,
-                uploadDate: new Date().toISOString()
+                id: imageId,
+                name: name,
+                category: category,
+                description: description,
+                thumbnailUrl: result.thumbnail,
+                imageUrl: result.full,
+                size: file.size,
+                type: file.type,
+                uploadDate: new Date().toISOString(),
+                width: result.width,
+                height: result.height
             };
             
-            // 保存图片到localStorage
+            // 保存图片到存储
             saveImageToStorage(picture);
             
             // 关闭模态框
             closeUploadModal();
             
-            // 重置表单
-            form.reset();
-            const filePreview = form.querySelector('#filePreview');
-            if (filePreview) {
-                filePreview.innerHTML = `
-                    <div class="preview-placeholder">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <p>Image preview will appear here</p>
-                    </div>
-                `;
+            // 刷新图片显示
+            if (typeof fixPictureLoading === 'function') {
+                fixPictureLoading();
+            } else {
+                // 尝试调用loadAndDisplayPictures函数
+                if (typeof loadAndDisplayPictures === 'function') {
+                    loadAndDisplayPictures();
+                }
             }
             
             // 显示成功消息
             alert('图片上传成功！');
+        });
+    }
+    
+    /**
+     * 处理图片文件
+     * @param {File} file - 图片文件
+     * @param {Function} callback - 回调函数，带有处理结果
+     */
+    function processImageFile(file, callback) {
+        console.log('Processing image file:', file.name, 'size:', file.size);
+        
+        // 创建图片对象以获取尺寸
+        const img = new Image();
+        img.onload = function() {
+            console.log('Image loaded, dimensions:', img.width, 'x', img.height);
             
-            // 刷新图片列表
-            if (typeof loadAndDisplayPictures === 'function') {
-                loadAndDisplayPictures();
-            }
+            // 创建缩略图
+            const thumbnail = createThumbnail(img, 400, 0.8);
+            
+            // 压缩完整图片
+            const full = compressFullImage(img, 1200, 0.9);
+            
+            // 返回处理结果
+            callback({
+                thumbnail: thumbnail,
+                full: full,
+                width: img.width,
+                height: img.height
+            });
+            
+            // 释放对象URL
+            URL.revokeObjectURL(img.src);
         };
         
-        reader.readAsDataURL(file);
+        img.onerror = function() {
+            console.error('Error loading image');
+            callback(null);
+            URL.revokeObjectURL(img.src);
+        };
+        
+        img.src = URL.createObjectURL(file);
+    }
+    
+    /**
+     * 创建缩略图
+     * @param {HTMLImageElement} img - 图片元素
+     * @param {number} maxWidth - 最大宽度
+     * @param {number} quality - JPEG质量 (0-1)
+     * @returns {string} 缩略图的Data URL
+     */
+    function createThumbnail(img, maxWidth, quality) {
+        // 计算缩放比例
+        const ratio = Math.min(1, maxWidth / img.width);
+        const width = Math.round(img.width * ratio);
+        const height = Math.round(img.height * ratio);
+        
+        // 创建canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        
+        // 绘制缩放后的图片
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // 转换为Data URL
+        return canvas.toDataURL('image/jpeg', quality);
+    }
+    
+    /**
+     * 压缩完整图片
+     * @param {HTMLImageElement} img - 图片元素
+     * @param {number} maxWidth - 最大宽度
+     * @param {number} quality - JPEG质量 (0-1)
+     * @returns {string} 压缩后图片的Data URL
+     */
+    function compressFullImage(img, maxWidth, quality) {
+        // 计算缩放比例
+        let ratio = 1;
+        if (img.width > maxWidth) {
+            ratio = maxWidth / img.width;
+        }
+        
+        // 如果图片已经小于最大宽度，则使用原始尺寸
+        const width = Math.round(img.width * ratio);
+        const height = Math.round(img.height * ratio);
+        
+        // 创建canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        
+        // 绘制缩放后的图片
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // 转换为Data URL
+        return canvas.toDataURL('image/jpeg', quality);
     }
     
     /**
      * 保存图片到存储
+     * @param {Object} picture - 图片对象
      */
     function saveImageToStorage(picture) {
-        console.log('Saving image to storage:', picture.name);
+        console.log('Saving image to storage:', picture.id);
         
         try {
-            // 获取现有图片
-            const storageData = localStorage.getItem('adminPictures');
-            let pictures = [];
+            // 1. 保存到IndexedDB (如果可用)
+            saveToDB(picture);
             
-            if (storageData) {
-                pictures = JSON.parse(storageData);
-                if (!Array.isArray(pictures)) {
-                    pictures = [];
-                }
-            }
+            // 2. 保存图片元数据到localStorage (用于管理员界面)
+            saveMetadataToLocalStorage(picture);
             
-            // 添加新图片
-            pictures.push(picture);
-            
-            // 保存回localStorage
-            localStorage.setItem('adminPictures', JSON.stringify(pictures));
-            
-            console.log('Image saved successfully');
-            
-            // 同步到前端显示
+            // 3. 同步到前端
             syncToFrontend(picture);
             
-            // 触发自定义事件
-            const event = new CustomEvent('pictureSaved', {
-                detail: { picture: picture }
-            });
-            document.dispatchEvent(event);
-            
+            console.log('Image saved successfully');
             return true;
-        } catch (e) {
-            console.error('Error saving image:', e);
-            alert('保存图片时出错: ' + e.message);
+            
+        } catch (error) {
+            console.error('Error saving image:', error);
             return false;
         }
     }
     
     /**
-     * 同步图片到前端显示
+     * 保存图片到IndexedDB
+     * @param {Object} picture - 图片对象
      */
-    function syncToFrontend(adminPicture) {
-        console.log('Syncing image to frontend display');
+    function saveToDB(picture) {
+        if (!window.indexedDB) {
+            console.warn('IndexedDB not supported by browser');
+            return;
+        }
         
         try {
-            // 获取现有前端图片
-            const storageData = localStorage.getItem('sitePictures');
-            let pictures = [];
+            const dbRequest = indexedDB.open('sriLankaImageDB', 1);
             
-            if (storageData) {
-                pictures = JSON.parse(storageData);
-                if (!Array.isArray(pictures)) {
-                    pictures = [];
+            dbRequest.onupgradeneeded = function(event) {
+                const db = event.target.result;
+                
+                // 创建存储对象 (如果不存在)
+                if (!db.objectStoreNames.contains('images')) {
+                    db.createObjectStore('images', { keyPath: 'id' });
                 }
+                
+                if (!db.objectStoreNames.contains('metadata')) {
+                    const metadataStore = db.createObjectStore('metadata', { keyPath: 'id' });
+                    metadataStore.createIndex('category', 'category', { unique: false });
+                }
+            };
+            
+            dbRequest.onsuccess = function(event) {
+                const db = event.target.result;
+                
+                // 保存完整图片数据
+                const imageTransaction = db.transaction(['images'], 'readwrite');
+                const imageStore = imageTransaction.objectStore('images');
+                imageStore.put({
+                    id: picture.id,
+                    imageUrl: picture.imageUrl,
+                    uploadDate: picture.uploadDate
+                });
+                
+                // 保存元数据
+                const metadataTransaction = db.transaction(['metadata'], 'readwrite');
+                const metadataStore = metadataTransaction.objectStore('metadata');
+                metadataStore.put({
+                    id: picture.id,
+                    name: picture.name,
+                    category: picture.category,
+                    description: picture.description,
+                    thumbnailUrl: picture.thumbnailUrl,
+                    width: picture.width,
+                    height: picture.height,
+                    size: picture.size,
+                    type: picture.type,
+                    uploadDate: picture.uploadDate
+                });
+                
+                console.log('Image saved to IndexedDB');
+            };
+            
+            dbRequest.onerror = function(event) {
+                console.error('IndexedDB error:', event.target.error);
+            };
+            
+        } catch (error) {
+            console.error('Error saving to IndexedDB:', error);
+        }
+    }
+    
+    /**
+     * 保存图片元数据到localStorage
+     * @param {Object} picture - 图片对象
+     */
+    function saveMetadataToLocalStorage(picture) {
+        try {
+            // 获取现有元数据
+            const metadataStr = localStorage.getItem('adminPicturesMetadata');
+            let metadata = metadataStr ? JSON.parse(metadataStr) : [];
+            
+            // 确保是数组
+            if (!Array.isArray(metadata)) {
+                metadata = [];
             }
             
-            // 转换为前端格式
+            // 添加新图片元数据
+            metadata.push({
+                id: picture.id,
+                name: picture.name,
+                category: picture.category,
+                description: picture.description,
+                thumbnailUrl: picture.thumbnailUrl,
+                imageUrl: picture.imageUrl,
+                uploadDate: picture.uploadDate
+            });
+            
+            // 保存回localStorage
+            localStorage.setItem('adminPicturesMetadata', JSON.stringify(metadata));
+            
+            console.log('Metadata saved to localStorage');
+            
+        } catch (error) {
+            console.error('Error saving metadata to localStorage:', error);
+        }
+    }
+    
+    /**
+     * 同步到前端
+     * @param {Object} adminPicture - 管理员图片对象
+     */
+    function syncToFrontend(adminPicture) {
+        try {
+            // 创建前端图片对象 (不包含完整图片数据，只包含必要信息)
             const frontendPicture = {
                 id: adminPicture.id,
                 name: adminPicture.name,
-                category: adminPicture.category,
+                category: adminPicture.category.toLowerCase(),
                 description: adminPicture.description,
-                url: adminPicture.imageUrl,
+                url: adminPicture.thumbnailUrl,  // 使用缩略图URL，减小大小
                 uploadDate: adminPicture.uploadDate
             };
             
-            // 添加到前端图片集
-            pictures.push(frontendPicture);
+            // 获取现有前端图片
+            const sitePicturesStr = localStorage.getItem('sitePictures');
+            let sitePictures = sitePicturesStr ? JSON.parse(sitePicturesStr) : [];
+            
+            // 确保是数组
+            if (!Array.isArray(sitePictures)) {
+                sitePictures = [];
+            }
+            
+            // 添加新图片
+            sitePictures.push(frontendPicture);
             
             // 保存回localStorage
-            localStorage.setItem('sitePictures', JSON.stringify(pictures));
+            localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
             
-            console.log('Image synced to frontend display');
-        } catch (e) {
-            console.error('Error syncing to frontend:', e);
+            console.log('Image synced to frontend');
+            
+            // 触发同步事件
+            const syncEvent = new CustomEvent('gallery-updated');
+            document.dispatchEvent(syncEvent);
+            
+        } catch (error) {
+            console.error('Error syncing to frontend:', error);
         }
     }
     
@@ -392,39 +611,46 @@
      * 修复上传模态框
      */
     function fixUploadModal() {
+        console.log('Fixing upload modal...');
+        
         const modal = document.getElementById('uploadModal');
         if (!modal) return;
         
-        // 确保模态框可以正确显示
-        modal.style.zIndex = '9999';
+        // 确保模态框可见且正常工作
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.zIndex = '5000';
+        modal.style.display = 'none';
         
-        // 修复模态框内容区域
+        // 修复模态框内容
         const modalContent = modal.querySelector('.modal-content');
         if (modalContent) {
             modalContent.style.position = 'relative';
-            modalContent.style.zIndex = '10000';
-            modalContent.style.pointerEvents = 'auto';
+            modalContent.style.maxHeight = '90vh';
+            modalContent.style.overflowY = 'auto';
         }
     }
     
     /**
-     * 检查按钮状态并确保它们是可点击的
+     * 检查按钮状态
      */
     function checkButtons() {
-        // 重新检查上传按钮
+        // 检查上传按钮
         const uploadBtn = document.getElementById('uploadPictureBtn');
-        if (uploadBtn && !uploadBtn.hasAttribute('fixed-by-uploader')) {
-            console.log('Re-fixing upload button');
+        if (uploadBtn && !uploadBtn.onclick) {
+            console.log('Upload button needs fixing again');
             fixUploadButton();
-            uploadBtn.setAttribute('fixed-by-uploader', 'true');
+        }
+        
+        // 检查上传表单
+        const form = document.getElementById('uploadPictureForm');
+        if (form && !form.onsubmit) {
+            console.log('Upload form needs fixing again');
+            fixUploadForm();
         }
     }
     
-    // 暴露公共函数供其他脚本使用
-    window.adminUploadFix = {
-        openUploadModal: openUploadModal,
-        closeUploadModal: closeUploadModal,
-        handleImageUpload: handleImageUpload,
-        saveImageToStorage: saveImageToStorage
-    };
 })(); 
