@@ -254,13 +254,25 @@ function openMapModal() {
 function restoreScrollAfterMapModal() {
     // 检查全局变量lastScrollPosition是否存在
     if (typeof lastScrollPosition !== 'undefined' && lastScrollPosition > 0) {
+        // 延迟更长时间以确保界面完全关闭
         setTimeout(function() {
             window.scrollTo({
                 top: lastScrollPosition,
                 behavior: 'auto'
             });
             console.log('Restored scroll position after map modal:', lastScrollPosition);
-        }, 100);
+            
+            // 多次尝试恢复位置以确保在移动设备上正确滚动
+            setTimeout(function() {
+                if (Math.abs(window.scrollY - lastScrollPosition) > 50) {
+                    console.log('Position not properly restored after map modal, trying again');
+                    window.scrollTo({
+                        top: lastScrollPosition,
+                        behavior: 'auto'
+                    });
+                }
+            }, 300);
+        }, 300);
     }
 }
 
@@ -271,6 +283,11 @@ function closeMapModal() {
     // 获取模态框元素
     const mapModal = document.getElementById('mapModal');
     if (mapModal) {
+        // 保存滚动位置（以防它在模态框打开期间发生变化）
+        if (typeof saveScrollPosition === 'function') {
+            saveScrollPosition();
+        }
+        
         mapModal.style.display = 'none';
         // 关闭模态框后恢复滚动位置
         restoreScrollAfterMapModal();
@@ -748,7 +765,13 @@ function setMarker(latlng) {
         
     } catch (error) {
         console.error('Error setting marker:', error);
-        alert('Failed to set marker on the map. Please try again.');
+        // 使用移动端友好的通知代替alert
+        if (typeof showMobileNotification === 'function') {
+            showMobileNotification('Failed to set marker on the map. Please try again.');
+        } else {
+            // 回退到显示地图消息
+            showMapMessage('Failed to set marker on the map. Please try again.', 'error');
+        }
     }
 }
 

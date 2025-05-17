@@ -38,15 +38,26 @@ function initFormScrollMemory() {
         if (element) {
             // 保存当前滚动位置
             element.addEventListener('focus', saveScrollPosition);
+            element.addEventListener('touchstart', saveScrollPosition);
             
             // 针对不同类型的元素添加不同的事件监听器
             if (element.tagName === 'SELECT') {
-                element.addEventListener('change', restoreScrollPosition);
+                element.addEventListener('change', () => setTimeout(restoreScrollPosition, 300));
+                element.addEventListener('blur', () => setTimeout(restoreScrollPosition, 300));
             } else if (element.type === 'date' || element.type === 'time') {
-                element.addEventListener('change', restoreScrollPosition);
-                element.addEventListener('blur', restoreScrollPosition);
+                // 为日期和时间输入添加更强大的事件处理
+                element.addEventListener('change', () => setTimeout(restoreScrollPosition, 500));
+                element.addEventListener('blur', () => setTimeout(restoreScrollPosition, 500));
+                element.addEventListener('touchend', () => setTimeout(restoreScrollPosition, 500));
+                
+                // 在点击事件之前保存位置
+                element.addEventListener('mousedown', saveScrollPosition);
+                element.addEventListener('touchstart', saveScrollPosition);
+                
+                // 在用户选择日期或时间后额外处理
+                element.addEventListener('input', () => setTimeout(restoreScrollPosition, 500));
             } else {
-                element.addEventListener('blur', restoreScrollPosition);
+                element.addEventListener('blur', () => setTimeout(restoreScrollPosition, 300));
             }
         }
     });
@@ -60,7 +71,7 @@ function initFormScrollMemory() {
             e.preventDefault();
             saveScrollPosition();
             calculateQuote();
-            setTimeout(restoreScrollPosition, 100);
+            setTimeout(restoreScrollPosition, 500);
         });
     }
     
@@ -83,6 +94,59 @@ function initFormScrollMemory() {
     
     if (destinationMapBtn) {
         destinationMapBtn.addEventListener('click', saveScrollPosition);
+    }
+    
+    // 处理移动设备上的日期和时间输入弹出问题
+    handleMobileDateTimeInputs();
+}
+
+/**
+ * 处理移动设备上日期和时间输入的特殊行为
+ */
+function handleMobileDateTimeInputs() {
+    // 检测是否是移动设备
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        const dateInput = document.getElementById('journeyDate');
+        const timeInput = document.getElementById('journeyTime');
+        
+        if (dateInput) {
+            // 移动设备上日期选择器的特殊处理
+            dateInput.addEventListener('touchstart', function(e) {
+                saveScrollPosition();
+            });
+            
+            dateInput.addEventListener('change', function(e) {
+                // 使用更长的延迟确保原生控件已关闭
+                setTimeout(restoreScrollPosition, 700);
+            });
+        }
+        
+        if (timeInput) {
+            // 移动设备上时间选择器的特殊处理
+            timeInput.addEventListener('touchstart', function(e) {
+                saveScrollPosition();
+            });
+            
+            timeInput.addEventListener('change', function(e) {
+                // 使用更长的延迟确保原生控件已关闭
+                setTimeout(restoreScrollPosition, 700);
+            });
+        }
+        
+        // 监听窗口滚动事件以检测用户交互后的自动滚动
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(function() {
+                // 如果检测到页面自动滚动到顶部，则恢复之前保存的位置
+                if (window.scrollY < 10 && lastScrollPosition > 100) {
+                    console.log('Detected unwanted scroll to top, restoring position');
+                    restoreScrollPosition();
+                }
+            }, 300);
+        });
     }
 }
 
@@ -109,8 +173,23 @@ function restoreScrollPosition() {
                 behavior: 'auto' // 使用'auto'而不是'smooth'以避免动画过渡
             });
             console.log('Restored scroll position:', lastScrollPosition);
+            
+            // 在移动设备上，可能需要多次尝试恢复位置
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                // 再次检查位置是否正确恢复，如果不正确则再次尝试
+                setTimeout(function() {
+                    if (Math.abs(window.scrollY - lastScrollPosition) > 50) {
+                        console.log('Position not properly restored, trying again');
+                        window.scrollTo({
+                            top: lastScrollPosition,
+                            behavior: 'auto'
+                        });
+                    }
+                }, 200);
+            }
         }
-    }, 10);
+    }, 50);
 }
 
 /**
@@ -433,10 +512,10 @@ function calculateQuote() {
     
     // Validate inputs
     if (!serviceType || !journeyDate || !journeyTime || !pickupLocation || !destinationLocation) {
-        // 替换alert为更友好的提示方式
+        // 使用移动端友好的通知提示
         showMobileNotification('Please fill out all required fields to get a quote');
         // 恢复滚动位置
-        setTimeout(restoreScrollPosition, 100);
+        setTimeout(restoreScrollPosition, 300);
         return;
     }
     
@@ -688,6 +767,8 @@ function processBooking() {
         if (typeof UserAuth !== 'undefined') {
             UserAuth.showLoginModal();
         }
+        // 恢复滚动位置
+        setTimeout(restoreScrollPosition, 300);
         return;
     }
     
@@ -707,7 +788,7 @@ function processBooking() {
     if (!serviceType || !journeyDate || !journeyTime || !pickupLocation || !destinationLocation) {
         showMobileNotification('Please fill out all required fields');
         // 恢复滚动位置
-        setTimeout(restoreScrollPosition, 100);
+        setTimeout(restoreScrollPosition, 300);
         return;
     }
     
@@ -1398,15 +1479,39 @@ function showMobileNotification(message) {
         notification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
         notification.style.fontSize = '14px';
         notification.style.display = 'none';
+        notification.style.animation = 'fadeIn 0.3s ease-out';
         document.body.appendChild(notification);
+        
+        // 添加动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translate(-50%, 20px); }
+                to { opacity: 1; transform: translate(-50%, 0); }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translate(-50%, 0); }
+                to { opacity: 0; transform: translate(-50%, 20px); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // 清除任何现有的超时
+    if (notification.timeoutId) {
+        clearTimeout(notification.timeoutId);
     }
     
     // 设置消息内容并显示
     notification.textContent = message;
     notification.style.display = 'block';
+    notification.style.animation = 'fadeIn 0.3s ease-out';
     
     // 3秒后自动隐藏
-    setTimeout(() => {
-        notification.style.display = 'none';
+    notification.timeoutId = setTimeout(() => {
+        notification.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 300);
     }, 3000);
 }
