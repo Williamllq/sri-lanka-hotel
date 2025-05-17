@@ -11,7 +11,107 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Synchronize existing bookings to admin panel format
     synchronizeBookings();
+    
+    // 添加表单滚动位置记忆功能
+    initFormScrollMemory();
 });
+
+/**
+ * 初始化表单滚动位置记忆功能
+ * 防止移动端用户填写表单时页面跳回顶部
+ */
+function initFormScrollMemory() {
+    // 要监听的表单元素
+    const formElements = [
+        'serviceType',
+        'journeyDate',
+        'journeyTime',
+        'passengerCount',
+        'pickupLocation',
+        'destinationLocation',
+        'specialRequirements'
+    ];
+    
+    // 为每个表单元素添加事件监听器
+    formElements.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            // 保存当前滚动位置
+            element.addEventListener('focus', saveScrollPosition);
+            
+            // 针对不同类型的元素添加不同的事件监听器
+            if (element.tagName === 'SELECT') {
+                element.addEventListener('change', restoreScrollPosition);
+            } else if (element.type === 'date' || element.type === 'time') {
+                element.addEventListener('change', restoreScrollPosition);
+                element.addEventListener('blur', restoreScrollPosition);
+            } else {
+                element.addEventListener('blur', restoreScrollPosition);
+            }
+        }
+    });
+    
+    // 防止表单提交时页面跳转
+    const getQuoteBtn = document.getElementById('getQuoteBtn');
+    const bookNowBtn = document.getElementById('bookNowBtn');
+    
+    if (getQuoteBtn) {
+        getQuoteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            saveScrollPosition();
+            calculateQuote();
+            setTimeout(restoreScrollPosition, 100);
+        });
+    }
+    
+    if (bookNowBtn) {
+        bookNowBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            saveScrollPosition();
+            processBooking();
+            // 不在这里恢复滚动位置，因为可能会显示确认模态框
+        });
+    }
+    
+    // 添加地图选择按钮的事件处理
+    const pickupMapBtn = document.getElementById('pickupMapBtn');
+    const destinationMapBtn = document.getElementById('destinationMapBtn');
+    
+    if (pickupMapBtn) {
+        pickupMapBtn.addEventListener('click', saveScrollPosition);
+    }
+    
+    if (destinationMapBtn) {
+        destinationMapBtn.addEventListener('click', saveScrollPosition);
+    }
+}
+
+// 保存滚动位置的变量
+let lastScrollPosition = 0;
+
+/**
+ * 保存当前滚动位置
+ */
+function saveScrollPosition() {
+    lastScrollPosition = window.scrollY || window.pageYOffset;
+    console.log('Saved scroll position:', lastScrollPosition);
+}
+
+/**
+ * 恢复保存的滚动位置
+ */
+function restoreScrollPosition() {
+    // 使用setTimeout确保在DOM更新后恢复滚动位置
+    setTimeout(function() {
+        if (lastScrollPosition > 0) {
+            window.scrollTo({
+                top: lastScrollPosition,
+                behavior: 'auto' // 使用'auto'而不是'smooth'以避免动画过渡
+            });
+            console.log('Restored scroll position:', lastScrollPosition);
+        }
+    }, 10);
+}
 
 /**
  * Initialize the booking system
@@ -333,9 +433,15 @@ function calculateQuote() {
     
     // Validate inputs
     if (!serviceType || !journeyDate || !journeyTime || !pickupLocation || !destinationLocation) {
-        alert('Please fill out all required fields to get a quote');
+        // 替换alert为更友好的提示方式
+        showMobileNotification('Please fill out all required fields to get a quote');
+        // 恢复滚动位置
+        setTimeout(restoreScrollPosition, 100);
         return;
     }
+    
+    // 保存滚动位置
+    saveScrollPosition();
     
     // Get location coordinates if available
         const pickupInput = document.getElementById('pickupLocation');
@@ -364,6 +470,9 @@ function calculateQuote() {
         // Show the initial quote while we load the route
         displayQuote(distance, fare, deposit);
         
+        // 恢复滚动位置
+        setTimeout(restoreScrollPosition, 300);
+        
         // Call showRouteMap to display the route and get the actual driving distance
         if (typeof showRouteMap === 'function') {
             showRouteMap();
@@ -388,6 +497,9 @@ function calculateQuote() {
                             
                             // Update the quote display
                             updateQuoteDisplay(updatedDistance, updatedFare, updatedDeposit);
+                            
+                            // 恢复滚动位置
+                            setTimeout(restoreScrollPosition, 100);
                         }
                     }
                 }
@@ -403,6 +515,9 @@ function calculateQuote() {
         
         // Update the quote container
         displayQuote(distance, fare, deposit);
+        
+        // 恢复滚动位置
+        setTimeout(restoreScrollPosition, 300);
     }
 }
 
@@ -569,12 +684,15 @@ function updateQuoteDisplay(distance, fare, deposit) {
 function processBooking() {
     // Check if user is logged in
     if (typeof UserAuth === 'undefined' || !UserAuth.isLoggedIn()) {
-        alert('Please login to book a journey');
+        showMobileNotification('Please login to book a journey');
         if (typeof UserAuth !== 'undefined') {
             UserAuth.showLoginModal();
         }
         return;
     }
+    
+    // 保存滚动位置
+    saveScrollPosition();
     
     // Get booking data from form
     const serviceType = document.getElementById('serviceType').value;
@@ -587,7 +705,9 @@ function processBooking() {
     
     // Validate inputs
     if (!serviceType || !journeyDate || !journeyTime || !pickupLocation || !destinationLocation) {
-        alert('Please fill out all required fields');
+        showMobileNotification('Please fill out all required fields');
+        // 恢复滚动位置
+        setTimeout(restoreScrollPosition, 100);
         return;
     }
     
@@ -646,9 +766,6 @@ function processBooking() {
     
     // Send confirmation email
     sendBookingConfirmation(booking);
-    
-    // Reset form
-    resetBookingForm();
 }
 
 /**
@@ -1253,4 +1370,43 @@ function synchronizeBookings() {
     } catch (e) {
         console.error('Error synchronizing bookings:', e);
     }
+}
+
+/**
+ * 显示移动端友好的通知提示
+ * @param {string} message 要显示的消息
+ */
+function showMobileNotification(message) {
+    // 检查是否已有通知元素
+    let notification = document.getElementById('mobileNotification');
+    
+    // 如果没有，创建一个
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'mobileNotification';
+        notification.style.position = 'fixed';
+        notification.style.bottom = '120px'; // 放在底部按钮上方
+        notification.style.left = '50%';
+        notification.style.transform = 'translateX(-50%)';
+        notification.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        notification.style.color = 'white';
+        notification.style.padding = '12px 20px';
+        notification.style.borderRadius = '8px';
+        notification.style.maxWidth = '90%';
+        notification.style.textAlign = 'center';
+        notification.style.zIndex = '1000';
+        notification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+        notification.style.fontSize = '14px';
+        notification.style.display = 'none';
+        document.body.appendChild(notification);
+    }
+    
+    // 设置消息内容并显示
+    notification.textContent = message;
+    notification.style.display = 'block';
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
 }

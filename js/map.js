@@ -1,3 +1,16 @@
+/**
+ * Initialize maps
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    
+    // 初始化地图模态框
+    initMapModal();
+    
+    // Add event listeners to map buttons
+    setupMapLocationButtons();
+});
+
 // Global variables for the map elements
 let mapContainer = null;
 let mapModal = null;
@@ -235,11 +248,32 @@ function openMapModal() {
     }, 300);
 }
 
-// Close the map modal
+/**
+ * 当模态框关闭时恢复之前的滚动位置
+ */
+function restoreScrollAfterMapModal() {
+    // 检查全局变量lastScrollPosition是否存在
+    if (typeof lastScrollPosition !== 'undefined' && lastScrollPosition > 0) {
+        setTimeout(function() {
+            window.scrollTo({
+                top: lastScrollPosition,
+                behavior: 'auto'
+            });
+            console.log('Restored scroll position after map modal:', lastScrollPosition);
+        }, 100);
+    }
+}
+
+/**
+ * 关闭地图模态框
+ */
 function closeMapModal() {
-    console.log('Closing map modal');
+    // 获取模态框元素
+    const mapModal = document.getElementById('mapModal');
     if (mapModal) {
         mapModal.style.display = 'none';
+        // 关闭模态框后恢复滚动位置
+        restoreScrollAfterMapModal();
     }
     
     // Clear the selected location
@@ -1252,4 +1286,33 @@ function getRouteDataFallback(startLat, startLng, endLat, endLng, callback) {
         // Fall back to straight line if both APIs fail
         callback([]);
     });
+}
+
+/**
+ * 初始化地图模态框
+ */
+function initMapModal() {
+    const modal = document.getElementById('mapModal');
+    const closeBtn = document.getElementById('closeMapModal');
+    const confirmBtn = document.getElementById('confirmLocationBtn');
+    
+    if (closeBtn) {
+        closeBtn.onclick = function() {
+            closeMapModal();
+        };
+    }
+    
+    if (confirmBtn) {
+        confirmBtn.onclick = function() {
+            confirmLocation();
+            closeMapModal();
+        };
+    }
+    
+    // 点击模态框外部关闭模态框
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeMapModal();
+        }
+    };
 } 
