@@ -282,6 +282,9 @@ function loadUserBookings(user) {
     let allBookings = {};
     let userBookings = [];
     
+    // Track processed booking IDs to prevent duplicates
+    const processedBookingIds = new Set();
+    
     // Debug: Log all localStorage keys
     console.log('All localStorage keys:');
     for (let i = 0; i < localStorage.length; i++) {
@@ -300,7 +303,15 @@ function loadUserBookings(user) {
                 if (parsedData && typeof parsedData === 'object') {
                     if (parsedData[user.email]) {
                         console.log(`Found ${parsedData[user.email].length} bookings for user ${user.email} in key ${key}`);
-                        userBookings = userBookings.concat(parsedData[user.email]);
+                        
+                        // Only add bookings with unique IDs
+                        parsedData[user.email].forEach(booking => {
+                            const bookingId = booking.id || booking.bookingId || booking.orderId || ('booking-' + Date.now());
+                            if (!processedBookingIds.has(bookingId)) {
+                                processedBookingIds.add(bookingId);
+                                userBookings.push(booking);
+                            }
+                        });
                     } else if (Array.isArray(parsedData)) {
                         // If it's an array, filter bookings by user email
                         const userEmailBookings = parsedData.filter(booking => 
@@ -309,7 +320,15 @@ function loadUserBookings(user) {
                             booking.user === user.email
                         );
                         console.log(`Found ${userEmailBookings.length} bookings in array for user ${user.email} in key ${key}`);
-                        userBookings = userBookings.concat(userEmailBookings);
+                        
+                        // Only add bookings with unique IDs
+                        userEmailBookings.forEach(booking => {
+                            const bookingId = booking.id || booking.bookingId || booking.orderId || ('booking-' + Date.now());
+                            if (!processedBookingIds.has(bookingId)) {
+                                processedBookingIds.add(bookingId);
+                                userBookings.push(booking);
+                            }
+                        });
                     }
                 }
             } catch (e) {
@@ -331,7 +350,15 @@ function loadUserBookings(user) {
                     booking.user === user.email
                 );
                 console.log(`Found ${userEmailBookings.length} bookings in bookingSystem for user ${user.email}`);
-                userBookings = userBookings.concat(userEmailBookings);
+                
+                // Only add bookings with unique IDs
+                userEmailBookings.forEach(booking => {
+                    const bookingId = booking.id || booking.bookingId || booking.orderId || ('booking-' + Date.now());
+                    if (!processedBookingIds.has(bookingId)) {
+                        processedBookingIds.add(bookingId);
+                        userBookings.push(booking);
+                    }
+                });
             }
         }
     } catch (e) {
@@ -346,7 +373,13 @@ function loadUserBookings(user) {
                 const data = JSON.parse(localStorage.getItem(key));
                 if (data && (data.userEmail === user.email || data.email === user.email)) {
                     console.log(`Found individual booking in key ${key}`);
-                    userBookings.push(data);
+                    
+                    // Only add booking if its ID is unique
+                    const bookingId = data.id || data.bookingId || data.orderId || ('booking-' + Date.now());
+                    if (!processedBookingIds.has(bookingId)) {
+                        processedBookingIds.add(bookingId);
+                        userBookings.push(data);
+                    }
                 }
             } catch (e) {
                 // Skip if not valid JSON
@@ -354,7 +387,7 @@ function loadUserBookings(user) {
         }
     }
     
-    console.log(`Total bookings found for user: ${userBookings.length}`);
+    console.log(`Total unique bookings found for user: ${userBookings.length}`);
     
     // If we're on a development server, create some sample bookings for testing
     if (window.location.hostname === 'localhost' || 

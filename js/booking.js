@@ -790,6 +790,11 @@ function getServiceTypeLabel(serviceType) {
  * Save booking to localStorage
  */
 function saveBooking(booking) {
+    // Ensure booking has an ID
+    if (!booking.id) {
+        booking.id = 'booking-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    }
+    
     // Save to userBookings format (primary)
     try {
         const userBookingsStr = localStorage.getItem('userBookings');
@@ -799,7 +804,16 @@ function saveBooking(booking) {
             userBookings[booking.userEmail] = [];
         }
         
-        userBookings[booking.userEmail].push(booking);
+        // Check for duplicates first
+        const existingIndex = userBookings[booking.userEmail].findIndex(b => b.id === booking.id);
+        if (existingIndex >= 0) {
+            // Update existing booking
+            userBookings[booking.userEmail][existingIndex] = booking;
+        } else {
+            // Add new booking
+            userBookings[booking.userEmail].push(booking);
+        }
+        
         localStorage.setItem('userBookings', JSON.stringify(userBookings));
         console.log('Booking saved to userBookings');
     } catch (e) {
@@ -815,7 +829,16 @@ function saveBooking(booking) {
             bookingSystem.bookings = [];
         }
         
-        bookingSystem.bookings.push(booking);
+        // Check for duplicates
+        const existingIndex = bookingSystem.bookings.findIndex(b => b.id === booking.id);
+        if (existingIndex >= 0) {
+            // Update existing booking
+            bookingSystem.bookings[existingIndex] = booking;
+        } else {
+            // Add new booking
+            bookingSystem.bookings.push(booking);
+        }
+        
         localStorage.setItem('bookingSystem', JSON.stringify(bookingSystem));
         console.log('Booking saved to bookingSystem');
     } catch (e) {
@@ -830,12 +853,12 @@ function saveBooking(booking) {
         console.error('Error saving individual booking:', e);
     }
     
-    // 为管理员界面保存预订信息到"bookings"格式
+    // Save for admin dashboard in 'bookings' format
     try {
-        // 对booking对象扩展一些额外字段，以便管理员界面能够正确显示
+        // Prepare admin-friendly booking format
         const adminBooking = {
             ...booking,
-            // 添加用于管理员界面的字段
+            // Add fields required for admin dashboard
             timestamp: booking.createdAt || new Date().toISOString(),
             customerName: booking.userName || 'N/A',
             customerEmail: booking.userEmail || 'N/A',
@@ -845,22 +868,30 @@ function saveBooking(booking) {
             depositAmount: (booking.totalPrice * 0.3) || 0,
             userId: booking.userEmail || 'guest',
             vehicleType: 'Standard',
-            status: booking.status || 'pending' // 默认为pending而不是confirmed
+            status: booking.status || 'pending', // Default to pending
+            lastUpdated: new Date().toISOString()
         };
         
-        // 获取现有bookings数组
+        // Get existing bookings array
         const bookingsStr = localStorage.getItem('bookings');
         let bookings = bookingsStr ? JSON.parse(bookingsStr) : [];
         
-        // 确保bookings是一个数组
+        // Ensure bookings is an array
         if (!Array.isArray(bookings)) {
             bookings = [];
         }
         
-        // 将当前预订添加到数组中
-        bookings.push(adminBooking);
+        // Check for duplicates
+        const existingIndex = bookings.findIndex(b => b.id === booking.id);
+        if (existingIndex >= 0) {
+            // Update existing booking
+            bookings[existingIndex] = adminBooking;
+        } else {
+            // Add new booking
+            bookings.push(adminBooking);
+        }
         
-        // 保存回localStorage
+        // Save back to localStorage
         localStorage.setItem('bookings', JSON.stringify(bookings));
         console.log('Booking saved to bookings for admin panel');
     } catch (e) {

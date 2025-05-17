@@ -78,42 +78,118 @@
             // Clear table body
             ordersTableBody.innerHTML = '<tr><td colspan="8" class="text-center">Loading orders...</td></tr>';
             
-            // First try to get user bookings from localStorage
+            // Load orders from all possible storage locations
             let orders = [];
+            let processedOrderIds = new Set(); // For deduplication
             
             try {
-                // Try to get from userBookings (client-side bookings)
-                const userBookings = localStorage.getItem('userBookings');
-                if (userBookings) {
-                    const parsedBookings = JSON.parse(userBookings);
-                    if (Array.isArray(parsedBookings)) {
-                        orders = parsedBookings.map(booking => ({
-                            id: booking.bookingId || `ORD-${Math.floor(Math.random() * 10000)}`,
-                            serviceType: 'Transport',
-                            journeyDate: booking.date,
-                            journeyTime: booking.time || '12:00',
-                            passengerCount: booking.passengers || '2',
-                            pickupLocation: booking.pickup || booking.from,
-                            destination: booking.destination || booking.to,
-                            totalFare: booking.total || booking.price,
-                            customerName: booking.name || 'Customer',
-                            customerEmail: booking.email || 'customer@example.com',
-                            status: booking.status || 'pending',
-                            timestamp: booking.bookedOn || new Date().toISOString(),
-                            lastUpdated: booking.lastUpdated || new Date().toISOString()
-                        }));
-                        console.log('Loaded orders from userBookings:', orders);
+                // Try multiple storage locations
+                
+                // 1. Try the 'bookings' array first (most likely to be complete)
+                const bookingsStr = localStorage.getItem('bookings');
+                if (bookingsStr) {
+                    const parsedBookings = JSON.parse(bookingsStr);
+                    if (Array.isArray(parsedBookings) && parsedBookings.length > 0) {
+                        parsedBookings.forEach(booking => {
+                            if (booking && booking.id && !processedOrderIds.has(booking.id)) {
+                                processedOrderIds.add(booking.id);
+                                orders.push(booking);
+                            }
+                        });
+                        console.log('Loaded orders from bookings array:', orders.length);
                     }
                 }
                 
-                // If no user bookings, try regular bookings storage
-                if (orders.length === 0) {
-                    const bookings = localStorage.getItem('bookings');
-                    if (bookings) {
-                        const parsedBookings = JSON.parse(bookings);
-                        if (Array.isArray(parsedBookings) && parsedBookings.length > 0) {
-                            orders = parsedBookings;
-                            console.log('Loaded orders from bookings:', orders);
+                // 2. Try bookingSystem format
+                const bookingSystemStr = localStorage.getItem('bookingSystem');
+                if (bookingSystemStr) {
+                    const bookingSystem = JSON.parse(bookingSystemStr);
+                    if (bookingSystem && Array.isArray(bookingSystem.bookings)) {
+                        bookingSystem.bookings.forEach(booking => {
+                            if (booking && booking.id && !processedOrderIds.has(booking.id)) {
+                                processedOrderIds.add(booking.id);
+                                orders.push({
+                                    id: booking.id,
+                                    serviceType: booking.serviceType || 'Transport',
+                                    journeyDate: booking.date || booking.journeyDate,
+                                    journeyTime: booking.time || booking.journeyTime || '12:00',
+                                    passengerCount: booking.passengers || booking.passengerCount || '2',
+                                    pickupLocation: booking.pickupLocation || booking.from || booking.pickup,
+                                    destination: booking.destinationLocation || booking.to || booking.destination,
+                                    totalFare: booking.totalPrice || booking.price || booking.total || booking.totalFare,
+                                    customerName: booking.userName || booking.name || 'Customer',
+                                    customerEmail: booking.userEmail || booking.email || 'customer@example.com',
+                                    status: booking.status || 'pending',
+                                    timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
+                                    lastUpdated: booking.lastUpdated || new Date().toISOString()
+                                });
+                            }
+                        });
+                        console.log('Added orders from bookingSystem:', orders.length);
+                    }
+                }
+                
+                // 3. Check userBookings (multiple users)
+                const userBookingsStr = localStorage.getItem('userBookings');
+                if (userBookingsStr) {
+                    const userBookings = JSON.parse(userBookingsStr);
+                    // userBookings is an object with user emails as keys
+                    if (userBookings && typeof userBookings === 'object') {
+                        Object.keys(userBookings).forEach(userEmail => {
+                            const userBookingsList = userBookings[userEmail];
+                            if (Array.isArray(userBookingsList)) {
+                                userBookingsList.forEach(booking => {
+                                    if (booking && booking.id && !processedOrderIds.has(booking.id)) {
+                                        processedOrderIds.add(booking.id);
+                                        orders.push({
+                                            id: booking.id,
+                                            serviceType: booking.serviceType || 'Transport',
+                                            journeyDate: booking.date || booking.journeyDate,
+                                            journeyTime: booking.time || booking.journeyTime || '12:00',
+                                            passengerCount: booking.passengers || booking.passengerCount || '2',
+                                            pickupLocation: booking.pickupLocation || booking.from || booking.pickup,
+                                            destination: booking.destinationLocation || booking.to || booking.destination,
+                                            totalFare: booking.totalPrice || booking.price || booking.total || booking.totalFare,
+                                            customerName: booking.userName || booking.name || 'Customer',
+                                            customerEmail: userEmail,
+                                            status: booking.status || 'pending',
+                                            timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
+                                            lastUpdated: booking.lastUpdated || new Date().toISOString()
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                        console.log('Added orders from userBookings:', orders.length);
+                    }
+                }
+                
+                // 4. Check individual booking entries
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('booking_') || key.includes('booking'))) {
+                        try {
+                            const booking = JSON.parse(localStorage.getItem(key));
+                            if (booking && booking.id && !processedOrderIds.has(booking.id)) {
+                                processedOrderIds.add(booking.id);
+                                orders.push({
+                                    id: booking.id,
+                                    serviceType: booking.serviceType || 'Transport',
+                                    journeyDate: booking.date || booking.journeyDate,
+                                    journeyTime: booking.time || booking.journeyTime || '12:00',
+                                    passengerCount: booking.passengers || booking.passengerCount || '2',
+                                    pickupLocation: booking.pickupLocation || booking.from || booking.pickup,
+                                    destination: booking.destinationLocation || booking.to || booking.destination,
+                                    totalFare: booking.totalPrice || booking.price || booking.total || booking.totalFare,
+                                    customerName: booking.userName || booking.name || 'Customer',
+                                    customerEmail: booking.userEmail || booking.email || 'customer@example.com',
+                                    status: booking.status || 'pending',
+                                    timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
+                                    lastUpdated: booking.lastUpdated || new Date().toISOString()
+                                });
+                            }
+                        } catch (innerErr) {
+                            console.warn('Error parsing individual booking:', innerErr);
                         }
                     }
                 }
