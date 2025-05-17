@@ -58,6 +58,11 @@ class AdminImageProcessor {
     if (this.isInitialized) return;
     
     try {
+      // Check if IndexedDB is available
+      if (window.IndexedDB) {
+        await this.initializeIndexedDB();
+      }
+      
       // Set up event listeners
       this.setupEventListeners();
       
@@ -68,6 +73,173 @@ class AdminImageProcessor {
       console.log('Admin Image Processor initialized');
     } catch (error) {
       console.error('Failed to initialize Admin Image Processor:', error);
+    }
+  }
+  
+  /**
+   * Initialize IndexedDB and sync data from localStorage
+   */
+  async initializeIndexedDB() {
+    if (!window.IndexedDB) {
+      console.warn('IndexedDB not available, skipping initialization');
+      return;
+    }
+
+    try {
+      // Wait for IndexedDB to be initialized
+      if (window.IndexedDB.initDB) {
+        await window.IndexedDB.initDB();
+      }
+
+      // Check if there are images in IndexedDB
+      if (window.IndexedDB.ImageStore) {
+        const dbImages = await window.IndexedDB.ImageStore.getAllImages();
+        
+        // If IndexedDB is empty, try to import from localStorage
+        if (!dbImages || dbImages.length === 0) {
+          console.log('No images found in IndexedDB, attempting to import from localStorage');
+          await this.importFromLocalStorage();
+        } else {
+          console.log(`Found ${dbImages.length} images in IndexedDB`);
+          
+          // Ensure localStorage is updated with IndexedDB data for frontend compatibility
+          this.updateLocalStorageFromIndexedDB(dbImages);
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing IndexedDB:', error);
+    }
+  }
+
+  /**
+   * Import images from localStorage to IndexedDB
+   */
+  async importFromLocalStorage() {
+    try {
+      // Try site pictures first
+      let pictures = [];
+      const sitePictures = localStorage.getItem('sitePictures');
+      if (sitePictures) {
+        try {
+          const parsedPictures = JSON.parse(sitePictures);
+          if (Array.isArray(parsedPictures) && parsedPictures.length > 0) {
+            pictures = parsedPictures;
+            console.log(`Found ${pictures.length} images in sitePictures`);
+          }
+        } catch (e) {
+          console.error('Error parsing sitePictures:', e);
+        }
+      }
+
+      // If no site pictures, try admin pictures
+      if (pictures.length === 0) {
+        const adminPictures = localStorage.getItem('adminPictures');
+        if (adminPictures) {
+          try {
+            const parsedPictures = JSON.parse(adminPictures);
+            if (Array.isArray(parsedPictures) && parsedPictures.length > 0) {
+              pictures = parsedPictures.map(pic => ({
+                id: pic.id || `admin_${Math.random().toString(36).substr(2, 9)}`,
+                name: pic.name || pic.title || 'Site Image',
+                description: pic.description || '',
+                category: pic.category || 'scenery',
+                url: pic.url || pic.imageUrl || '',
+                thumbnail: pic.thumbnail || pic.url || pic.imageUrl || '',
+                uploadDate: pic.uploadDate || new Date().toISOString()
+              }));
+              console.log(`Found ${pictures.length} images in adminPictures`);
+            }
+          } catch (e) {
+            console.error('Error parsing adminPictures:', e);
+          }
+        }
+      }
+
+      // Import to IndexedDB if we found pictures
+      if (pictures.length > 0 && window.IndexedDB.ImageStore) {
+        console.log(`Importing ${pictures.length} images to IndexedDB...`);
+        
+        for (const picture of pictures) {
+          // Add missing fields for IndexedDB
+          const dbImageData = {
+            ...picture,
+            id: picture.id,
+            sizes: picture.sizes || [{
+              width: 800,
+              data: picture.url
+            }],
+            originalSize: picture.originalSize || 0,
+            optimizedSize: picture.optimizedSize || 0,
+            format: picture.format || 'jpeg',
+            timestamp: Date.now()
+          };
+          
+          try {
+            await window.IndexedDB.ImageStore.addImage(dbImageData);
+          } catch (error) {
+            console.warn(`Failed to import image ${picture.id}:`, error);
+          }
+        }
+        
+        console.log(`Successfully imported ${pictures.length} images to IndexedDB`);
+        
+        // Dispatch event to notify other components
+        document.dispatchEvent(new CustomEvent('imagesImported', {
+          detail: { count: pictures.length }
+        }));
+      } else {
+        console.log('No images found in localStorage to import');
+      }
+    } catch (error) {
+      console.error('Error importing from localStorage:', error);
+    }
+  }
+
+  /**
+   * Update localStorage with images from IndexedDB for frontend compatibility
+   */
+  updateLocalStorageFromIndexedDB(dbImages) {
+    try {
+      if (!dbImages || !Array.isArray(dbImages) || dbImages.length === 0) {
+        return;
+      }
+      
+      // Convert IndexedDB format to localStorage format
+      const sitePictures = dbImages.map(img => ({
+        id: img.id,
+        name: img.name,
+        description: img.description || '',
+        category: img.category || 'scenery',
+        url: img.url,
+        uploadDate: img.uploadDate || img.timestamp || new Date().toISOString()
+      }));
+      
+      // Save to localStorage
+      localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
+      
+      // Also update adminPictures for backward compatibility
+      const adminPictures = dbImages.map(img => ({
+        id: img.id,
+        name: img.name,
+        title: img.name,
+        description: img.description || '',
+        category: img.category || 'scenery',
+        imageUrl: img.url,
+        url: img.url,
+        thumbnail: img.thumbnail || img.url,
+        uploadDate: img.uploadDate || img.timestamp || new Date().toISOString()
+      }));
+      
+      localStorage.setItem('adminPictures', JSON.stringify(adminPictures));
+      
+      console.log(`Updated localStorage with ${dbImages.length} images from IndexedDB`);
+      
+      // Dispatch event to notify other components
+      document.dispatchEvent(new CustomEvent('picturesSynced', {
+        detail: { count: dbImages.length }
+      }));
+    } catch (error) {
+      console.error('Error updating localStorage from IndexedDB:', error);
     }
   }
   
@@ -488,7 +660,7 @@ class AdminImageProcessor {
       }
       
       // Get category from form or default to gallery
-      const categorySelect = document.getElementById('imageCategory');
+      const categorySelect = document.getElementById('uploadCategory');
       const category = categorySelect ? categorySelect.value : 'gallery';
       
       // Calculate size savings
@@ -497,69 +669,81 @@ class AdminImageProcessor {
       
       // Use the largest processed image for comparison
       const largestImage = processingResult.images.reduce((prev, current) => 
-        (prev.width > current.width) ? prev : current);
+        (prev.width > current.width) ? prev : current
+      );
       
-      optimizedSize = largestImage.size;
+      optimizedSize = this._estimateSize(largestImage.data);
       
-      // Update statistics
       this.uploadStats.totalSize += originalSize;
-      this.uploadStats.savedSize += Math.max(0, originalSize - optimizedSize);
-      
-      // Store in IndexedDB if available
-      if (window.IndexedDB && window.IndexedDB.ImageStore) {
-        for (const processedImage of processingResult.images) {
-          const imageId = `${category}:${file.name}-${processedImage.width}`;
-          
-          await window.IndexedDB.ImageStore.addImage({
-            id: imageId,
-            filename: `${file.name.replace(/\.[^/.]+$/, '')}-${processedImage.width}.${processedImage.format}`,
-            path: `${this.config.categories[category].path}/${file.name.replace(/\.[^/.]+$/, '')}-${processedImage.width}.${processedImage.format}`,
-            width: processedImage.width,
-            height: processedImage.height,
-            size: processedImage.size,
-            format: processedImage.format,
-            category,
-            dataUrl: processedImage.dataUrl,
-            timestamp: Date.now()
-          });
-        }
-      }
-      
-      // Upload to server (this would be done through another function in a real implementation)
-      // For now, we'll simulate successful upload
+      this.uploadStats.savedSize += (originalSize - optimizedSize);
       
       // Update UI to show success
       if (element) {
         element.classList.remove('processing');
         element.classList.add('success');
-        const statusElement = element.querySelector('.preview-status');
-        if (statusElement) {
-          statusElement.textContent = 'Processed successfully';
-          statusElement.className = 'preview-status success';
-        }
-        
-        // Add size savings info
         const infoElement = element.querySelector('.preview-info');
         if (infoElement) {
-          const savingsPercent = Math.round((1 - optimizedSize / originalSize) * 100);
-          infoElement.innerHTML += `
-            <span class="preview-savings">
-              Saved: ${this.formatSize(originalSize - optimizedSize)} (${savingsPercent}%)
-            </span>
+          infoElement.innerHTML = `
+            <span class="preview-name">${file.name}</span>
+            <span class="preview-size">Saved ${this.formatSize(originalSize - optimizedSize)} (${Math.round((1 - optimizedSize/originalSize) * 100)}%)</span>
+            <span class="preview-status success">Processed successfully</span>
           `;
         }
       }
+      
+      // Generate a unique ID for the image
+      const imageId = `img_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+      
+      // Create image metadata
+      const imageData = {
+        id: imageId,
+        name: document.getElementById('pictureName')?.value || file.name,
+        description: document.getElementById('pictureDescription')?.value || '',
+        category: category,
+        url: largestImage.data,
+        thumbnail: processingResult.images.find(img => img.width <= 400)?.data || largestImage.data,
+        sizes: processingResult.images.map(img => ({
+          width: img.width,
+          data: img.data
+        })),
+        originalSize: originalSize,
+        optimizedSize: optimizedSize,
+        format: this.config.defaultFormat,
+        uploadDate: new Date().toISOString()
+      };
+      
+      // Store in IndexedDB if available
+      if (window.IndexedDB && window.IndexedDB.ImageStore) {
+        try {
+          await window.IndexedDB.ImageStore.addImage(imageData);
+          console.log(`Image ${imageId} stored in IndexedDB`);
+        } catch (error) {
+          console.error('Failed to store image in IndexedDB:', error);
+        }
+      }
+      
+      // Also store in localStorage to ensure frontend compatibility
+      this.syncWithLocalStorage(imageData);
+      
+      // Dispatch event for other components to update
+      document.dispatchEvent(new CustomEvent('imageUploaded', { 
+        detail: { imageId, category }
+      }));
+      
+      return imageData;
     } catch (error) {
-      console.error(`Error processing image ${file.name}:`, error);
+      console.error('Error processing image:', error);
       
       // Update UI to show error
       if (element) {
         element.classList.remove('processing');
         element.classList.add('error');
-        const statusElement = element.querySelector('.preview-status');
-        if (statusElement) {
-          statusElement.textContent = `Error: ${error.message}`;
-          statusElement.className = 'preview-status error';
+        const infoElement = element.querySelector('.preview-info');
+        if (infoElement) {
+          infoElement.innerHTML = `
+            <span class="preview-name">${file.name}</span>
+            <span class="preview-error">Error: ${error.message}</span>
+          `;
         }
       }
       
@@ -570,30 +754,44 @@ class AdminImageProcessor {
   /**
    * Read file as data URL
    * @param {File} file - The file to read
-   * @returns {Promise<string>} - Data URL
+   * @returns {Promise<string>} - The file as data URL
    */
   readFileAsDataURL(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e.error);
       reader.readAsDataURL(file);
     });
   }
   
   /**
-   * Show notification
+   * Estimate size of a data URL in bytes
+   * @param {string} dataUrl - The data URL
+   * @returns {number} - The estimated size in bytes
+   */
+  _estimateSize(dataUrl) {
+    if (!dataUrl) return 0;
+    
+    // For base64 data URLs, the size is approximately 3/4 of the string length
+    // after removing the header part
+    const base64Part = dataUrl.split(',')[1];
+    if (!base64Part) return 0;
+    
+    // Each Base64 character represents 6 bits, so 4 characters are 3 bytes
+    return Math.floor(base64Part.length * 0.75);
+  }
+  
+  /**
+   * Show notification to user
    * @param {string} message - The message to show
    */
   showNotification(message) {
-    // Use toastr if available
     if (window.toastr) {
-      toastr.success(message);
-      return;
+      toastr.success(message, 'Image Processor');
+    } else {
+      alert(message);
     }
-    
-    // Fallback to alert
-    alert(message);
   }
   
   /**
@@ -603,6 +801,95 @@ class AdminImageProcessor {
   handleImageUpload(form) {
     // Process all queued files
     this.processUploadQueue();
+  }
+  
+  /**
+   * Synchronize image data with localStorage for frontend compatibility
+   * @param {Object} imageData - The image data to synchronize
+   */
+  syncWithLocalStorage(imageData) {
+    try {
+      // Get existing site pictures
+      let sitePictures = [];
+      const storedPictures = localStorage.getItem('sitePictures');
+      if (storedPictures) {
+        try {
+          sitePictures = JSON.parse(storedPictures);
+          if (!Array.isArray(sitePictures)) {
+            sitePictures = [];
+          }
+        } catch (e) {
+          console.error('Error parsing sitePictures:', e);
+        }
+      }
+      
+      // Check if image already exists
+      const existingIndex = sitePictures.findIndex(pic => pic.id === imageData.id);
+      if (existingIndex !== -1) {
+        // Update existing image
+        sitePictures[existingIndex] = {
+          ...sitePictures[existingIndex],
+          ...imageData
+        };
+      } else {
+        // Add new image
+        sitePictures.push({
+          id: imageData.id,
+          name: imageData.name,
+          description: imageData.description,
+          category: imageData.category,
+          url: imageData.url,
+          uploadDate: imageData.uploadDate
+        });
+      }
+      
+      // Save back to localStorage
+      localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
+      console.log(`Synchronized image ${imageData.id} with localStorage (total: ${sitePictures.length} images)`);
+      
+      // Also update adminPictures for backward compatibility
+      let adminPictures = [];
+      const storedAdminPictures = localStorage.getItem('adminPictures');
+      if (storedAdminPictures) {
+        try {
+          adminPictures = JSON.parse(storedAdminPictures);
+          if (!Array.isArray(adminPictures)) {
+            adminPictures = [];
+          }
+        } catch (e) {
+          console.error('Error parsing adminPictures:', e);
+        }
+      }
+      
+      // Add to admin pictures in compatible format
+      const adminImageData = {
+        id: imageData.id,
+        name: imageData.name,
+        title: imageData.name,
+        description: imageData.description,
+        category: imageData.category,
+        imageUrl: imageData.url,
+        url: imageData.url,
+        thumbnail: imageData.thumbnail,
+        uploadDate: imageData.uploadDate
+      };
+      
+      const existingAdminIndex = adminPictures.findIndex(pic => pic.id === imageData.id);
+      if (existingAdminIndex !== -1) {
+        adminPictures[existingAdminIndex] = adminImageData;
+      } else {
+        adminPictures.push(adminImageData);
+      }
+      
+      localStorage.setItem('adminPictures', JSON.stringify(adminPictures));
+      
+      // Dispatch event to notify other components
+      document.dispatchEvent(new CustomEvent('picturesSynced', {
+        detail: { count: sitePictures.length }
+      }));
+    } catch (error) {
+      console.error('Error synchronizing with localStorage:', error);
+    }
   }
 }
 

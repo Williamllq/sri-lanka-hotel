@@ -516,7 +516,39 @@
         try {
             let pictures = [];
             
-            // 尝试从localStorage获取图片
+            // 1. 首先尝试从IndexedDB获取图片（优先级最高）
+            if (window.IndexedDB && window.IndexedDB.ImageStore) {
+                console.log('Attempting to load images from IndexedDB');
+                // Use a synchronous approach since IndexedDB is asynchronous
+                const loadFromDB = async () => {
+                    try {
+                        const dbImages = await window.IndexedDB.ImageStore.getAllImages();
+                        if (Array.isArray(dbImages) && dbImages.length > 0) {
+                            console.log(`Found ${dbImages.length} pictures in IndexedDB`);
+                            // Dispatch event when done
+                            document.dispatchEvent(new CustomEvent('galleryImagesLoaded', { detail: { source: 'indexeddb', count: dbImages.length }}));
+                            return dbImages;
+                        }
+                    } catch (error) {
+                        console.warn('Error loading from IndexedDB:', error);
+                    }
+                    return null;
+                };
+                
+                // Set an empty array for now, will be populated asynchronously
+                loadFromDB().then(dbPics => {
+                    if (dbPics && dbPics.length > 0) {
+                        // Update pictures in localStorage to keep in sync
+                        localStorage.setItem('sitePictures', JSON.stringify(dbPics));
+                        // Force refresh display
+                        setTimeout(() => {
+                            filterAndDisplayCategory(currentCategory);
+                        }, 300);
+                    }
+                });
+            }
+            
+            // 2. 尝试从localStorage获取图片
             const storageData = localStorage.getItem('sitePictures');
             if (storageData) {
                 const parsedData = JSON.parse(storageData);
@@ -526,7 +558,7 @@
                 }
             }
             
-            // 如果没有数据，尝试获取管理员图片
+            // 3. 如果没有数据，尝试获取管理员图片
             if (!pictures || pictures.length === 0) {
                 const adminData = localStorage.getItem('adminPictures');
                 if (adminData) {
@@ -542,11 +574,14 @@
                             uploadDate: pic.uploadDate || new Date().toISOString()
                         }));
                         console.log(`Converted ${pictures.length} pictures from adminPictures`);
+                        
+                        // 同步到sitePictures
+                        localStorage.setItem('sitePictures', JSON.stringify(pictures));
                     }
                 }
             }
             
-            // 如果仍然没有数据，使用静态图片
+            // 4. 如果仍然没有数据，使用静态图片
             if (!pictures || pictures.length === 0) {
                 console.log('No pictures found in storage, extracting from DOM');
                 pictures = extractDefaultImages() || [];
