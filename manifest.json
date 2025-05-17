@@ -1,0 +1,30 @@
+{
+  "name": "Sri Lanka Stay & Explore",
+  "short_name": "SL Travel",
+  "description": "Discover the best accommodations and experiences in Sri Lanka",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4285f4",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "images/ranga_bandara_logo_v2.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "images/ranga_bandara_logo_v2.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "images/screenshot1.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg"
+    }
+  ],
+  "categories": ["travel", "booking", "sri lanka", "tourism"]
+}

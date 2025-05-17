@@ -10,20 +10,20 @@ document.addEventListener('DOMContentLoaded', function() {
     initImageDatabase().then(() => {
         console.log('Image database initialized');
         
-        // Synchronize storage between admin and frontend
-        synchronizeImageStorage();
-        
-        // 初始化图片管理
-        initPictureManagement();
-        
-        // 初始化轮播图管理
-        initCarouselManagement();
-        
-        // Add CSS fixes for picture display
-        addPictureStyles();
-        
-        // Prevent duplicate form handling by marking forms as initialized
-        preventDuplicateHandling();
+    // Synchronize storage between admin and frontend
+    synchronizeImageStorage();
+    
+    // 初始化图片管理
+    initPictureManagement();
+    
+    // 初始化轮播图管理
+    initCarouselManagement();
+    
+    // Add CSS fixes for picture display
+    addPictureStyles();
+    
+    // Prevent duplicate form handling by marking forms as initialized
+    preventDuplicateHandling();
     }).catch(error => {
         console.error('Failed to initialize image database:', error);
         alert('初始化图片数据库失败。请使用更现代的浏览器或清除浏览器缓存后重试。');
@@ -403,10 +403,10 @@ function deleteImageAndMetadata(pictureId) {
                 console.error('Error in delete transaction:', event.target.error);
                 reject(event.target.error);
             };
-        } catch (error) {
+    } catch (error) {
             console.error('Error in delete operation:', error);
             reject(error);
-        }
+    }
     });
 }
 
@@ -779,23 +779,23 @@ function loadAndDisplayPictures() {
     
     // 从IndexedDB获取保存的图片元数据
     loadPictures().then(savedPictures => {
-        // 清空容器
-        pictureGrid.innerHTML = '';
-        
-        // 显示图片或提示信息
-        if (savedPictures.length === 0) {
-            pictureGrid.innerHTML = `
-                <div class="no-pictures-message">
-                    <i class="fas fa-image"></i>
+    // 清空容器
+    pictureGrid.innerHTML = '';
+    
+    // 显示图片或提示信息
+    if (savedPictures.length === 0) {
+        pictureGrid.innerHTML = `
+            <div class="no-pictures-message">
+                <i class="fas fa-image"></i>
                     <p>未找到图片。开始上传图片吧！</p>
-                </div>
-            `;
-            return;
-        }
-        
-        // 显示所有图片
-        savedPictures.forEach(picture => {
-            addPictureToGrid(pictureGrid, picture);
+            </div>
+        `;
+        return;
+    }
+    
+    // 显示所有图片
+    savedPictures.forEach(picture => {
+        addPictureToGrid(pictureGrid, picture);
         });
     }).catch(error => {
         console.error('Error loading pictures:', error);
@@ -832,10 +832,10 @@ function loadPictures(category = 'all') {
                     resolve([]);
                 });
                 return;
-            }
-            
-            // 如果指定了分类，进行筛选
-            if (category !== 'all') {
+        }
+        
+        // 如果指定了分类，进行筛选
+        if (category !== 'all') {
                 metadata = metadata.filter(pic => pic.category === category);
             }
             
@@ -855,43 +855,43 @@ function loadPictures(category = 'all') {
 function createSamplePictures() {
     return new Promise((resolve, reject) => {
         const sampleData = [
-            {
-                id: 'sample_pic_1',
-                name: 'Scenic Beach',
-                category: 'beach',
-                description: 'Beautiful beach in Sri Lanka',
-                imageUrl: 'https://images.unsplash.com/photo-1540202404-a2f29016b523?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+        {
+            id: 'sample_pic_1',
+            name: 'Scenic Beach',
+            category: 'beach',
+            description: 'Beautiful beach in Sri Lanka',
+            imageUrl: 'https://images.unsplash.com/photo-1540202404-a2f29016b523?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
                 thumbnailUrl: 'https://images.unsplash.com/photo-1540202404-a2f29016b523?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=60',
-                uploadDate: new Date().toISOString()
-            },
-            {
-                id: 'sample_pic_2',
-                name: 'Sri Lankan Culture',
-                category: 'culture',
-                description: 'Traditional cultural dance',
-                imageUrl: 'https://images.unsplash.com/photo-1625468228209-d76af1cc7f40?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            uploadDate: new Date().toISOString()
+        },
+        {
+            id: 'sample_pic_2',
+            name: 'Sri Lankan Culture',
+            category: 'culture',
+            description: 'Traditional cultural dance',
+            imageUrl: 'https://images.unsplash.com/photo-1625468228209-d76af1cc7f40?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
                 thumbnailUrl: 'https://images.unsplash.com/photo-1625468228209-d76af1cc7f40?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=60',
-                uploadDate: new Date().toISOString()
-            },
-            {
-                id: 'sample_pic_3',
-                name: 'Wildlife Safari',
-                category: 'wildlife',
-                description: 'Elephants in Yala National Park',
-                imageUrl: 'https://images.unsplash.com/photo-1560953222-1f5c46da5697?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            uploadDate: new Date().toISOString()
+        },
+        {
+            id: 'sample_pic_3',
+            name: 'Wildlife Safari',
+            category: 'wildlife',
+            description: 'Elephants in Yala National Park',
+            imageUrl: 'https://images.unsplash.com/photo-1560953222-1f5c46da5697?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
                 thumbnailUrl: 'https://images.unsplash.com/photo-1560953222-1f5c46da5697?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=60',
-                uploadDate: new Date().toISOString()
-            },
-            {
-                id: 'sample_pic_4',
-                name: 'Mountain Scenery',
-                category: 'scenery',
-                description: 'Beautiful mountains in central Sri Lanka',
-                imageUrl: 'https://images.unsplash.com/photo-1586005126644-7358e98bf2b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            uploadDate: new Date().toISOString()
+        },
+        {
+            id: 'sample_pic_4',
+            name: 'Mountain Scenery',
+            category: 'scenery',
+            description: 'Beautiful mountains in central Sri Lanka',
+            imageUrl: 'https://images.unsplash.com/photo-1586005126644-7358e98bf2b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
                 thumbnailUrl: 'https://images.unsplash.com/photo-1586005126644-7358e98bf2b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=60',
-                uploadDate: new Date().toISOString()
-            }
-        ];
+            uploadDate: new Date().toISOString()
+        }
+    ];
         
         // 为示例图片创建元数据和图片数据
         const promises = sampleData.map(sample => {
@@ -1032,58 +1032,58 @@ function editPicture(pictureId) {
         getMetadata(pictureId).then(metadata => {
             if (metadata) {
                 console.log('Editing picture:', metadata);
-                
-                // 检查是否已有系统模态框可用
-                const systemModal = document.querySelector('#pictureEditModal, #editImageModal, .admin-modal.image-edit, .admin-modal.edit-picture, #editPictureModal');
-                
-                if (systemModal) {
-                    console.log('Using system modal for editing picture:', systemModal.id);
-                    
-                    // 填充表单数据
-                    const nameInput = systemModal.querySelector('#pictureName, #name, #editName, #editPictureName, input[name="name"]');
-                    const categorySelect = systemModal.querySelector('#category, #editCategory, #pictureCategory, select[name="category"]');
-                    const descriptionInput = systemModal.querySelector('#description, #pictureDescription, #editDescription, #editPictureDescription, textarea[name="description"]');
-                    
-                    if (nameInput) {
+        
+        // 检查是否已有系统模态框可用
+        const systemModal = document.querySelector('#pictureEditModal, #editImageModal, .admin-modal.image-edit, .admin-modal.edit-picture, #editPictureModal');
+        
+        if (systemModal) {
+            console.log('Using system modal for editing picture:', systemModal.id);
+            
+            // 填充表单数据
+            const nameInput = systemModal.querySelector('#pictureName, #name, #editName, #editPictureName, input[name="name"]');
+            const categorySelect = systemModal.querySelector('#category, #editCategory, #pictureCategory, select[name="category"]');
+            const descriptionInput = systemModal.querySelector('#description, #pictureDescription, #editDescription, #editPictureDescription, textarea[name="description"]');
+            
+            if (nameInput) {
                         console.log('Setting name input:', metadata.name);
                         nameInput.value = metadata.name;
-                    } else {
-                        console.warn('Name input field not found in the system modal');
-                    }
-                    
-                    if (categorySelect) {
+            } else {
+                console.warn('Name input field not found in the system modal');
+            }
+            
+            if (categorySelect) {
                         console.log('Setting category select:', metadata.category);
                         categorySelect.value = metadata.category;
-                    } else {
-                        console.warn('Category select field not found in the system modal');
-                    }
-                    
-                    if (descriptionInput) {
+            } else {
+                console.warn('Category select field not found in the system modal');
+            }
+            
+            if (descriptionInput) {
                         console.log('Setting description textarea:', metadata.description);
                         descriptionInput.value = metadata.description || '';
-                    } else {
-                        console.warn('Description textarea not found in the system modal');
-                    }
+            } else {
+                console.warn('Description textarea not found in the system modal');
+            }
+            
+            // 保存按钮点击事件
+            // 直接查找Save Changes按钮
+            const saveBtn = systemModal.querySelector('button:last-child, button.primary, button.save-changes, button.btn-primary, button[type="submit"]');
+            
+            if (saveBtn) {
+                console.log('Found save button:', saveBtn.textContent);
+                
+                // 清除现有的所有点击事件处理程序
+                const newSaveBtn = saveBtn.cloneNode(true);
+                saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+                
+                // 添加新的点击事件处理程序，使用更稳健的方法
+                newSaveBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     
-                    // 保存按钮点击事件
-                    // 直接查找Save Changes按钮
-                    const saveBtn = systemModal.querySelector('button:last-child, button.primary, button.save-changes, button.btn-primary, button[type="submit"]');
+                    console.log('Save button clicked!');
                     
-                    if (saveBtn) {
-                        console.log('Found save button:', saveBtn.textContent);
-                        
-                        // 清除现有的所有点击事件处理程序
-                        const newSaveBtn = saveBtn.cloneNode(true);
-                        saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-                        
-                        // 添加新的点击事件处理程序，使用更稳健的方法
-                        newSaveBtn.onclick = function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            
-                            console.log('Save button clicked!');
-                            
-                            // 获取更新后的值
+                    // 获取更新后的值
                             const updatedName = nameInput ? nameInput.value.trim() : metadata.name;
                             const updatedCategory = categorySelect ? categorySelect.value : metadata.category;
                             const updatedDescription = descriptionInput ? descriptionInput.value.trim() : (metadata.description || '');
@@ -1094,175 +1094,175 @@ function editPicture(pictureId) {
                                     updatePicture(pictureId, updatedName, updatedCategory, updatedDescription, imageData.imageUrl);
                                 }
                             });
-                            
-                            return false;
-                        };
-                        
-                        console.log('Save button click event attached');
-                    } else {
-                        console.warn('Save button not found in the system modal');
-                    }
                     
-                    // 系统可能已经显示了模态框，所以不需要额外的显示操作
-                    return;
-                }
+                    return false;
+                };
                 
-                // 如果没有找到系统模态框，则使用我们自定义的模态框
-                console.log('Using custom modal for editing picture');
-                let editModal = document.getElementById('editPictureModal');
-                if (!editModal) {
-                    // 创建编辑模态框
-                    editModal = document.createElement('div');
-                    editModal.id = 'editPictureModal';
-                    editModal.className = 'admin-modal';
-                    
-                    editModal.innerHTML = `
-                        <div class="admin-modal-content" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; background-color: white; border-radius: 6px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-                            <div class="admin-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #e3e3e3; background-color: #f8f9fa;">
-                                <h3 class="modal-title" style="margin: 0; font-size: 18px; color: #333;"><i class="fas fa-edit"></i> Edit Picture</h3>
-                                <button class="close-modal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #666;">&times;</button>
+                console.log('Save button click event attached');
+            } else {
+                console.warn('Save button not found in the system modal');
+            }
+            
+            // 系统可能已经显示了模态框，所以不需要额外的显示操作
+            return;
+        }
+        
+        // 如果没有找到系统模态框，则使用我们自定义的模态框
+        console.log('Using custom modal for editing picture');
+        let editModal = document.getElementById('editPictureModal');
+        if (!editModal) {
+            // 创建编辑模态框
+            editModal = document.createElement('div');
+            editModal.id = 'editPictureModal';
+            editModal.className = 'admin-modal';
+            
+            editModal.innerHTML = `
+                <div class="admin-modal-content" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; background-color: white; border-radius: 6px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+                    <div class="admin-modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #e3e3e3; background-color: #f8f9fa;">
+                        <h3 class="modal-title" style="margin: 0; font-size: 18px; color: #333;"><i class="fas fa-edit"></i> Edit Picture</h3>
+                        <button class="close-modal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #666;">&times;</button>
+                    </div>
+                    <form id="editPictureForm" class="admin-form" style="padding: 20px; background-color: white;">
+                        <input type="hidden" id="editPictureId">
+                        
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div class="form-group">
+                                <label for="editPictureName" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Image Name</label>
+                                <input type="text" id="editPictureName" required style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background-color: white;">
                             </div>
-                            <form id="editPictureForm" class="admin-form" style="padding: 20px; background-color: white;">
-                                <input type="hidden" id="editPictureId">
-                                
-                                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                                    <div class="form-group">
-                                        <label for="editPictureName" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Image Name</label>
-                                        <input type="text" id="editPictureName" required style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background-color: white;">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="editCategory" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Category</label>
-                                        <select id="editCategory" required style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background-color: white;">
-                                            <option value="scenery">Scenery</option>
-                                            <option value="wildlife">Wildlife</option>
-                                            <option value="culture">Culture</option>
-                                            <option value="food">Food</option>
-                                            <option value="beach">Beach</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group" style="margin-bottom: 15px;">
-                                    <label for="editPictureDescription" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Description</label>
-                                    <textarea id="editPictureDescription" rows="3" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical; background-color: white;"></textarea>
-                                </div>
-                                
-                                <div class="form-group" style="margin-bottom: 20px;">
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #444;">Current Image</label>
-                                    <div id="editImagePreview" class="image-preview" style="max-width: 300px; margin: 0 auto; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"></div>
-                                </div>
-                                
-                                <div class="form-group" style="margin-bottom: 20px;">
-                                    <label for="editPictureFile" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Replace Image (Optional)</label>
-                                    <input type="file" id="editPictureFile" accept="image/*" style="display: block; width: 100%; padding: 8px 0;">
-                                    <div id="editFilePreview" class="file-preview" style="margin-top: 10px; max-width: 300px; margin: 10px auto 0;"></div>
-                                </div>
-                                
-                                <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
-                                    <button type="button" class="admin-btn secondary cancel-edit" style="padding: 8px 16px; background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; color: #333; cursor: pointer; font-size: 14px;">Cancel</button>
-                                    <button type="button" class="admin-btn primary save-changes" id="saveEditButton" style="padding: 8px 16px; background-color: #4a6fdc; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 14px;">Save Changes</button>
-                                </div>
-                            </form>
+                            <div class="form-group">
+                                <label for="editCategory" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Category</label>
+                                <select id="editCategory" required style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background-color: white;">
+                                    <option value="scenery">Scenery</option>
+                                    <option value="wildlife">Wildlife</option>
+                                    <option value="culture">Culture</option>
+                                    <option value="food">Food</option>
+                                    <option value="beach">Beach</option>
+                                </select>
+                            </div>
                         </div>
-                    `;
-                    
-                    // 设置模态框样式
-                    editModal.style.position = 'fixed';
-                    editModal.style.top = '0';
-                    editModal.style.left = '0';
-                    editModal.style.width = '100%';
-                    editModal.style.height = '100%';
-                    editModal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                    editModal.style.display = 'none';
-                    editModal.style.justifyContent = 'center';
-                    editModal.style.alignItems = 'center';
-                    editModal.style.zIndex = '1000';
-                    
-                    document.body.appendChild(editModal);
-                    
-                    // 设置关闭按钮事件
-                    const closeBtn = editModal.querySelector('.close-modal');
-                    const cancelBtn = editModal.querySelector('.cancel-edit');
-                    
-                    closeBtn.addEventListener('click', function() {
-                        editModal.style.display = 'none';
-                    });
-                    
-                    cancelBtn.addEventListener('click', function() {
-                        editModal.style.display = 'none';
-                    });
-                    
-                    // 设置表单提交事件 - 改用保存按钮点击事件
-                    const saveBtn = editModal.querySelector('.save-changes');
-                    saveBtn.onclick = function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
                         
-                        const pictureId = document.getElementById('editPictureId').value;
-                        const pictureName = document.getElementById('editPictureName').value;
-                        const category = document.getElementById('editCategory').value;
-                        const description = document.getElementById('editPictureDescription').value;
-                        const pictureFile = document.getElementById('editPictureFile').files[0];
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label for="editPictureDescription" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Description</label>
+                            <textarea id="editPictureDescription" rows="3" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical; background-color: white;"></textarea>
+                        </div>
                         
-                        if (pictureFile) {
-                            // 如果上传了新图片，处理图片
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #444;">Current Image</label>
+                            <div id="editImagePreview" class="image-preview" style="max-width: 300px; margin: 0 auto; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"></div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="editPictureFile" style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Replace Image (Optional)</label>
+                            <input type="file" id="editPictureFile" accept="image/*" style="display: block; width: 100%; padding: 8px 0;">
+                            <div id="editFilePreview" class="file-preview" style="margin-top: 10px; max-width: 300px; margin: 10px auto 0;"></div>
+                        </div>
+                        
+                        <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                            <button type="button" class="admin-btn secondary cancel-edit" style="padding: 8px 16px; background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; color: #333; cursor: pointer; font-size: 14px;">Cancel</button>
+                            <button type="button" class="admin-btn primary save-changes" id="saveEditButton" style="padding: 8px 16px; background-color: #4a6fdc; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 14px;">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            // 设置模态框样式
+            editModal.style.position = 'fixed';
+            editModal.style.top = '0';
+            editModal.style.left = '0';
+            editModal.style.width = '100%';
+            editModal.style.height = '100%';
+            editModal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            editModal.style.display = 'none';
+            editModal.style.justifyContent = 'center';
+            editModal.style.alignItems = 'center';
+            editModal.style.zIndex = '1000';
+            
+            document.body.appendChild(editModal);
+            
+            // 设置关闭按钮事件
+            const closeBtn = editModal.querySelector('.close-modal');
+            const cancelBtn = editModal.querySelector('.cancel-edit');
+            
+            closeBtn.addEventListener('click', function() {
+                editModal.style.display = 'none';
+            });
+            
+            cancelBtn.addEventListener('click', function() {
+                editModal.style.display = 'none';
+            });
+            
+            // 设置表单提交事件 - 改用保存按钮点击事件
+            const saveBtn = editModal.querySelector('.save-changes');
+            saveBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const pictureId = document.getElementById('editPictureId').value;
+                const pictureName = document.getElementById('editPictureName').value;
+                const category = document.getElementById('editCategory').value;
+                const description = document.getElementById('editPictureDescription').value;
+                const pictureFile = document.getElementById('editPictureFile').files[0];
+                
+                if (pictureFile) {
+                    // 如果上传了新图片，处理图片
                             processImageFile(pictureFile, function(processedImage) {
                                 updatePicture(pictureId, pictureName, category, description, processedImage.imageUrl);
-                            });
-                        } else {
-                            // 否则保持原图片
+                    });
+                } else {
+                    // 否则保持原图片
                             getImageData(pictureId).then(imageData => {
                                 if (imageData) {
                                     updatePicture(pictureId, pictureName, category, description, imageData.imageUrl);
                                 }
                             });
-                        }
-                        
-                        // 关闭模态框
-                        editModal.style.display = 'none';
-                        
-                        return false;
-                    };
-                    
-                    // 设置文件上传预览
-                    const editPictureFile = document.getElementById('editPictureFile');
-                    const editFilePreview = document.getElementById('editFilePreview');
-                    
-                    editPictureFile.addEventListener('change', function(e) {
-                        if (e.target.files && e.target.files[0]) {
-                            const reader = new FileReader();
-                            reader.onload = function(event) {
-                                editFilePreview.innerHTML = `
-                                    <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background-color: white;">
-                                        <img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain; display: block;">
-                                    </div>
-                                `;
-                            };
-                            reader.readAsDataURL(e.target.files[0]);
-                        }
-                    });
                 }
                 
-                // 填充表单数据
+                // 关闭模态框
+                editModal.style.display = 'none';
+                
+                return false;
+            };
+            
+            // 设置文件上传预览
+            const editPictureFile = document.getElementById('editPictureFile');
+            const editFilePreview = document.getElementById('editFilePreview');
+            
+            editPictureFile.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        editFilePreview.innerHTML = `
+                            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background-color: white;">
+                                <img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px; object-fit: contain; display: block;">
+                            </div>
+                        `;
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+        
+        // 填充表单数据
                 document.getElementById('editPictureId').value = pictureId;
                 document.getElementById('editPictureName').value = metadata.name;
                 document.getElementById('editCategory').value = metadata.category;
                 document.getElementById('editPictureDescription').value = metadata.description || '';
-                
-                // 显示当前图片
-                const editImagePreview = document.getElementById('editImagePreview');
-                editImagePreview.innerHTML = `
-                    <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px; background-color: white;">
+        
+        // 显示当前图片
+        const editImagePreview = document.getElementById('editImagePreview');
+        editImagePreview.innerHTML = `
+            <div style="max-width: 100%; max-height: 200px; overflow: hidden; border-radius: 4px; background-color: white;">
                         <img src="${metadata.thumbnailUrl || metadata.imageUrl}" alt="${metadata.name}" style="max-width: 100%; max-height: 200px; object-fit: contain; display: block; margin: 0 auto;">
-                    </div>
-                `;
-                
-                // 清空文件上传字段和预览
-                document.getElementById('editPictureFile').value = '';
-                document.getElementById('editFilePreview').innerHTML = '';
-                
-                // 显示模态框
-                editModal.style.display = 'flex';
+            </div>
+        `;
+        
+        // 清空文件上传字段和预览
+        document.getElementById('editPictureFile').value = '';
+        document.getElementById('editFilePreview').innerHTML = '';
+        
+        // 显示模态框
+        editModal.style.display = 'flex';
             }
         }).catch(error => {
             console.error('Error editing picture:', error);
@@ -1350,32 +1350,32 @@ function updatePicture(pictureId, name, category, description, imageUrl) {
                 // 更新元数据
                 const updatedMetadata = {
                     ...metadata,
-                    name,
-                    category,
-                    description,
-                    imageUrl
-                };
-                
+                name,
+                category,
+                description,
+                imageUrl
+            };
+            
                 // 保存元数据
                 saveMetadata(updatedMetadata).then(() => {
-                    // 尝试关闭所有打开的模态框
-                    const openModals = document.querySelectorAll('.modal, .admin-modal');
-                    openModals.forEach(modal => {
-                        tryCloseModal(modal);
-                    });
-                    
-                    // 重新加载图片列表
-                    loadAndDisplayPictures();
-                    
-                    alert('Picture updated successfully!');
-                    console.log('Picture updated successfully');
+            // 尝试关闭所有打开的模态框
+            const openModals = document.querySelectorAll('.modal, .admin-modal');
+            openModals.forEach(modal => {
+                tryCloseModal(modal);
+            });
+            
+            // 重新加载图片列表
+            loadAndDisplayPictures();
+            
+            alert('Picture updated successfully!');
+            console.log('Picture updated successfully');
                 }).catch(error => {
                     console.error('Error saving updated metadata:', error);
                     alert('Error updating picture: ' + error.message);
                 });
-            } else {
-                console.error('Picture not found for update:', pictureId);
-            }
+        } else {
+            console.error('Picture not found for update:', pictureId);
+        }
         }).catch(error => {
             console.error('Error getting metadata for update:', error);
             alert('Error updating picture: ' + error.message);
@@ -1435,35 +1435,35 @@ function loadCarouselImages() {
             // 查找图片详情
             getImageData(imageId).then(imageData => {
                 if (imageData) {
-                    // 创建轮播图项
-                    const carouselItem = document.createElement('div');
-                    carouselItem.className = 'carousel-item';
+            // 创建轮播图项
+            const carouselItem = document.createElement('div');
+            carouselItem.className = 'carousel-item';
                     carouselItem.setAttribute('data-id', imageData.id);
-                    
-                    carouselItem.innerHTML = `
-                        <div class="carousel-item-image">
+            
+            carouselItem.innerHTML = `
+                <div class="carousel-item-image">
                             <img src="${imageData.imageUrl}" alt="${imageData.name}">
-                        </div>
-                        <div class="carousel-item-info">
+                </div>
+                <div class="carousel-item-info">
                             <span class="carousel-item-name">${imageData.name}</span>
                             <span class="carousel-item-category ${imageData.category}">${imageData.category}</span>
-                        </div>
-                        <div class="carousel-item-actions">
+                </div>
+                <div class="carousel-item-actions">
                             <button class="remove-from-carousel" data-id="${imageData.id}">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <span class="drag-handle">
-                                <i class="fas fa-grip-lines"></i>
-                            </span>
-                        </div>
-                    `;
-                    
-                    carouselList.appendChild(carouselItem);
-                    
-                    // 添加移除按钮事件
-                    const removeBtn = carouselItem.querySelector('.remove-from-carousel');
-                    if (removeBtn) {
-                        removeBtn.addEventListener('click', function() {
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <span class="drag-handle">
+                        <i class="fas fa-grip-lines"></i>
+                    </span>
+                </div>
+            `;
+            
+            carouselList.appendChild(carouselItem);
+            
+            // 添加移除按钮事件
+            const removeBtn = carouselItem.querySelector('.remove-from-carousel');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
                             removeFromCarousel(imageData.id);
                         });
                     }
@@ -1568,49 +1568,49 @@ function loadPicturesToSelectGrid() {
     
     // 从IndexedDB获取所有图片
     loadPictures().then(pictures => {
-        // 清空网格
-        selectGrid.innerHTML = '';
+    // 清空网格
+    selectGrid.innerHTML = '';
+    
+    // 如果没有图片，显示提示
+    if (pictures.length === 0) {
+        selectGrid.innerHTML = `
+            <div class="no-pictures-message">
+                <i class="fas fa-image"></i>
+                <p>No pictures available. Upload some pictures first.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // 显示所有图片
+    pictures.forEach(picture => {
+        const pictureItem = document.createElement('div');
+        pictureItem.className = 'select-picture-item';
+        pictureItem.setAttribute('data-id', picture.id);
         
-        // 如果没有图片，显示提示
-        if (pictures.length === 0) {
-            selectGrid.innerHTML = `
-                <div class="no-pictures-message">
-                    <i class="fas fa-image"></i>
-                    <p>No pictures available. Upload some pictures first.</p>
+        pictureItem.innerHTML = `
+            <div class="select-picture-image">
+                <img src="${picture.imageUrl}" alt="${picture.name}">
+                <div class="select-checkbox">
+                    <input type="checkbox" id="select_${picture.id}" data-id="${picture.id}">
+                    <label for="select_${picture.id}"></label>
                 </div>
-            `;
-            return;
-        }
+            </div>
+            <div class="select-picture-info">
+                <span class="select-picture-name">${picture.name}</span>
+                <span class="select-picture-category ${picture.category}">${picture.category}</span>
+            </div>
+        `;
         
-        // 显示所有图片
-        pictures.forEach(picture => {
-            const pictureItem = document.createElement('div');
-            pictureItem.className = 'select-picture-item';
-            pictureItem.setAttribute('data-id', picture.id);
-            
-            pictureItem.innerHTML = `
-                <div class="select-picture-image">
-                    <img src="${picture.imageUrl}" alt="${picture.name}">
-                    <div class="select-checkbox">
-                        <input type="checkbox" id="select_${picture.id}" data-id="${picture.id}">
-                        <label for="select_${picture.id}"></label>
-                    </div>
-                </div>
-                <div class="select-picture-info">
-                    <span class="select-picture-name">${picture.name}</span>
-                    <span class="select-picture-category ${picture.category}">${picture.category}</span>
-                </div>
-            `;
-            
-            selectGrid.appendChild(pictureItem);
-            
-            // 添加点击事件
-            pictureItem.addEventListener('click', function(e) {
-                if (e.target.closest('.select-checkbox') === null) {
-                    const checkbox = pictureItem.querySelector('input[type="checkbox"]');
-                    checkbox.checked = !checkbox.checked;
-                }
-            });
+        selectGrid.appendChild(pictureItem);
+        
+        // 添加点击事件
+        pictureItem.addEventListener('click', function(e) {
+            if (e.target.closest('.select-checkbox') === null) {
+                const checkbox = pictureItem.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+            }
+        });
         });
     }).catch(error => {
         console.error('Error loading pictures to select grid:', error);
@@ -1631,18 +1631,18 @@ function addSelectedImagesToCarousel() {
     
     // 从IndexedDB获取现有轮播图设置
     getAllMetadata().then(metadata => {
-        // 确保是数组
+    // 确保是数组
         if (!Array.isArray(metadata)) {
             metadata = [];
-        }
+    }
+    
+    // 添加选中的图片ID（如果不在轮播图中）
+    let newImagesAdded = 0;
+    selectedCheckboxes.forEach(checkbox => {
+        const imageId = checkbox.getAttribute('data-id');
         
-        // 添加选中的图片ID（如果不在轮播图中）
-        let newImagesAdded = 0;
-        selectedCheckboxes.forEach(checkbox => {
-            const imageId = checkbox.getAttribute('data-id');
-            
             if (!metadata.some(pic => pic.id === imageId)) {
-                newImagesAdded++;
+            newImagesAdded++;
                 metadata.push({
                     id: imageId,
                     name: '',
@@ -1656,20 +1656,20 @@ function addSelectedImagesToCarousel() {
         
         // 保存回IndexedDB
         metadata.forEach(meta => saveMetadata(meta));
-        
-        // 关闭模态框
-        const modal = document.getElementById('carouselModal');
-        if (modal && typeof closeModal === 'function') {
-            closeModal('carouselModal');
-        } else if (modal) {
-            modal.style.display = 'none';
-        }
-        
-        // 重新加载轮播图
-        loadCarouselImages();
-        
-        // 显示成功消息
-        alert(`${newImagesAdded} new image(s) added to carousel`);
+    
+    // 关闭模态框
+    const modal = document.getElementById('carouselModal');
+    if (modal && typeof closeModal === 'function') {
+        closeModal('carouselModal');
+    } else if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // 重新加载轮播图
+    loadCarouselImages();
+    
+    // 显示成功消息
+    alert(`${newImagesAdded} new image(s) added to carousel`);
     }).catch(error => {
         console.error('Error adding selected images to carousel:', error);
     });
@@ -1682,20 +1682,20 @@ function addSelectedImagesToCarousel() {
 function removeFromCarousel(imageId) {
     // 从IndexedDB获取轮播图设置
     getAllMetadata().then(metadata => {
-        // 确保是数组
+    // 确保是数组
         if (!Array.isArray(metadata)) {
             metadata = [];
-        }
-        
-        // 移除指定图片ID
+    }
+    
+    // 移除指定图片ID
         const updatedMetadata = metadata.filter(pic => pic.id !== imageId);
-        
+    
         // 保存回IndexedDB
         saveMetadata(updatedMetadata).then(() => {
-            // 重新加载轮播图
-            loadCarouselImages();
-            
-            console.log('Image removed from carousel:', imageId);
+    // 重新加载轮播图
+    loadCarouselImages();
+    
+    console.log('Image removed from carousel:', imageId);
             alert('Image removed from carousel');
         }).catch(error => {
             console.error('Error removing image from carousel:', error);
@@ -1739,8 +1739,8 @@ function saveCarouselOrder() {
         id: 'carouselImages',
         images: orderedIds
     }).then(() => {
-        console.log('Carousel order saved:', orderedIds);
-        alert('Carousel order saved successfully');
+    console.log('Carousel order saved:', orderedIds);
+    alert('Carousel order saved successfully');
     }).catch(error => {
         console.error('Error saving carousel order:', error);
         alert('Error saving carousel order: ' + error.message);
