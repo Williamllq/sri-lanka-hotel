@@ -106,99 +106,6 @@ img {
     .footer {
         padding-bottom: 100px; /* 为底部导航留出足够空间 */
     }
-    
-    /* 增强移动设备日期和时间输入的样式 */
-    input[type="date"],
-    input[type="time"] {
-        -webkit-appearance: none;
-        appearance: none;
-        padding: 12px 10px;
-        border-radius: 8px;
-        font-size: 16px; /* 避免iOS自动缩放 */
-        min-height: 44px; /* 提供足够大的触摸区域 */
-        background-color: #fff;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    
-    /* 修复在iOS上日期时间输入的外观 */
-    input::-webkit-datetime-edit { 
-        padding: 6px;
-    }
-    
-    input::-webkit-datetime-edit-fields-wrapper { 
-        background-color: transparent;
-    }
-    
-    input::-webkit-datetime-edit-text { 
-        color: #777;
-    }
-    
-    input::-webkit-datetime-edit-month-field,
-    input::-webkit-datetime-edit-day-field,
-    input::-webkit-datetime-edit-year-field,
-    input::-webkit-datetime-edit-hour-field,
-    input::-webkit-datetime-edit-minute-field,
-    input::-webkit-datetime-edit-ampm-field {
-        color: #333;
-    }
-    
-    input::-webkit-calendar-picker-indicator {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        opacity: 0.8;
-    }
-    
-    /* 提高表单输入的可点击性 */
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 500;
-    }
-    
-    /* 确保按钮有足够的触摸区域 */
-    .map-select-btn {
-        min-height: 44px;
-        padding: 12px 15px !important;
-    }
-    
-    /* 修复表单行在小屏幕上的间距 */
-    .form-row {
-        margin-bottom: 12px;
-    }
-    
-    /* 防止表单元素在交互时导致页面跳转 - 仅在触摸设备上 */
-    .booking-form {
-        position: relative;
-        overflow: visible;
-    }
-    
-    /* 为触摸设备添加特殊的阻止过度滚动行为 */
-    @media (pointer: coarse) {
-        .booking-form {
-            overscroll-behavior: contain; /* 改用contain替代none，仅限制过度滚动而不完全禁用 */
-        }
-    }
-    
-    /* 修复iOS上输入控件的默认样式 */
-    input, select, textarea {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-    }
-    
-    /* 确保表单按钮在移动设备上有足够的大小 */
-    .form-buttons button {
-        min-height: 44px;
-        font-size: 16px;
-    }
 }
 
 /* 特别为小屏设备（如iPhone SE）优化 */
@@ -255,4 +162,116 @@ img {
     .scrollable-element, body, html {
         -webkit-overflow-scrolling: touch;
     }
+}
+
+/* 修复移动端日期和时间输入的样式 */
+input[type="date"],
+input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 16px; /* 防止iOS自动缩放 */
+}
+
+/* 确保readonly状态的输入框看起来和普通输入框一样 */
+input[readonly] {
+    background-color: #fff;
+    opacity: 1;
+    /* 在某些浏览器中阻止灰色背景 */
+    -webkit-text-fill-color: currentColor;
+    /* 确保光标显示为文本选择光标而不是禁用光标 */
+    cursor: text;
+}
+
+/* 为预订表单标题添加高亮动画效果 */
+@keyframes highlightTarget {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(76, 175, 80, 0.2); }
+    100% { background-color: transparent; }
+}
+
+.highlight-target {
+    animation: highlightTarget 1.5s ease-in-out;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+/* 强化移动端点击体验 */
+.map-select-btn,
+.btn,
+button {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    touch-action: manipulation;
+}
+
+/* 修复移动端表单自动填充颜色问题 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* 确保移动端通知在选择日期时保持可见 */
+#mobileNotification {
+    z-index: 9999 !important;
+}
+
+/* 修复移动端日期时间选择不跳转的关键样式 */
+@media (max-width: 767px) {
+    /* 防止iOS日期选择器导致的页面跳转 */
+    .booking-form {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* 确保表单元素在用户交互时不会被隐藏 */
+    .form-row {
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* 防止表单元素失去焦点时的意外行为 */
+    .form-group {
+        position: relative;
+        transition: none;
+    }
+    
+    /* 确保输入框可见 */
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        position: relative;
+        z-index: 3;
+    }
+    
+    /* 预定表单中元素的聚焦状态更加明显 */
+    #booking-form-anchor {
+        scroll-margin-top: 70px; /* 为固定头部留出空间 */
+    }
+}
+
+/* 添加触摸反馈效果 */
+.touch-active {
+    opacity: 0.7;
+    transform: scale(0.97);
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+}
+
+/* 移动设备上按钮和可交互元素的样式 */
+.mobile-device button,
+.mobile-device .btn,
+.mobile-device a,
+.mobile-device .form-group input,
+.mobile-device .form-group select,
+.mobile-device .form-group textarea {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
 } 

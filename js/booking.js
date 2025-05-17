@@ -23,9 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
  * 初始化"Book Transport"按钮跳转功能
  */
 function initBookTransportButton() {
-    // 检查是否为移动设备，为桌面和移动设备提供不同的实现
-    const isMobile = /Android|iPhone|iPad|iPod|mobile|tablet/i.test(navigator.userAgent);
-    
     // 查找所有"Book Transport"按钮
     const bookTransportButtons = document.querySelectorAll('a[href="#booking-form-anchor"]');
     
@@ -34,94 +31,48 @@ function initBookTransportButton() {
             e.preventDefault();
             
             // 获取目标元素
-            const bookingFormAnchor = document.getElementById('booking-form-anchor');
-            if (!bookingFormAnchor) {
-                console.error('Booking form anchor not found');
-                return;
-            }
+            const targetElement = document.getElementById('booking-form-anchor');
             
-            // 计算目标滚动位置（考虑任何固定标题的高度）
-            const headerHeight = document.querySelector('header') ? document.querySelector('header').offsetHeight : 0;
-            const targetPosition = bookingFormAnchor.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
-            
-            // 使用更简单的滚动方法用于桌面设备
-            if (!isMobile) {
+            if (targetElement) {
+                // 计算目标元素的位置，考虑任何固定头部的高度
+                const headerHeight = document.querySelector('header') ? document.querySelector('header').offsetHeight : 0;
+                const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+                
+                // 使用平滑滚动到目标位置
                 window.scrollTo({
                     top: targetPosition,
                     behavior: 'smooth'
                 });
-                return;
-            }
-            
-            // 以下是移动设备的增强滚动实现
-            // 检查页面是否已经加载完成
-            if (document.readyState === 'complete') {
-                performSmoothScroll(targetPosition);
+                
+                // 添加视觉反馈
+                setTimeout(() => {
+                    targetElement.classList.add('highlight-target');
+                    setTimeout(() => {
+                        targetElement.classList.remove('highlight-target');
+                    }, 1500);
+                }, 500);
+                
+                console.log('Scrolled to booking form anchor');
             } else {
-                // 如果页面还在加载，等待加载完成再滚动
-                window.addEventListener('load', function() {
-                    performSmoothScroll(targetPosition);
-                });
+                console.error('Target element not found');
             }
         });
     });
     
-    /**
-     * 执行平滑滚动并确保在移动设备上正确工作
-     * @param {number} targetPosition - 目标滚动位置
-     */
-    function performSmoothScroll(targetPosition) {
-        // 使用更可靠的方法滚动到目标位置
-        try {
-            // 尝试使用平滑滚动
-            window.scrollTo({
-                top: targetPosition,
-                behavior: 'smooth'
-            });
-            
-            // 确保我们确实到达了目标位置（可能的滚动干扰）
-            setTimeout(function() {
-                const currentPos = window.pageYOffset;
-                const targetDiff = Math.abs(currentPos - targetPosition);
-                
-                // 如果我们不在目标位置附近，尝试再次滚动
-                if (targetDiff > 50) {
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'auto'
-                    });
-                    
-                    // 聚焦到表单的第一个输入元素以引导用户
-                    setTimeout(function() {
-                        const serviceTypeSelect = document.getElementById('serviceType');
-                        if (serviceTypeSelect) {
-                            serviceTypeSelect.focus();
-                        }
-                    }, 500);
-                }
-            }, 1000);
-        } catch (e) {
-            // 回退到基本滚动方法
-            console.error('Smooth scroll failed, using fallback', e);
-            window.scrollTo(0, targetPosition);
+    // 添加样式以突出显示目标元素
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes highlightTarget {
+            0% { background-color: transparent; }
+            50% { background-color: rgba(76, 175, 80, 0.2); }
+            100% { background-color: transparent; }
         }
-    }
-    
-    // 初始化页面加载时的直接跳转处理
-    if (window.location.hash === '#booking-form-anchor') {
-        // 等待DOM加载完毕再处理哈希值
-        setTimeout(function() {
-            const bookingFormAnchor = document.getElementById('booking-form-anchor');
-            if (bookingFormAnchor) {
-                const headerHeight = document.querySelector('header') ? document.querySelector('header').offsetHeight : 0;
-                const targetPosition = bookingFormAnchor.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'auto'
-                });
-            }
-        }, 500);
-    }
+        
+        .highlight-target {
+            animation: highlightTarget 1.5s ease-in-out;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 /**
@@ -129,17 +80,6 @@ function initBookTransportButton() {
  * 防止移动端用户填写表单时页面跳回顶部
  */
 function initFormScrollMemory() {
-    // 检查是否为移动设备，桌面设备不需要此功能
-    const isMobile = /Android|iPhone|iPad|iPod|mobile|tablet/i.test(navigator.userAgent);
-    
-    // 如果是桌面设备，仅设置基本的表单功能，不添加滚动位置管理
-    if (!isMobile) {
-        console.log('Desktop device detected - not applying scroll position management');
-        return;
-    }
-    
-    console.log('Mobile device detected - applying scroll position management');
-    
     // 要监听的表单元素
     const formElements = [
         'serviceType',
@@ -167,6 +107,14 @@ function initFormScrollMemory() {
                     behavior: 'auto' // 使用'auto'而不是'smooth'以避免动画过渡
                 });
                 console.log('Restored scroll position:', lastScrollPosition);
+                
+                // 在极端情况下，再次尝试恢复滚动位置
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: lastScrollPosition,
+                        behavior: 'auto'
+                    });
+                }, 200);
             }
         }
     }
@@ -279,135 +227,181 @@ function initFormScrollMemory() {
  * 阻止日期和时间输入框的浏览器默认滚动行为
  */
 function preventDefaultDateTimeScrolling() {
-    // 首先检查是否为移动设备，如果不是，直接返回
-    if (!(/Android|iPhone|iPad|iPod|mobile|tablet/i.test(navigator.userAgent))) {
-        console.log('Desktop detected, not applying mobile scroll fixes');
-        return;
-    }
-    
     const dateInput = document.getElementById('journeyDate');
     const timeInput = document.getElementById('journeyTime');
     
-    // 用自定义处理替换原生日期选择器的函数
-    function createCustomDateTimePicker(input, type) {
-        if (!(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))) {
-            return; // 只在移动设备上应用这个增强功能
-        }
+    // 检测是否为移动设备
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (dateInput && isMobile) {
+        // 保存初始值以检测变化
+        let lastDateValue = dateInput.value;
         
-        // 设置为只读，防止键盘弹出
-        input.setAttribute('readonly', 'readonly');
+        // 设置为只读以防止键盘弹出
+        dateInput.setAttribute('readonly', 'readonly');
         
-        // 创建一个隐藏的原生输入，用于实际选择
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = type;
-        hiddenInput.style.position = 'absolute';
-        hiddenInput.style.opacity = '0';
-        hiddenInput.style.height = '0';
-        hiddenInput.style.width = '0';
-        hiddenInput.style.pointerEvents = 'none';
-        document.body.appendChild(hiddenInput);
-        
-        // 当用户点击输入框时的处理
-        input.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // 保存滚动位置
+        // 点击时移除只读属性，允许选择日期
+        dateInput.addEventListener('click', function(e) {
+            // 保存当前滚动位置
             saveScrollPosition();
-            const currentValue = input.value;
             
-            // 重要：阻止任何可能的滚动，但只在移动设备上
-            const preventScroll = (e) => {
-                if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                    window.scrollTo(0, lastScrollPosition);
-                }
-            };
+            // 移除只读属性以允许日期选择器打开
+            this.removeAttribute('readonly');
             
-            // 监听滚动事件
-            window.addEventListener('scroll', preventScroll, { passive: false });
+            // 阻止默认行为，防止页面跳转
+            e.preventDefault();
+            e.stopPropagation();
             
-            // 点击隐藏输入打开日期/时间选择器
-            hiddenInput.value = currentValue;
-            hiddenInput.focus();
-            hiddenInput.click();
-            
-            // 处理选择结果
-            hiddenInput.addEventListener('change', function onChangeOnce() {
-                input.value = hiddenInput.value;
+            // 手动触发点击
+            setTimeout(() => {
+                this.click();
+            }, 50);
+        });
+        
+        // 监听输入变化
+        dateInput.addEventListener('change', function() {
+            // 如果值发生变化，表示用户已选择日期
+            if (this.value !== lastDateValue) {
+                lastDateValue = this.value;
                 
-                // 触发change事件，让其他代码知道值已更改
-                const event = new Event('change', { bubbles: true });
-                input.dispatchEvent(event);
+                // 重新设置为只读
+                setTimeout(() => {
+                    this.setAttribute('readonly', 'readonly');
+                    
+                    // 恢复滚动位置
+                    setTimeout(() => {
+                        if (lastScrollPosition > 0) {
+                            window.scrollTo({
+                                top: lastScrollPosition,
+                                behavior: 'auto'
+                            });
+                        }
+                    }, 100);
+                }, 100);
+            }
+        });
+        
+        // 处理失去焦点事件
+        dateInput.addEventListener('blur', function() {
+            // 重新设置为只读
+            setTimeout(() => {
+                this.setAttribute('readonly', 'readonly');
                 
                 // 恢复滚动位置
                 setTimeout(() => {
-                    window.removeEventListener('scroll', preventScroll);
-                    
-                    // 多次尝试恢复滚动位置，确保成功（但只在移动设备上）
-                    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                        for (let i = 0; i < 5; i++) {
-                            setTimeout(() => {
-                                if (lastScrollPosition > 0) {
-                                    window.scrollTo({
-                                        top: lastScrollPosition,
-                                        behavior: 'auto'
-                                    });
-                                }
-                            }, i * 100);
-                        }
+                    if (lastScrollPosition > 0) {
+                        window.scrollTo({
+                            top: lastScrollPosition,
+                            behavior: 'auto'
+                        });
                     }
                 }, 100);
-                
-                // 移除一次性事件监听器
-                hiddenInput.removeEventListener('change', onChangeOnce);
-            });
+            }, 100);
+        });
+        
+        // 特殊处理iOS设备的日期选择器
+        dateInput.addEventListener('touchend', function(e) {
+            saveScrollPosition();
+        });
+    }
+    
+    if (timeInput && isMobile) {
+        // 保存初始值以检测变化
+        let lastTimeValue = timeInput.value;
+        
+        // 对时间输入框应用同样的处理
+        timeInput.setAttribute('readonly', 'readonly');
+        
+        timeInput.addEventListener('click', function(e) {
+            // 保存当前滚动位置
+            saveScrollPosition();
             
-            // 监听blur事件，处理用户取消选择的情况
-            hiddenInput.addEventListener('blur', function onBlurOnce() {
+            // 移除只读属性以允许时间选择器打开
+            this.removeAttribute('readonly');
+            
+            // 阻止默认行为，防止页面跳转
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // 手动触发点击
+            setTimeout(() => {
+                this.click();
+            }, 50);
+        });
+        
+        // 监听输入变化
+        timeInput.addEventListener('change', function() {
+            // 如果值发生变化，表示用户已选择时间
+            if (this.value !== lastTimeValue) {
+                lastTimeValue = this.value;
+                
+                // 重新设置为只读
                 setTimeout(() => {
-                    window.removeEventListener('scroll', preventScroll);
+                    this.setAttribute('readonly', 'readonly');
                     
-                    if (lastScrollPosition > 0 && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                    // 恢复滚动位置
+                    setTimeout(() => {
+                        if (lastScrollPosition > 0) {
+                            window.scrollTo({
+                                top: lastScrollPosition,
+                                behavior: 'auto'
+                            });
+                        }
+                    }, 100);
+                }, 100);
+            }
+        });
+        
+        // 处理失去焦点事件
+        timeInput.addEventListener('blur', function() {
+            // 重新设置为只读
+            setTimeout(() => {
+                this.setAttribute('readonly', 'readonly');
+                
+                // 恢复滚动位置
+                setTimeout(() => {
+                    if (lastScrollPosition > 0) {
+                        window.scrollTo({
+                            top: lastScrollPosition,
+                            behavior: 'auto'
+                        });
+                    }
+                }, 100);
+            }, 100);
+        });
+        
+        // 特殊处理iOS设备的时间选择器
+        timeInput.addEventListener('touchend', function(e) {
+            saveScrollPosition();
+        });
+    }
+    
+    // 修复Android和iOS的滚动问题
+    if (isMobile) {
+        // 在页面触摸开始时保存位置
+        document.addEventListener('touchstart', function(e) {
+            // 检查是否点击了日期或时间输入框
+            if (e.target === dateInput || e.target === timeInput) {
+                // 保存当前滚动位置
+                saveScrollPosition();
+            }
+        }, {passive: true});
+        
+        // 修复iOS中选择器关闭后的滚动问题
+        document.addEventListener('focusout', function(e) {
+            // 检查是否是日期或时间输入框失去焦点
+            if (e.target === dateInput || e.target === timeInput) {
+                // 延迟一段时间恢复滚动位置
+                setTimeout(() => {
+                    if (lastScrollPosition > 0) {
                         window.scrollTo({
                             top: lastScrollPosition,
                             behavior: 'auto'
                         });
                     }
                 }, 300);
-                
-                hiddenInput.removeEventListener('blur', onBlurOnce);
-            });
+            }
         });
-    }
-    
-    // 应用到日期和时间输入
-    if (dateInput) {
-        createCustomDateTimePicker(dateInput, 'date');
-    }
-    
-    if (timeInput) {
-        createCustomDateTimePicker(timeInput, 'time');
-    }
-    
-    // 为表单添加总体处理，防止任何元素导致页面跳转
-    const bookingForm = document.querySelector('.booking-form');
-    if (bookingForm) {
-        bookingForm.addEventListener('touchstart', function(e) {
-            // 保存当前滚动位置
-            saveScrollPosition();
-        }, { passive: true });
-        
-        // 确保任何输入完成后滚动位置被正确恢复
-        bookingForm.addEventListener('touchend', function(e) {
-            // 延迟执行以确保其他事件处理完成
-            setTimeout(function() {
-                if (lastScrollPosition > 0 && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                    window.scrollTo({
-                        top: lastScrollPosition,
-                        behavior: 'auto'
-                    });
-                }
-            }, 100);
-        }, { passive: true });
     }
 }
 
@@ -418,30 +412,24 @@ let lastScrollPosition = 0;
  * 保存当前滚动位置
  */
 function saveScrollPosition() {
-    // 只在移动设备上保存滚动位置，避免影响桌面端滚动
-    if (/Android|iPhone|iPad|iPod|mobile|tablet/i.test(navigator.userAgent)) {
-        lastScrollPosition = window.scrollY || window.pageYOffset;
-        console.log('Saved scroll position:', lastScrollPosition);
-    }
+    lastScrollPosition = window.scrollY || window.pageYOffset;
+    console.log('Saved scroll position:', lastScrollPosition);
 }
 
 /**
  * 恢复保存的滚动位置
  */
 function restoreScrollPosition() {
-    // 只在移动设备上恢复滚动位置
-    if (/Android|iPhone|iPad|iPod|mobile|tablet/i.test(navigator.userAgent)) {
-        // 使用setTimeout确保在DOM更新后恢复滚动位置
-        setTimeout(function() {
-            if (lastScrollPosition > 0) {
-                window.scrollTo({
-                    top: lastScrollPosition,
-                    behavior: 'auto' // 使用'auto'而不是'smooth'以避免动画过渡
-                });
-                console.log('Restored scroll position:', lastScrollPosition);
-            }
-        }, 10);
-    }
+    // 使用setTimeout确保在DOM更新后恢复滚动位置
+    setTimeout(function() {
+        if (lastScrollPosition > 0) {
+            window.scrollTo({
+                top: lastScrollPosition,
+                behavior: 'auto' // 使用'auto'而不是'smooth'以避免动画过渡
+            });
+            console.log('Restored scroll position:', lastScrollPosition);
+        }
+    }, 10);
 }
 
 /**
@@ -1259,7 +1247,7 @@ function saveBooking(booking) {
             userBookings[booking.userEmail][existingIndex] = booking;
         } else {
             // Add new booking
-        userBookings[booking.userEmail].push(booking);
+            userBookings[booking.userEmail].push(booking);
         }
         
         localStorage.setItem('userBookings', JSON.stringify(userBookings));
@@ -1284,7 +1272,7 @@ function saveBooking(booking) {
             bookingSystem.bookings[existingIndex] = booking;
         } else {
             // Add new booking
-        bookingSystem.bookings.push(booking);
+            bookingSystem.bookings.push(booking);
         }
         
         localStorage.setItem('bookingSystem', JSON.stringify(bookingSystem));
@@ -1336,7 +1324,7 @@ function saveBooking(booking) {
             bookings[existingIndex] = adminBooking;
         } else {
             // Add new booking
-        bookings.push(adminBooking);
+            bookings.push(adminBooking);
         }
         
         // Save back to localStorage
@@ -1484,12 +1472,12 @@ function synchronizeBookings() {
                                 // Ensure timestamps are set
                                 timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
                                 lastUpdated: booking.lastUpdated || new Date().toISOString()
+                            });
+                        }
                     });
                 }
             });
-        }
-            });
-        console.log('Retrieved bookings from userBookings:', bookingIds.size);
+            console.log('Retrieved bookings from userBookings:', bookingIds.size);
         }
     } catch (e) {
         console.error('Error retrieving bookings from userBookings:', e);
@@ -1708,10 +1696,6 @@ function synchronizeBookings() {
  * @param {string} message 要显示的消息
  */
 function showMobileNotification(message) {
-    // 确保在显示通知前保存滚动位置
-    const savedPosition = window.scrollY || window.pageYOffset;
-    const isMobile = /Android|iPhone|iPad|iPod|mobile|tablet/i.test(navigator.userAgent);
-    
     // 检查是否已有通知元素
     let notification = document.getElementById('mobileNotification');
     
@@ -1735,8 +1719,6 @@ function showMobileNotification(message) {
         notification.style.display = 'none';
         notification.style.opacity = '0';
         notification.style.transition = 'opacity 0.3s ease';
-        notification.style.pointerEvents = 'auto'; // 允许点击
-        
         // 添加关闭按钮
         notification.innerHTML = `
             <span style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 16px;">&times;</span>
@@ -1751,11 +1733,6 @@ function showMobileNotification(message) {
                 notification.style.opacity = '0';
                 setTimeout(() => {
                     notification.style.display = 'none';
-                    
-                    // 确保关闭通知后恢复滚动位置，但仅限移动设备
-                    if (isMobile) {
-                        window.scrollTo(0, savedPosition);
-                    }
                 }, 300);
             });
         }
@@ -1778,11 +1755,6 @@ function showMobileNotification(message) {
                 notification.style.opacity = '0';
                 setTimeout(() => {
                     notification.style.display = 'none';
-                    
-                    // 确保关闭通知后恢复滚动位置，但仅限移动设备
-                    if (isMobile) {
-                        window.scrollTo(0, savedPosition);
-                    }
                 }, 300);
             });
         }
@@ -1797,34 +1769,21 @@ function showMobileNotification(message) {
     // 设置不透明度为1以触发过渡效果
     notification.style.opacity = '1';
     
-    // 确保通知显示后不会改变页面滚动位置，但仅限移动设备
-    if (isMobile) {
-        window.scrollTo(0, savedPosition);
-    }
-    
-    // 添加防抖动特性，阻止通知导致的页面跳动，但仅限移动设备
-    const preventScroll = (e) => {
-        if (isMobile) {
-            window.scrollTo(0, savedPosition);
-        }
-    };
-    
-    // 只在移动设备上添加防抖动滚动事件监听
-    if (isMobile) {
-        window.addEventListener('scroll', preventScroll, { passive: false });
-    }
-    
-    // 4秒后自动隐藏
+    // 3秒后自动隐藏
     setTimeout(() => {
         notification.style.opacity = '0';
         setTimeout(() => {
             notification.style.display = 'none';
-            
-            // 仅在移动设备上处理滚动恢复
-            if (isMobile) {
-                window.removeEventListener('scroll', preventScroll);
-                window.scrollTo(0, savedPosition);
-            }
         }, 300);
     }, 4000);
+    
+    // 在通知显示后恢复滚动位置
+    if (typeof lastScrollPosition !== 'undefined' && lastScrollPosition > 0) {
+        setTimeout(function() {
+            window.scrollTo({
+                top: lastScrollPosition,
+                behavior: 'auto'
+            });
+        }, 50);
+    }
 }

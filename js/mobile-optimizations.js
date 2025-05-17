@@ -39,20 +39,15 @@
     
     // Add touch feedback effects to buttons and interactive elements
     function addTouchFeedback() {
-        const interactiveElements = document.querySelectorAll('.btn, .btn-secondary, .admin-btn, .gallery-filter-btn, .nav-links a, .featured-image, .gallery-thumbnail, .transport-card');
+        const interactiveElements = document.querySelectorAll('button, .btn, a, .form-group');
         
         interactiveElements.forEach(element => {
-            // Add touch feedback class
-            element.classList.add('touch-feedback');
-            
-            // Add touch start effect
             element.addEventListener('touchstart', function() {
                 this.classList.add('touch-active');
             }, { passive: true });
             
-            // Remove touch effect after touch end
-            ['touchend', 'touchcancel'].forEach(event => {
-                element.addEventListener(event, function() {
+            ['touchend', 'touchcancel'].forEach(eventType => {
+                element.addEventListener(eventType, function() {
                     this.classList.remove('touch-active');
                 }, { passive: true });
             });
@@ -449,3 +444,228 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 }); 
+
+/**
+ * 移动端优化脚本
+ * 解决移动端常见的UI和交互问题
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化移动端优化
+    initMobileOptimizations();
+    
+    // 特殊处理日期和时间选择器
+    initDateTimeInputs();
+    
+    // 添加表单聚焦管理
+    initFormFocusManagement();
+});
+
+/**
+ * 初始化移动端优化
+ */
+function initMobileOptimizations() {
+    // 检测是否为移动设备
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        // 在body上添加mobile类，方便CSS定位
+        document.body.classList.add('mobile-device');
+        
+        // 处理iOS中的100vh问题
+        fixIOSViewportHeight();
+        
+        // 防止iOS橡皮筋滚动效果
+        preventRubberBandScroll();
+        
+        // 对所有按钮添加触摸反馈
+        addTouchFeedback();
+    }
+}
+
+/**
+ * 处理iOS中视口高度的问题
+ * iOS中的100vh会包含地址栏的高度，导致内容被遮挡
+ */
+function fixIOSViewportHeight() {
+    // 检测是否为iOS设备
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
+    if (isIOS) {
+        // 设置CSS变量作为实际可见高度
+        function setViewportHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        // 初始设置
+        setViewportHeight();
+        
+        // 监听窗口大小变化和方向变化
+        window.addEventListener('resize', setViewportHeight);
+        window.addEventListener('orientationchange', function() {
+            setTimeout(setViewportHeight, 100);
+        });
+    }
+}
+
+/**
+ * 防止iOS橡皮筋滚动效果
+ * 这个效果在某些情况下会导致UI问题
+ */
+function preventRubberBandScroll() {
+    // 只应用于iOS设备
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+        let startY;
+        
+        document.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+        
+        document.addEventListener('touchmove', function(e) {
+            const currentY = e.touches[0].clientY;
+            const scrollingElement = document.scrollingElement || document.documentElement;
+            const isAtTop = scrollingElement.scrollTop <= 0;
+            const isAtBottom = scrollingElement.scrollHeight - scrollingElement.scrollTop <= scrollingElement.clientHeight;
+            
+            // 阻止向下拉到顶部的默认行为
+            if (isAtTop && currentY > startY) {
+                e.preventDefault();
+            }
+            
+            // 阻止向上拉到底部的默认行为
+            if (isAtBottom && currentY < startY) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    }
+}
+
+/**
+ * 特殊处理日期和时间输入框，防止移动端跳转问题
+ */
+function initDateTimeInputs() {
+    // 获取所有日期和时间输入框
+    const dateTimeInputs = document.querySelectorAll('input[type="date"], input[type="time"]');
+    
+    // 检查是否为移动设备
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (!isMobile || dateTimeInputs.length === 0) {
+        return;
+    }
+    
+    // 处理每个日期和时间输入框
+    dateTimeInputs.forEach(input => {
+        // 创建一个辅助函数来保存滚动位置
+        function saveCurrentScroll() {
+            input.dataset.scrollY = window.scrollY || window.pageYOffset;
+            console.log(`保存滚动位置: ${input.dataset.scrollY}px (${input.id})`);
+        }
+        
+        // 创建一个辅助函数来恢复滚动位置
+        function restoreScroll() {
+            if (input.dataset.scrollY) {
+                const scrollY = parseInt(input.dataset.scrollY, 10);
+                setTimeout(() => {
+                    window.scrollTo(0, scrollY);
+                    console.log(`恢复滚动位置: ${scrollY}px (${input.id})`);
+                }, 10);
+            }
+        }
+        
+        // 添加iOS专用的修复
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+            // 为iOS设备添加特殊的事件监听器
+            input.addEventListener('touchstart', saveCurrentScroll, { passive: true });
+            input.addEventListener('focus', saveCurrentScroll);
+            
+            // 使用focusout事件捕获日期选择完成的时刻
+            input.addEventListener('focusout', restoreScroll);
+            input.addEventListener('change', restoreScroll);
+            
+            // 添加隐藏的辅助元素来强制控制滚动行为
+            const helper = document.createElement('div');
+            helper.style.height = '1px';
+            helper.style.width = '1px';
+            helper.style.position = 'absolute';
+            helper.style.left = '-9999px';
+            helper.style.top = '0';
+            document.body.appendChild(helper);
+            
+            // 在选择器打开前滚动到辅助元素
+            input.addEventListener('touchstart', function(e) {
+                // 仅当用户点击输入框自身时执行
+                if (e.target === this) {
+                    saveCurrentScroll();
+                    helper.scrollIntoView({ behavior: 'auto' });
+                    setTimeout(restoreScroll, 10);
+                }
+            }, { passive: true });
+        }
+        
+        // 添加Android专用的修复
+        if (/Android/.test(navigator.userAgent)) {
+            input.addEventListener('touchstart', saveCurrentScroll, { passive: true });
+            input.addEventListener('focus', saveCurrentScroll);
+            input.addEventListener('blur', restoreScroll);
+            input.addEventListener('change', restoreScroll);
+        }
+    });
+}
+
+/**
+ * 初始化表单聚焦管理
+ * 处理移动键盘弹出时的视图调整
+ */
+function initFormFocusManagement() {
+    // 检查是否为移动设备
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (!isMobile) {
+        return;
+    }
+    
+    // 获取所有输入元素
+    const inputs = document.querySelectorAll('input:not([type="date"]):not([type="time"]), textarea, select');
+    
+    // 找到预订表单的位置
+    const bookingForm = document.querySelector('.booking-form');
+    const bookingFormTop = bookingForm ? bookingForm.getBoundingClientRect().top + window.pageYOffset : 0;
+    
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            // 保存当前滚动位置
+            if (typeof saveScrollPosition === 'function') {
+                saveScrollPosition();
+            }
+            
+            // 如果输入框在表单内且在视口外，则滚动到可见位置
+            const rect = this.getBoundingClientRect();
+            const isOutOfViewport = rect.bottom > window.innerHeight || rect.top < 0;
+            
+            if (isOutOfViewport && this.closest('.booking-form')) {
+                // 计算滚动目标位置
+                const scrollTarget = window.pageYOffset + rect.top - (window.innerHeight / 4);
+                
+                // 滚动到目标位置
+                window.scrollTo({
+                    top: scrollTarget,
+                    behavior: 'smooth'
+                });
+            }
+        });
+        
+        input.addEventListener('blur', function() {
+            // 在输入完成后恢复滚动位置
+            if (typeof lastScrollPosition !== 'undefined' && lastScrollPosition > 0) {
+                setTimeout(function() {
+                    window.scrollTo({
+                        top: lastScrollPosition,
+                        behavior: 'auto'
+                    });
+                }, 300);
+            }
+        });
+    });
+} 
