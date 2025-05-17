@@ -703,7 +703,24 @@
                 localStorage.setItem('carouselImages', JSON.stringify(carouselImages));
             }
             
-            // 4. Try to remove from IndexedDB
+            // 4. Check if deleted picture is a sample picture
+            if (pictureId.startsWith('sample_pic')) {
+                // If we're deleting a sample picture, check if there are any samples left
+                let remainingSamples = 0;
+                
+                if (metadataStr) {
+                    const metadata = JSON.parse(metadataStr);
+                    remainingSamples = metadata.filter(item => item.id.startsWith('sample_pic')).length;
+                }
+                
+                // If no more samples, remove the sample creation flag
+                if (remainingSamples === 0) {
+                    localStorage.removeItem('samplePicturesCreated');
+                    console.log('Removed sample pictures creation flag as all samples were deleted');
+                }
+            }
+            
+            // 5. Try to remove from IndexedDB
             if (window.indexedDB) {
                 const dbRequest = indexedDB.open('sriLankaImageDB');
                 dbRequest.onsuccess = function(event) {

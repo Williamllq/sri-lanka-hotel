@@ -378,6 +378,23 @@ function deleteImageAndMetadata(pictureId) {
                     localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
                 }
                 
+                // Check if deleted picture is a sample picture
+                if (pictureId.startsWith('sample_pic')) {
+                    // If we're deleting a sample picture, check if there are any samples left
+                    let remainingSamples = 0;
+                    
+                    if (metadataStr) {
+                        const metadata = JSON.parse(metadataStr);
+                        remainingSamples = metadata.filter(item => item.id.startsWith('sample_pic')).length;
+                    }
+                    
+                    // If no more samples, remove the sample creation flag
+                    if (remainingSamples === 0) {
+                        localStorage.removeItem('samplePicturesCreated');
+                        console.log('Removed sample pictures creation flag as all samples were deleted');
+                    }
+                }
+                
                 resolve(true);
             } catch (e) {
                 console.error('Error deleting from localStorage:', e);
@@ -395,6 +412,23 @@ function deleteImageAndMetadata(pictureId) {
             metadataStore.delete(pictureId);
             imageStore.delete(pictureId);
             
+            // For sample pictures, handle the flag
+            if (pictureId.startsWith('sample_pic')) {
+                // Check if this was the last sample
+                const metadataRequest = metadataStore.index('category').getAll();
+                metadataRequest.onsuccess = function() {
+                    const allMetadata = metadataRequest.result || [];
+                    const remainingSamples = allMetadata.filter(item => 
+                        item.id && item.id.startsWith('sample_pic')
+                    ).length;
+                    
+                    if (remainingSamples === 0) {
+                        localStorage.removeItem('samplePicturesCreated');
+                        console.log('Removed sample pictures creation flag as all samples were deleted');
+                    }
+                };
+            }
+            
             transaction.oncomplete = function() {
                 resolve(true);
             };
@@ -403,10 +437,10 @@ function deleteImageAndMetadata(pictureId) {
                 console.error('Error in delete transaction:', event.target.error);
                 reject(event.target.error);
             };
-    } catch (error) {
+        } catch (error) {
             console.error('Error in delete operation:', error);
             reject(error);
-    }
+        }
     });
 }
 
@@ -818,9 +852,15 @@ function loadPictures(category = 'all') {
         getAllMetadata().then(metadata => {
             console.log(`Loaded ${metadata.length} pictures metadata`);
             
-            // 如果没有图片，创建示例图片（仅在Netlify上运行时）
-            if (metadata.length === 0 && window.location.href.includes('netlify')) {
+            // Check if sample pictures have been created before
+            const samplesCreated = localStorage.getItem('samplePicturesCreated');
+            
+            // 如果没有图片，创建示例图片（仅在Netlify上运行时且之前未创建过示例图片）
+            if (metadata.length === 0 && window.location.href.includes('netlify') && !samplesCreated) {
                 createSamplePictures().then(samplePictures => {
+                    // Mark that samples have been created
+                    localStorage.setItem('samplePicturesCreated', 'true');
+                    
                     // 如果指定了分类，进行筛选
                     if (category !== 'all') {
                         samplePictures = samplePictures.filter(pic => pic.category === category);
@@ -832,10 +872,10 @@ function loadPictures(category = 'all') {
                     resolve([]);
                 });
                 return;
-        }
+            }
         
-        // 如果指定了分类，进行筛选
-        if (category !== 'all') {
+            // 如果指定了分类，进行筛选
+            if (category !== 'all') {
                 metadata = metadata.filter(pic => pic.category === category);
             }
             

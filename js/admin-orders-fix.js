@@ -204,9 +204,9 @@
                                     totalFare: booking.totalPrice || booking.price || booking.total || booking.totalFare,
                                     customerName: booking.userName || booking.name || 'Customer',
                                     customerEmail: booking.userEmail || booking.email || 'customer@example.com',
-                                    status: booking.status || 'pending',
+                            status: booking.status || 'pending',
                                     timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
-                                    lastUpdated: booking.lastUpdated || new Date().toISOString()
+                            lastUpdated: booking.lastUpdated || new Date().toISOString()
                                 });
                             }
                         } catch (innerErr) {
@@ -322,9 +322,9 @@
                                 }
                             } catch (parseErr) {
                                 console.warn(`Error parsing ${key} containing May 17th date:`, parseErr);
-                            }
                         }
                     }
+                }
                 }
                 
                 console.log('Total orders found:', orders.length);
