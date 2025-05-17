@@ -23,56 +23,151 @@ document.addEventListener('DOMContentLoaded', function() {
  * 初始化"Book Transport"按钮跳转功能
  */
 function initBookTransportButton() {
-    // 查找所有"Book Transport"按钮
-    const bookTransportButtons = document.querySelectorAll('a[href="#booking-form-anchor"]');
+    // 查找所有"Book Transport"按钮 - 支持新的 #booking-form-anchor 锚点和旧的 #transport 锚点
+    const bookTransportButtons = document.querySelectorAll('a[href="#booking-form-anchor"], a[href="#transport"]');
     
     bookTransportButtons.forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
             
-            // 获取目标元素
-            const targetElement = document.getElementById('booking-form-anchor');
+            // 保存点击的按钮，用于滚动完成后恢复焦点
+            const clickedButton = this;
             
-            if (targetElement) {
-                // 计算目标元素的位置，考虑任何固定头部的高度
+            // 首先尝试找到特定的booking-form-anchor元素
+            const bookingFormAnchor = document.getElementById('booking-form-anchor');
+            
+            if (bookingFormAnchor) {
+                // 计算目标位置，考虑固定头部的高度
                 const headerHeight = document.querySelector('header') ? document.querySelector('header').offsetHeight : 0;
-                const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+                const targetPosition = bookingFormAnchor.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20; // 额外的20px垫
                 
-                // 使用平滑滚动到目标位置
+                // 平滑滚动到目标位置
                 window.scrollTo({
                     top: targetPosition,
                     behavior: 'smooth'
                 });
                 
-                // 添加视觉反馈
-                setTimeout(() => {
-                    targetElement.classList.add('highlight-target');
-                    setTimeout(() => {
-                        targetElement.classList.remove('highlight-target');
-                    }, 1500);
-                }, 500);
+                console.log('Scrolling to booking form anchor at position:', targetPosition);
                 
-                console.log('Scrolled to booking form anchor');
+                // 滚动后给表单元素加高亮效果
+                setTimeout(() => {
+                    bookingFormAnchor.classList.add('highlight-section');
+                    setTimeout(() => {
+                        bookingFormAnchor.classList.remove('highlight-section');
+                    }, 2000);
+                    
+                    // 在移动设备上触发第一个表单字段的点击，以模拟点击效果
+                    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                        const serviceTypeElement = document.getElementById('serviceType');
+                        if (serviceTypeElement) {
+                            // 给下拉框一个视觉提示
+                            serviceTypeElement.classList.add('highlight-input');
+                            setTimeout(() => {
+                                serviceTypeElement.classList.remove('highlight-input');
+                            }, 2000);
+                        }
+                    }
+                }, 1000);
             } else {
-                console.error('Target element not found');
+                // 后备：如果没有找到具体的锚点，则尝试找到预订表单
+                const bookingForm = document.querySelector('.booking-form');
+                
+                if (bookingForm) {
+                    const headerHeight = document.querySelector('header') ? document.querySelector('header').offsetHeight : 0;
+                    const targetPosition = bookingForm.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                    
+                    console.log('Scrolling to booking form at position:', targetPosition);
+                    
+                    // 滚动后给表单添加高亮效果
+                    setTimeout(() => {
+                        bookingForm.classList.add('highlight-section');
+                        setTimeout(() => {
+                            bookingForm.classList.remove('highlight-section');
+                        }, 2000);
+                    }, 1000);
+                } else {
+                    // 最后的后备：如果连表单都找不到，则滚动到整个transport部分
+                    const transportSection = document.getElementById('transport');
+                    if (transportSection) {
+                        transportSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        console.log('Scrolled to transport section');
+                    }
+                }
             }
+            
+            // 添加滚动完成后的处理
+            const checkScrollEnd = setInterval(() => {
+                if (!isScrolling()) {
+                    clearInterval(checkScrollEnd);
+                    clickedButton.blur(); // 移除焦点，避免意外触发
+                    
+                    // 确保表单区域保持在视图中
+                    const bookingFormAnchor = document.getElementById('booking-form-anchor');
+                    const bookingForm = document.querySelector('.booking-form');
+                    
+                    if (bookingFormAnchor || bookingForm) {
+                        const target = bookingFormAnchor || bookingForm;
+                        const rect = target.getBoundingClientRect();
+                        
+                        // 如果表单不完全在视图中，做额外调整
+                        if (rect.top < 0 || rect.bottom > window.innerHeight) {
+                            const headerHeight = document.querySelector('header') ? document.querySelector('header').offsetHeight : 0;
+                            const adjustedPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+                            
+                            window.scrollTo({
+                                top: adjustedPosition,
+                                behavior: 'auto'
+                            });
+                        }
+                    }
+                }
+            }, 100);
         });
     });
     
-    // 添加样式以突出显示目标元素
+    // 添加CSS样式用于高亮效果
     const style = document.createElement('style');
     style.textContent = `
-        @keyframes highlightTarget {
-            0% { background-color: transparent; }
-            50% { background-color: rgba(76, 175, 80, 0.2); }
-            100% { background-color: transparent; }
+        .highlight-section {
+            animation: highlight-pulse 2s ease-in-out;
         }
         
-        .highlight-target {
-            animation: highlightTarget 1.5s ease-in-out;
+        .highlight-input {
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.8);
+            border-color: #4CAF50 !important;
+        }
+        
+        @keyframes highlight-pulse {
+            0% { box-shadow: 0 0 0 rgba(76, 175, 80, 0); }
+            50% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); }
+            100% { box-shadow: 0 0 0 rgba(76, 175, 80, 0); }
         }
     `;
     document.head.appendChild(style);
+    
+    // 辅助函数：检测页面是否正在滚动
+    let isScrolling = (function() {
+        let timer = null;
+        let scrolling = false;
+        
+        window.addEventListener('scroll', function() {
+            scrolling = true;
+            clearTimeout(timer);
+            
+            timer = setTimeout(function() {
+                scrolling = false;
+            }, 150);
+        });
+        
+        return function() {
+            return scrolling;
+        };
+    })();
 }
 
 /**
@@ -107,14 +202,6 @@ function initFormScrollMemory() {
                     behavior: 'auto' // 使用'auto'而不是'smooth'以避免动画过渡
                 });
                 console.log('Restored scroll position:', lastScrollPosition);
-                
-                // 在极端情况下，再次尝试恢复滚动位置
-                setTimeout(() => {
-                    window.scrollTo({
-                        top: lastScrollPosition,
-                        behavior: 'auto'
-                    });
-                }, 200);
             }
         }
     }
@@ -225,184 +312,247 @@ function initFormScrollMemory() {
 
 /**
  * 阻止日期和时间输入框的浏览器默认滚动行为
+ * 使用多种技术组合来确保稳定性
  */
 function preventDefaultDateTimeScrolling() {
     const dateInput = document.getElementById('journeyDate');
     const timeInput = document.getElementById('journeyTime');
     
-    // 检测是否为移动设备
-    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (dateInput && isMobile) {
-        // 保存初始值以检测变化
-        let lastDateValue = dateInput.value;
+    // 使用自定义输入框来替代原生日期/时间选择器
+    function setupCustomDateTimeHandler(input) {
+        if (!input) return;
         
-        // 设置为只读以防止键盘弹出
-        dateInput.setAttribute('readonly', 'readonly');
+        // 保持引用到原始输入框
+        const originalInput = input;
+        const inputType = input.type; // 'date' 或 'time'
+        const inputId = input.id;
+        const inputName = input.name || '';
+        const inputRequired = input.required;
+        const inputValue = input.value;
         
-        // 点击时移除只读属性，允许选择日期
-        dateInput.addEventListener('click', function(e) {
-            // 保存当前滚动位置
-            saveScrollPosition();
-            
-            // 移除只读属性以允许日期选择器打开
-            this.removeAttribute('readonly');
-            
-            // 阻止默认行为，防止页面跳转
+        // 为日期/时间创建包装器元素
+        const wrapper = document.createElement('div');
+        wrapper.className = 'datetime-input-wrapper';
+        wrapper.style.position = 'relative';
+        wrapper.style.width = '100%';
+        
+        // 创建新的输入框（文本类型）来替代日期/时间选择器
+        const textInput = document.createElement('input');
+        textInput.type = 'text';
+        textInput.id = inputId + '_text';
+        textInput.className = originalInput.className;
+        textInput.placeholder = inputType === 'date' ? 'YYYY-MM-DD' : 'HH:MM';
+        textInput.required = inputRequired;
+        textInput.readOnly = true; // 防止键盘弹出
+        textInput.style.cursor = 'pointer';
+        
+        if (inputValue) {
+            textInput.value = inputValue;
+        }
+        
+        // 创建隐藏的原始类型输入框
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = inputType;
+        hiddenInput.id = inputId;
+        hiddenInput.name = inputName;
+        hiddenInput.required = inputRequired;
+        hiddenInput.value = inputValue;
+        hiddenInput.style.position = 'absolute';
+        hiddenInput.style.width = '1px';
+        hiddenInput.style.height = '1px';
+        hiddenInput.style.opacity = '0';
+        hiddenInput.style.pointerEvents = 'none'; // 防止直接交互
+        
+        // 创建图标元素
+        const icon = document.createElement('i');
+        icon.className = inputType === 'date' ? 'fas fa-calendar-alt' : 'fas fa-clock';
+        icon.style.position = 'absolute';
+        icon.style.right = '10px';
+        icon.style.top = '50%';
+        icon.style.transform = 'translateY(-50%)';
+        icon.style.color = '#4CAF50';
+        icon.style.pointerEvents = 'none'; // 防止图标阻止点击
+        
+        // 替换原始输入框
+        originalInput.parentNode.insertBefore(wrapper, originalInput);
+        wrapper.appendChild(textInput);
+        wrapper.appendChild(hiddenInput);
+        wrapper.appendChild(icon);
+        
+        // 确保原始输入框不可见但不会影响页面布局
+        originalInput.style.display = 'none';
+        
+        // 添加点击事件处理程序
+        textInput.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             
-            // 手动触发点击
+            // 保存滚动位置
+            saveScrollPosition();
+            
+            // 模拟点击隐藏的原生输入框以打开选择器
+            // 创建一个被脚本触发的点击事件（而不是用户触发的）
+            const clickEvent = new MouseEvent('click', {
+                view: window,
+                bubbles: false, // 防止事件冒泡
+                cancelable: true
+            });
+            
+            // 打开前确保日期/时间选择器在可视区域中打开
             setTimeout(() => {
-                this.click();
+                hiddenInput.focus();
+                hiddenInput.dispatchEvent(clickEvent);
             }, 50);
         });
         
-        // 监听输入变化
-        dateInput.addEventListener('change', function() {
-            // 如果值发生变化，表示用户已选择日期
-            if (this.value !== lastDateValue) {
-                lastDateValue = this.value;
-                
-                // 重新设置为只读
-                setTimeout(() => {
-                    this.setAttribute('readonly', 'readonly');
+        // 监听隐藏输入框的变化
+        hiddenInput.addEventListener('change', function(e) {
+            // 更新文本输入框的值
+            textInput.value = this.value;
+            // 触发原始输入框的更改事件
+            originalInput.value = this.value;
+            
+            // 恢复滚动位置
+            setTimeout(function() {
+                if (lastScrollPosition > 0) {
+                    window.scrollTo({
+                        top: lastScrollPosition,
+                        behavior: 'auto'
+                    });
                     
-                    // 恢复滚动位置
-                    setTimeout(() => {
-                        if (lastScrollPosition > 0) {
-                            window.scrollTo({
-                                top: lastScrollPosition,
-                                behavior: 'auto'
-                            });
-                        }
-                    }, 100);
-                }, 100);
-            }
-        });
-        
-        // 处理失去焦点事件
-        dateInput.addEventListener('blur', function() {
-            // 重新设置为只读
-            setTimeout(() => {
-                this.setAttribute('readonly', 'readonly');
-                
-                // 恢复滚动位置
-                setTimeout(() => {
-                    if (lastScrollPosition > 0) {
+                    // 再次尝试恢复，处理一些设备上的延迟问题
+                    setTimeout(function() {
                         window.scrollTo({
                             top: lastScrollPosition,
                             behavior: 'auto'
                         });
-                    }
-                }, 100);
+                    }, 300);
+                }
             }, 100);
         });
         
-        // 特殊处理iOS设备的日期选择器
-        dateInput.addEventListener('touchend', function(e) {
-            saveScrollPosition();
-        });
-    }
-    
-    if (timeInput && isMobile) {
-        // 保存初始值以检测变化
-        let lastTimeValue = timeInput.value;
-        
-        // 对时间输入框应用同样的处理
-        timeInput.setAttribute('readonly', 'readonly');
-        
-        timeInput.addEventListener('click', function(e) {
-            // 保存当前滚动位置
-            saveScrollPosition();
-            
-            // 移除只读属性以允许时间选择器打开
-            this.removeAttribute('readonly');
-            
-            // 阻止默认行为，防止页面跳转
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // 手动触发点击
-            setTimeout(() => {
-                this.click();
-            }, 50);
-        });
-        
-        // 监听输入变化
-        timeInput.addEventListener('change', function() {
-            // 如果值发生变化，表示用户已选择时间
-            if (this.value !== lastTimeValue) {
-                lastTimeValue = this.value;
-                
-                // 重新设置为只读
-                setTimeout(() => {
-                    this.setAttribute('readonly', 'readonly');
-                    
-                    // 恢复滚动位置
-                    setTimeout(() => {
-                        if (lastScrollPosition > 0) {
-                            window.scrollTo({
-                                top: lastScrollPosition,
-                                behavior: 'auto'
-                            });
-                        }
-                    }, 100);
-                }, 100);
-            }
-        });
-        
-        // 处理失去焦点事件
-        timeInput.addEventListener('blur', function() {
-            // 重新设置为只读
-            setTimeout(() => {
-                this.setAttribute('readonly', 'readonly');
-                
-                // 恢复滚动位置
-                setTimeout(() => {
-                    if (lastScrollPosition > 0) {
-                        window.scrollTo({
-                            top: lastScrollPosition,
-                            behavior: 'auto'
-                        });
-                    }
-                }, 100);
+        // 防止原生日期/时间选择器被关闭时的页面跳转
+        hiddenInput.addEventListener('blur', function(e) {
+            setTimeout(function() {
+                if (lastScrollPosition > 0) {
+                    window.scrollTo({
+                        top: lastScrollPosition,
+                        behavior: 'auto'
+                    });
+                }
             }, 100);
         });
-        
-        // 特殊处理iOS设备的时间选择器
-        timeInput.addEventListener('touchend', function(e) {
-            saveScrollPosition();
-        });
     }
     
-    // 修复Android和iOS的滚动问题
-    if (isMobile) {
-        // 在页面触摸开始时保存位置
-        document.addEventListener('touchstart', function(e) {
-            // 检查是否点击了日期或时间输入框
-            if (e.target === dateInput || e.target === timeInput) {
-                // 保存当前滚动位置
-                saveScrollPosition();
-            }
-        }, {passive: true});
+    // 检测是否是移动设备（iOS或Android）
+    const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isMobileDevice) {
+        // 在移动设备上应用自定义处理
+        setupCustomDateTimeHandler(dateInput);
+        setupCustomDateTimeHandler(timeInput);
         
-        // 修复iOS中选择器关闭后的滚动问题
-        document.addEventListener('focusout', function(e) {
-            // 检查是否是日期或时间输入框失去焦点
-            if (e.target === dateInput || e.target === timeInput) {
-                // 延迟一段时间恢复滚动位置
-                setTimeout(() => {
+        // 对于iPhone/iPad特殊处理，防止iOS特有的滚动问题
+        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            // 添加全局触摸移动监听器，防止iOS页面弹跳
+            document.addEventListener('touchmove', function(e) {
+                const bookingForm = document.querySelector('.booking-form');
+                if (bookingForm && bookingForm.contains(e.target)) {
+                    // 检查是否是日期或时间输入框正在交互
+                    const isDateTimeActive = document.activeElement && 
+                        (document.activeElement.type === 'date' || 
+                         document.activeElement.type === 'time' ||
+                         document.activeElement.id.includes('journeyDate') ||
+                         document.activeElement.id.includes('journeyTime'));
+                         
+                    if (isDateTimeActive) {
+                        // 防止弹出日期选择器时页面滚动
+                        setTimeout(function() {
+                            if (lastScrollPosition > 0) {
+                                window.scrollTo({
+                                    top: lastScrollPosition,
+                                    behavior: 'auto'
+                                });
+                            }
+                        }, 50);
+                    }
+                }
+            }, { passive: true });
+        }
+    } else {
+        // 在桌面设备上，我们使用更简单的方法，因为桌面设备通常没有这个问题
+        if (dateInput) {
+            dateInput.addEventListener('change', function() {
+                setTimeout(function() {
                     if (lastScrollPosition > 0) {
                         window.scrollTo({
                             top: lastScrollPosition,
                             behavior: 'auto'
                         });
                     }
-                }, 300);
+                }, 100);
+            });
+        }
+        
+        if (timeInput) {
+            timeInput.addEventListener('change', function() {
+                setTimeout(function() {
+                    if (lastScrollPosition > 0) {
+                        window.scrollTo({
+                            top: lastScrollPosition,
+                            behavior: 'auto'
+                        });
+                    }
+                }, 100);
+            });
+        }
+    }
+    
+    // 添加一个全局的滚动记忆系统作为额外保障
+    let scrollMemory = {};
+    
+    // 每500ms保存一次滚动位置
+    setInterval(function() {
+        const currentPosition = window.scrollY || window.pageYOffset;
+        const now = new Date().getTime();
+        
+        // 保存最近10秒的滚动位置
+        scrollMemory[now] = currentPosition;
+        
+        // 清理旧的记录
+        const tenSecondsAgo = now - 10000;
+        Object.keys(scrollMemory).forEach(time => {
+            if (parseInt(time) < tenSecondsAgo) {
+                delete scrollMemory[time];
             }
         });
-    }
+    }, 500);
+    
+    // 检测异常跳转并恢复位置
+    window.addEventListener('scroll', function() {
+        const currentPosition = window.scrollY || window.pageYOffset;
+        
+        // 如果当前滚动位置是0，但在过去几秒我们有非零位置记录，可能是发生了跳转
+        if (currentPosition === 0 && Object.keys(scrollMemory).length > 0) {
+            // 获取最近的非零滚动位置
+            const positions = Object.values(scrollMemory).filter(pos => pos > 0);
+            if (positions.length > 0) {
+                // 计算最近非零位置的平均值
+                const avgPosition = positions.reduce((sum, pos) => sum + pos, 0) / positions.length;
+                
+                // 如果平均位置明显不是顶部，我们恢复它
+                if (avgPosition > 100) { // 设置阈值，防止误恢复
+                    setTimeout(function() {
+                        console.log('检测到异常跳转，恢复到位置:', avgPosition);
+                        window.scrollTo({
+                            top: avgPosition,
+                            behavior: 'auto'
+                        });
+                    }, 100);
+                }
+            }
+        }
+    }, { passive: true });
 }
 
 // 保存滚动位置的变量
