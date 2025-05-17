@@ -122,7 +122,7 @@ app.post('/api/send-booking-confirmation', async (req, res) => {
                 
                 <div style="background-color: #e9f7ef; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <p style="margin: 5px 0;">Our driver will meet you at the pickup location on the scheduled date and time.</p>
-                    <p style="margin: 5px 0;">For any questions or modifications to your booking, please contact us at <a href="mailto:info@srilankastayexplore.com" style="color: #4a6fa5;">info@srilankastayexplore.com</a> or call us at +94 76 123 4567.</p>
+                    <p style="margin: 5px 0;">For any questions or modifications to your booking, please contact us at <a href="mailto:info@srilankastayexplore.com" style="color: #4a6fa5;">info@srilankastayexplore.com</a> or call us at +94 77 760 5921.</p>
                 </div>
                 
                 <div style="text-align: center; margin-top: 30px; color: #666; font-size: 14px;">
