@@ -106,6 +106,93 @@ img {
     .footer {
         padding-bottom: 100px; /* 为底部导航留出足够空间 */
     }
+    
+    /* 增强移动设备日期和时间输入的样式 */
+    input[type="date"],
+    input[type="time"] {
+        -webkit-appearance: none;
+        appearance: none;
+        padding: 12px 10px;
+        border-radius: 8px;
+        font-size: 16px; /* 避免iOS自动缩放 */
+        min-height: 44px; /* 提供足够大的触摸区域 */
+        background-color: #fff;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* 修复在iOS上日期时间输入的外观 */
+    input::-webkit-datetime-edit { 
+        padding: 6px;
+    }
+    
+    input::-webkit-datetime-edit-fields-wrapper { 
+        background-color: transparent;
+    }
+    
+    input::-webkit-datetime-edit-text { 
+        color: #777;
+    }
+    
+    input::-webkit-datetime-edit-month-field,
+    input::-webkit-datetime-edit-day-field,
+    input::-webkit-datetime-edit-year-field,
+    input::-webkit-datetime-edit-hour-field,
+    input::-webkit-datetime-edit-minute-field,
+    input::-webkit-datetime-edit-ampm-field {
+        color: #333;
+    }
+    
+    input::-webkit-calendar-picker-indicator {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        opacity: 0.8;
+    }
+    
+    /* 提高表单输入的可点击性 */
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    /* 确保按钮有足够的触摸区域 */
+    .map-select-btn {
+        min-height: 44px;
+        padding: 12px 15px !important;
+    }
+    
+    /* 修复表单行在小屏幕上的间距 */
+    .form-row {
+        margin-bottom: 12px;
+    }
+    
+    /* 防止表单元素在交互时导致页面跳转 */
+    .booking-form {
+        position: relative;
+        overflow: visible;
+        overscroll-behavior: none; /* 防止过度滚动引起页面跳转 */
+    }
+    
+    /* 修复iOS上输入控件的默认样式 */
+    input, select, textarea {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+    
+    /* 确保表单按钮在移动设备上有足够的大小 */
+    .form-buttons button {
+        min-height: 44px;
+        font-size: 16px;
+    }
 }
 
 /* 特别为小屏设备（如iPhone SE）优化 */
