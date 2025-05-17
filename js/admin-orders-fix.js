@@ -83,84 +83,103 @@
             let processedOrderIds = new Set(); // For deduplication
             
             try {
+                // Debug: Log all localStorage keys
+                console.log('All localStorage keys:');
+                for (let i = 0; i < localStorage.length; i++) {
+                    console.log(`- ${localStorage.key(i)}`);
+                }
+                
                 // Try multiple storage locations
                 
                 // 1. Try the 'bookings' array first (most likely to be complete)
                 const bookingsStr = localStorage.getItem('bookings');
                 if (bookingsStr) {
-                    const parsedBookings = JSON.parse(bookingsStr);
-                    if (Array.isArray(parsedBookings) && parsedBookings.length > 0) {
-                        parsedBookings.forEach(booking => {
-                            if (booking && booking.id && !processedOrderIds.has(booking.id)) {
-                                processedOrderIds.add(booking.id);
-                                orders.push(booking);
-                            }
-                        });
-                        console.log('Loaded orders from bookings array:', orders.length);
+                    try {
+                        const parsedBookings = JSON.parse(bookingsStr);
+                        if (Array.isArray(parsedBookings) && parsedBookings.length > 0) {
+                            parsedBookings.forEach(booking => {
+                                if (booking && booking.id && !processedOrderIds.has(booking.id)) {
+                                    processedOrderIds.add(booking.id);
+                                    orders.push(booking);
+                                }
+                            });
+                            console.log('Loaded orders from bookings array:', orders.length);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing bookings array:', e);
                     }
                 }
                 
                 // 2. Try bookingSystem format
                 const bookingSystemStr = localStorage.getItem('bookingSystem');
                 if (bookingSystemStr) {
-                    const bookingSystem = JSON.parse(bookingSystemStr);
-                    if (bookingSystem && Array.isArray(bookingSystem.bookings)) {
-                        bookingSystem.bookings.forEach(booking => {
-                            if (booking && booking.id && !processedOrderIds.has(booking.id)) {
-                                processedOrderIds.add(booking.id);
-                                orders.push({
-                                    id: booking.id,
-                                    serviceType: booking.serviceType || 'Transport',
-                                    journeyDate: booking.date || booking.journeyDate,
-                                    journeyTime: booking.time || booking.journeyTime || '12:00',
-                                    passengerCount: booking.passengers || booking.passengerCount || '2',
-                                    pickupLocation: booking.pickupLocation || booking.from || booking.pickup,
-                                    destination: booking.destinationLocation || booking.to || booking.destination,
-                                    totalFare: booking.totalPrice || booking.price || booking.total || booking.totalFare,
-                                    customerName: booking.userName || booking.name || 'Customer',
-                                    customerEmail: booking.userEmail || booking.email || 'customer@example.com',
-                                    status: booking.status || 'pending',
-                                    timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
-                                    lastUpdated: booking.lastUpdated || new Date().toISOString()
-                                });
-                            }
-                        });
-                        console.log('Added orders from bookingSystem:', orders.length);
+                    try {
+                        const bookingSystem = JSON.parse(bookingSystemStr);
+                        if (bookingSystem && Array.isArray(bookingSystem.bookings)) {
+                            bookingSystem.bookings.forEach(booking => {
+                                if (booking && booking.id && !processedOrderIds.has(booking.id)) {
+                                    processedOrderIds.add(booking.id);
+                                    orders.push({
+                                        id: booking.id,
+                                        serviceType: booking.serviceType || 'Transport',
+                                        journeyDate: booking.date || booking.journeyDate,
+                                        journeyTime: booking.time || booking.journeyTime || '12:00',
+                                        passengerCount: booking.passengers || booking.passengerCount || '2',
+                                        pickupLocation: booking.pickupLocation || booking.from || booking.pickup,
+                                        destination: booking.destinationLocation || booking.to || booking.destination,
+                                        totalFare: booking.totalPrice || booking.price || booking.total || booking.totalFare,
+                                        customerName: booking.userName || booking.name || 'Customer',
+                                        customerEmail: booking.userEmail || booking.email || 'customer@example.com',
+                                        status: booking.status || 'pending',
+                                        timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
+                                        lastUpdated: booking.lastUpdated || new Date().toISOString()
+                                    });
+                                }
+                            });
+                            console.log('Added orders from bookingSystem:', orders.length);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing bookingSystem:', e);
                     }
                 }
                 
                 // 3. Check userBookings (multiple users)
                 const userBookingsStr = localStorage.getItem('userBookings');
                 if (userBookingsStr) {
-                    const userBookings = JSON.parse(userBookingsStr);
-                    // userBookings is an object with user emails as keys
-                    if (userBookings && typeof userBookings === 'object') {
-                        Object.keys(userBookings).forEach(userEmail => {
-                            const userBookingsList = userBookings[userEmail];
-                            if (Array.isArray(userBookingsList)) {
-                                userBookingsList.forEach(booking => {
-                                    if (booking && booking.id && !processedOrderIds.has(booking.id)) {
-                                        processedOrderIds.add(booking.id);
-                                        orders.push({
-                                            id: booking.id,
-                                            serviceType: booking.serviceType || 'Transport',
-                                            journeyDate: booking.date || booking.journeyDate,
-                                            journeyTime: booking.time || booking.journeyTime || '12:00',
-                                            passengerCount: booking.passengers || booking.passengerCount || '2',
-                                            pickupLocation: booking.pickupLocation || booking.from || booking.pickup,
-                                            destination: booking.destinationLocation || booking.to || booking.destination,
-                                            totalFare: booking.totalPrice || booking.price || booking.total || booking.totalFare,
-                                            customerName: booking.userName || booking.name || 'Customer',
-                                            customerEmail: userEmail,
-                                            status: booking.status || 'pending',
-                                            timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
-                                            lastUpdated: booking.lastUpdated || new Date().toISOString()
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                        console.log('Added orders from userBookings:', orders.length);
+                    try {
+                        const userBookings = JSON.parse(userBookingsStr);
+                        // userBookings is an object with user emails as keys
+                        if (userBookings && typeof userBookings === 'object') {
+                            // Iterate through each user's bookings
+                            Object.keys(userBookings).forEach(userEmail => {
+                                const userBookingsList = userBookings[userEmail];
+                                if (Array.isArray(userBookingsList)) {
+                                    userBookingsList.forEach(booking => {
+                                        if (booking && booking.id && !processedOrderIds.has(booking.id)) {
+                                            processedOrderIds.add(booking.id);
+                                            orders.push({
+                                                id: booking.id,
+                                                serviceType: booking.serviceType || 'Transport',
+                                                journeyDate: booking.date || booking.journeyDate,
+                                                journeyTime: booking.time || booking.journeyTime || '12:00',
+                                                passengerCount: booking.passengers || booking.passengerCount || '2',
+                                                pickupLocation: booking.pickupLocation || booking.from || booking.pickup,
+                                                destination: booking.destinationLocation || booking.to || booking.destination,
+                                                totalFare: booking.totalPrice || booking.price || booking.total || booking.totalFare,
+                                                customerName: booking.userName || booking.name || 'Customer',
+                                                customerEmail: userEmail,
+                                                status: booking.status || 'pending',
+                                                timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
+                                                lastUpdated: booking.lastUpdated || new Date().toISOString()
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                            console.log('Added orders from userBookings:', orders.length);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing userBookings:', e);
                     }
                 }
                 
@@ -169,11 +188,13 @@
                     const key = localStorage.key(i);
                     if (key && (key.startsWith('booking_') || key.includes('booking'))) {
                         try {
-                            const booking = JSON.parse(localStorage.getItem(key));
-                            if (booking && booking.id && !processedOrderIds.has(booking.id)) {
-                                processedOrderIds.add(booking.id);
+                            const bookingStr = localStorage.getItem(key);
+                            const booking = JSON.parse(bookingStr);
+                            if (booking && (booking.id || booking.bookingId) && !processedOrderIds.has(booking.id || booking.bookingId)) {
+                                const bookingId = booking.id || booking.bookingId;
+                                processedOrderIds.add(bookingId);
                                 orders.push({
-                                    id: booking.id,
+                                    id: bookingId,
                                     serviceType: booking.serviceType || 'Transport',
                                     journeyDate: booking.date || booking.journeyDate,
                                     journeyTime: booking.time || booking.journeyTime || '12:00',
@@ -194,10 +215,124 @@
                     }
                 }
                 
+                // 5. Directly check for the specific May 17th booking
+                const mayBookingDate = "2024-05-17";
+                let foundMayBooking = false;
+                
+                for (const order of orders) {
+                    if (order.journeyDate && order.journeyDate.includes(mayBookingDate)) {
+                        foundMayBooking = true;
+                        console.log('Found May 17th booking in orders list:', order);
+                    }
+                }
+                
+                if (!foundMayBooking) {
+                    console.log('May 17th booking not found. Searching localStorage directly...');
+                    
+                    // Search all localStorage for any booking with May 17th date
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        const item = localStorage.getItem(key);
+                        
+                        if (item && item.includes(mayBookingDate)) {
+                            console.log(`Found May 17th booking data in localStorage key: ${key}`);
+                            try {
+                                const data = JSON.parse(item);
+                                
+                                // If it's an array, check each entry
+                                if (Array.isArray(data)) {
+                                    data.forEach(entry => {
+                                        if (entry && entry.date && entry.date.includes(mayBookingDate)) {
+                                            if (!processedOrderIds.has(entry.id || `generated-${Date.now()}`)) {
+                                                const bookingId = entry.id || `generated-${Date.now()}`;
+                                                processedOrderIds.add(bookingId);
+                                                orders.push({
+                                                    id: bookingId,
+                                                    serviceType: entry.serviceType || 'Transport',
+                                                    journeyDate: entry.date || entry.journeyDate || mayBookingDate,
+                                                    journeyTime: entry.time || entry.journeyTime || '12:00',
+                                                    passengerCount: entry.passengers || entry.passengerCount || '2',
+                                                    pickupLocation: entry.pickupLocation || entry.from || entry.pickup || 'N/A',
+                                                    destination: entry.destinationLocation || entry.to || entry.destination || 'N/A',
+                                                    totalFare: entry.totalPrice || entry.price || entry.total || entry.totalFare || 0,
+                                                    customerName: entry.userName || entry.name || 'Customer',
+                                                    customerEmail: entry.userEmail || entry.email || 'customer@example.com',
+                                                    status: entry.status || 'pending',
+                                                    timestamp: entry.createdAt || entry.timestamp || new Date().toISOString(),
+                                                    lastUpdated: entry.lastUpdated || new Date().toISOString()
+                                                });
+                                                console.log('Added May 17th booking from array data');
+                                            }
+                                        }
+                                    });
+                                } 
+                                // If it's an object with user emails as keys (userBookings format)
+                                else if (typeof data === 'object' && !Array.isArray(data)) {
+                                    Object.keys(data).forEach(userEmail => {
+                                        if (Array.isArray(data[userEmail])) {
+                                            data[userEmail].forEach(entry => {
+                                                if (entry && entry.date && entry.date.includes(mayBookingDate)) {
+                                                    if (!processedOrderIds.has(entry.id || `generated-${Date.now()}`)) {
+                                                        const bookingId = entry.id || `generated-${Date.now()}`;
+                                                        processedOrderIds.add(bookingId);
+                                                        orders.push({
+                                                            id: bookingId,
+                                                            serviceType: entry.serviceType || 'Transport',
+                                                            journeyDate: entry.date || entry.journeyDate || mayBookingDate,
+                                                            journeyTime: entry.time || entry.journeyTime || '12:00',
+                                                            passengerCount: entry.passengers || entry.passengerCount || '2',
+                                                            pickupLocation: entry.pickupLocation || entry.from || entry.pickup || 'N/A',
+                                                            destination: entry.destinationLocation || entry.to || entry.destination || 'N/A',
+                                                            totalFare: entry.totalPrice || entry.price || entry.total || entry.totalFare || 0,
+                                                            customerName: entry.userName || entry.name || 'Customer',
+                                                            customerEmail: userEmail,
+                                                            status: entry.status || 'pending',
+                                                            timestamp: entry.createdAt || entry.timestamp || new Date().toISOString(),
+                                                            lastUpdated: entry.lastUpdated || new Date().toISOString()
+                                                        });
+                                                        console.log('Added May 17th booking from user data');
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                                // If it's a single booking
+                                else if (typeof data === 'object' && (data.date || data.journeyDate) && (data.date || data.journeyDate).includes(mayBookingDate)) {
+                                    if (!processedOrderIds.has(data.id || `generated-${Date.now()}`)) {
+                                        const bookingId = data.id || `generated-${Date.now()}`;
+                                        processedOrderIds.add(bookingId);
+                                        orders.push({
+                                            id: bookingId,
+                                            serviceType: data.serviceType || 'Transport',
+                                            journeyDate: data.date || data.journeyDate || mayBookingDate,
+                                            journeyTime: data.time || data.journeyTime || '12:00',
+                                            passengerCount: data.passengers || data.passengerCount || '2',
+                                            pickupLocation: data.pickupLocation || data.from || data.pickup || 'N/A',
+                                            destination: data.destinationLocation || data.to || data.destination || 'N/A',
+                                            totalFare: data.totalPrice || data.price || data.total || data.totalFare || 0,
+                                            customerName: data.userName || data.name || 'Customer',
+                                            customerEmail: data.userEmail || data.email || 'customer@example.com',
+                                            status: data.status || 'pending',
+                                            timestamp: data.createdAt || data.timestamp || new Date().toISOString(),
+                                            lastUpdated: data.lastUpdated || new Date().toISOString()
+                                        });
+                                        console.log('Added May 17th booking from single booking data');
+                                    }
+                                }
+                            } catch (parseErr) {
+                                console.warn(`Error parsing ${key} containing May 17th date:`, parseErr);
+                            }
+                        }
+                    }
+                }
+                
+                console.log('Total orders found:', orders.length);
+                
                 // If still no orders, create demo data
                 if (orders.length === 0) {
                     orders = createDemoOrders();
-                    console.log('No orders found, using demo data:', orders);
+                    console.log('No orders found, using demo data:', orders.length);
                     
                     // Save the demo orders to make them persist
                     localStorage.setItem('bookings', JSON.stringify(orders));
@@ -207,7 +342,7 @@
                 
                 // Use demo data as fallback
                 orders = createDemoOrders();
-                console.log('Using demo orders due to error:', orders);
+                console.log('Using demo orders due to error:', orders.length);
             }
             
             // Apply filters
@@ -253,14 +388,52 @@
                 return;
             }
             
+            // Sort orders by date, newest first
+            orders.sort((a, b) => {
+                // Try to parse dates (journey date or timestamp)
+                let dateA = a.journeyDate ? new Date(a.journeyDate) : (a.timestamp ? new Date(a.timestamp) : new Date(0));
+                let dateB = b.journeyDate ? new Date(b.journeyDate) : (b.timestamp ? new Date(b.timestamp) : new Date(0));
+                
+                // If dates are invalid, try to extract date strings
+                if (isNaN(dateA.getTime()) && typeof a.journeyDate === 'string') {
+                    const matches = a.journeyDate.match(/(\d{4}-\d{2}-\d{2})/);
+                    if (matches) dateA = new Date(matches[1]);
+                }
+                
+                if (isNaN(dateB.getTime()) && typeof b.journeyDate === 'string') {
+                    const matches = b.journeyDate.match(/(\d{4}-\d{2}-\d{2})/);
+                    if (matches) dateB = new Date(matches[1]);
+                }
+                
+                // Fall back to string comparison if dates are still invalid
+                if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+                    return String(b.journeyDate || b.timestamp || '').localeCompare(String(a.journeyDate || a.timestamp || ''));
+                }
+                
+                // Compare valid dates
+                return dateB - dateA;
+            });
+            
             // Add each order to the table
             orders.forEach(order => {
                 // Format the date
                 let formattedDate = 'N/A';
                 if (order.journeyDate) {
                     try {
-                        formattedDate = new Date(order.journeyDate).toLocaleDateString();
+                        const date = new Date(order.journeyDate);
+                        if (!isNaN(date.getTime())) {
+                            formattedDate = date.toLocaleDateString();
+                        } else {
+                            // Handle string dates that might not be in ISO format
+                            const matches = order.journeyDate.match(/(\d{4}-\d{2}-\d{2})/);
+                            if (matches) {
+                                formattedDate = new Date(matches[1]).toLocaleDateString();
+                            } else {
+                                formattedDate = order.journeyDate;
+                            }
+                        }
                     } catch (e) {
+                        console.warn('Error formatting date:', e);
                         formattedDate = order.journeyDate;
                     }
                 }

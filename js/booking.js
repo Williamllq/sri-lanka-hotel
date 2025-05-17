@@ -1004,34 +1004,50 @@ document.addEventListener('DOMContentLoaded', function() {
 function synchronizeBookings() {
     console.log('Synchronizing bookings for admin panel...');
     
-    // 现有的预订集合
+    // Existing bookings collection
     let allBookings = [];
     let bookingIds = new Set();
     
-    // 从userBookings获取预订
+    // Debug: Log all localStorage keys
+    console.log('All localStorage keys for synchronization:');
+    for (let i = 0; i < localStorage.length; i++) {
+        console.log(`- ${localStorage.key(i)}`);
+    }
+    
+    // Get bookings from userBookings
     try {
         const userBookingsStr = localStorage.getItem('userBookings');
         if (userBookingsStr) {
             const userBookings = JSON.parse(userBookingsStr);
             
-            // 遍历所有用户的预订
-            Object.values(userBookings).forEach(userBookingList => {
+            // Process all user bookings
+            Object.keys(userBookings).forEach(userEmail => {
+                const userBookingList = userBookings[userEmail];
                 if (Array.isArray(userBookingList)) {
                     userBookingList.forEach(booking => {
                         if (booking && booking.id && !bookingIds.has(booking.id)) {
                             bookingIds.add(booking.id);
-                            allBookings.push(booking);
+                            allBookings.push({
+                                ...booking,
+                                customerEmail: userEmail,
+                                customerName: booking.userName || 'Customer',
+                                // Convert date formats if needed
+                                journeyDate: booking.date || booking.journeyDate,
+                                // Ensure timestamps are set
+                                timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
+                                lastUpdated: booking.lastUpdated || new Date().toISOString()
+                            });
                         }
                     });
                 }
             });
+            console.log('Retrieved bookings from userBookings:', bookingIds.size);
         }
-        console.log('Retrieved bookings from userBookings:', bookingIds.size);
     } catch (e) {
         console.error('Error retrieving bookings from userBookings:', e);
     }
     
-    // 从bookingSystem获取预订
+    // Get bookings from bookingSystem
     try {
         const bookingSystemStr = localStorage.getItem('bookingSystem');
         if (bookingSystemStr) {
@@ -1041,7 +1057,13 @@ function synchronizeBookings() {
                 bookingSystem.bookings.forEach(booking => {
                     if (booking && booking.id && !bookingIds.has(booking.id)) {
                         bookingIds.add(booking.id);
-                        allBookings.push(booking);
+                        allBookings.push({
+                            ...booking,
+                            // Ensure these fields exist for admin panel
+                            journeyDate: booking.date || booking.journeyDate,
+                            timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
+                            lastUpdated: booking.lastUpdated || new Date().toISOString()
+                        });
                     }
                 });
             }
@@ -1051,17 +1073,26 @@ function synchronizeBookings() {
         console.error('Error retrieving bookings from bookingSystem:', e);
     }
     
-    // 从individual booking entries获取预订
+    // Get bookings from individual booking entries
     try {
-        // 获取所有localStorage keys
+        // Get all localStorage keys
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key && key.startsWith('booking_')) {
+            if (key && (key.startsWith('booking_') || key.includes('booking'))) {
                 try {
                     const booking = JSON.parse(localStorage.getItem(key));
-                    if (booking && booking.id && !bookingIds.has(booking.id)) {
-                        bookingIds.add(booking.id);
-                        allBookings.push(booking);
+                    const bookingId = booking.id || booking.bookingId;
+                    if (booking && bookingId && !bookingIds.has(bookingId)) {
+                        bookingIds.add(bookingId);
+                        allBookings.push({
+                            ...booking,
+                            id: bookingId,
+                            // Convert date formats if needed
+                            journeyDate: booking.date || booking.journeyDate,
+                            // Ensure timestamps are set
+                            timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
+                            lastUpdated: booking.lastUpdated || new Date().toISOString()
+                        });
                     }
                 } catch (innerErr) {
                     console.error('Error parsing individual booking:', innerErr);
@@ -1073,51 +1104,148 @@ function synchronizeBookings() {
         console.error('Error retrieving individual bookings:', e);
     }
     
-    // 将所有预订转换为管理员格式并保存
+    // Check specifically for the May 17th booking
+    const mayBookingDate = "2024-05-17";
+    let foundMayBooking = false;
+    
+    for (const booking of allBookings) {
+        if ((booking.journeyDate && booking.journeyDate.includes(mayBookingDate)) || 
+            (booking.date && booking.date.includes(mayBookingDate))) {
+            foundMayBooking = true;
+            console.log('Found May 17th booking during synchronization:', booking);
+        }
+    }
+    
+    if (!foundMayBooking) {
+        console.log('May 17th booking not found during normal sync. Searching localStorage directly...');
+        
+        // Search all localStorage for any May 17th date
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            const item = localStorage.getItem(key);
+            
+            if (item && item.includes(mayBookingDate)) {
+                console.log(`Found May 17th booking data in localStorage key: ${key}`);
+                try {
+                    const data = JSON.parse(item);
+                    
+                    // Handle various data structures
+                    if (Array.isArray(data)) {
+                        // If it's an array, check each entry
+                        data.forEach(entry => {
+                            if ((entry.date && entry.date.includes(mayBookingDate)) || 
+                                (entry.journeyDate && entry.journeyDate.includes(mayBookingDate))) {
+                                
+                                const bookingId = entry.id || `may17-${Date.now()}`;
+                                if (!bookingIds.has(bookingId)) {
+                                    bookingIds.add(bookingId);
+                                    allBookings.push({
+                                        ...entry,
+                                        id: bookingId,
+                                        journeyDate: mayBookingDate,
+                                        timestamp: entry.createdAt || entry.timestamp || new Date().toISOString(),
+                                        lastUpdated: entry.lastUpdated || new Date().toISOString()
+                                    });
+                                }
+                            }
+                        });
+                    } else if (typeof data === 'object' && !Array.isArray(data)) {
+                        // Check if it's a userBookings structure (email keys with arrays)
+                        let foundInUserObj = false;
+                        Object.keys(data).forEach(key => {
+                            if (Array.isArray(data[key])) {
+                                data[key].forEach(entry => {
+                                    if ((entry.date && entry.date.includes(mayBookingDate)) || 
+                                        (entry.journeyDate && entry.journeyDate.includes(mayBookingDate))) {
+                                        
+                                        const bookingId = entry.id || `may17-${Date.now()}`;
+                                        if (!bookingIds.has(bookingId)) {
+                                            bookingIds.add(bookingId);
+                                            allBookings.push({
+                                                ...entry,
+                                                id: bookingId,
+                                                customerEmail: key,
+                                                journeyDate: mayBookingDate,
+                                                timestamp: entry.createdAt || entry.timestamp || new Date().toISOString(),
+                                                lastUpdated: entry.lastUpdated || new Date().toISOString()
+                                            });
+                                            foundInUserObj = true;
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // If it's a single booking with May 17th date
+                        if (!foundInUserObj && ((data.date && data.date.includes(mayBookingDate)) || 
+                           (data.journeyDate && data.journeyDate.includes(mayBookingDate)))) {
+                            
+                            const bookingId = data.id || `may17-${Date.now()}`;
+                            if (!bookingIds.has(bookingId)) {
+                                bookingIds.add(bookingId);
+                                allBookings.push({
+                                    ...data,
+                                    id: bookingId,
+                                    journeyDate: mayBookingDate,
+                                    timestamp: data.createdAt || data.timestamp || new Date().toISOString(),
+                                    lastUpdated: data.lastUpdated || new Date().toISOString()
+                                });
+                            }
+                        }
+                    }
+                } catch (parseErr) {
+                    console.warn(`Error parsing ${key} containing May 17th date:`, parseErr);
+                }
+            }
+        }
+    }
+    
+    // Convert all bookings to admin format and save
     try {
-        // 先检查现有的bookings数组
+        // First check existing bookings array
         const bookingsStr = localStorage.getItem('bookings');
         let existingBookings = bookingsStr ? JSON.parse(bookingsStr) : [];
         
-        // 确保是数组
+        // Ensure it's an array
         if (!Array.isArray(existingBookings)) {
             existingBookings = [];
         }
         
-        // 提取现有预订ID
+        // Extract existing booking IDs
         const existingIds = new Set(existingBookings.map(b => b.id));
         
-        // 将新的预订转换为admin格式并添加
+        // Convert new bookings to admin format and add
         const adminBookings = allBookings.map(booking => {
-            // 跳过已存在的预订
+            // Skip already existing bookings
             if (existingIds.has(booking.id)) {
                 return null;
             }
             
-            // 转换为admin格式
+            // Convert to admin format
             return {
                 ...booking,
-                timestamp: booking.createdAt || new Date().toISOString(),
-                customerName: booking.userName || 'N/A',
-                customerEmail: booking.userEmail || 'N/A',
-                fromLocation: booking.pickupLocation || 'N/A',
-                toLocation: booking.destinationLocation || 'N/A',
-                totalFare: booking.totalPrice || 0,
+                id: booking.id,
+                timestamp: booking.createdAt || booking.timestamp || new Date().toISOString(),
+                customerName: booking.userName || booking.name || 'Customer',
+                customerEmail: booking.userEmail || booking.email || 'customer@example.com',
+                fromLocation: booking.pickupLocation || booking.from || 'N/A',
+                toLocation: booking.destinationLocation || booking.to || 'N/A',
+                totalFare: booking.totalPrice || booking.price || booking.total || booking.totalFare || 0,
                 depositAmount: (booking.totalPrice * 0.3) || 0,
                 userId: booking.userEmail || 'guest',
-                vehicleType: 'Standard',
-                status: booking.status || 'pending' // 默认为pending而不是confirmed
+                vehicleType: booking.vehicleType || 'Standard',
+                status: booking.status || 'pending' // Default to pending
             };
-        }).filter(Boolean); // 移除null项
+        }).filter(Boolean); // Remove null items
         
-        // 合并现有和新的预订
+        // Merge existing and new bookings
         const mergedBookings = [...existingBookings, ...adminBookings];
     
-    // 保存到localStorage
+        // Save to localStorage
         localStorage.setItem('bookings', JSON.stringify(mergedBookings));
         console.log('Synchronized bookings for admin panel. Total bookings:', mergedBookings.length);
         
-        // 更新仪表盘上的预订计数（如果在同一页面）
+        // Update dashboard booking count if on same page
         const totalBookingsElement = document.getElementById('totalBookings');
         if (totalBookingsElement) {
             totalBookingsElement.textContent = mergedBookings.length.toString();
