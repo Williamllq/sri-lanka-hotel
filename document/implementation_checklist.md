@@ -35,6 +35,7 @@ This document tracks the implementation progress of various features and fixes f
 - [x] Implement bulk operations for image management
 - [x] Add user management features
 - [x] Implement advanced analytics reporting
+- [x] Fix transport settings save functionality
 
 ## Documentation
 

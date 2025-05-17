@@ -72,6 +72,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize hotel management
     initHotelManagement();
     
+    // Initialize transport settings
+    initTransportSettings();
+    
     // Initialize sidebar toggle
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
