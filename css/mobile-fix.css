@@ -1,4 +1,4 @@
-/* 移动端修复样式 - v1.0 */
+/* 移动端修复样式 - v1.1 */
 
 /* 防止iOS中顶部和底部导航栏的干扰 */
 .hero {
@@ -13,6 +13,34 @@
 img {
     max-width: 100%; /* 确保所有图片不会溢出容器 */
     height: auto; /* 保持图片比例 */
+}
+
+/* PC端滚动修复 */
+@media (min-width: 769px) {
+    /* 确保PC端不会被移动端修复影响 */
+    html, body {
+        overflow: auto !important;
+        overscroll-behavior: auto !important;
+        touch-action: auto !important;
+    }
+    
+    /* 确保PC端表单元素行为正常 */
+    .booking-form {
+        overflow: visible !important;
+        overscroll-behavior: auto !important;
+    }
+    
+    /* 恢复PC端输入控件的默认样式 */
+    input[type="date"],
+    input[type="time"] {
+        -webkit-appearance: revert;
+        appearance: revert;
+    }
+    
+    /* 确保PC端滚动正常工作 */
+    .scrollable-element, body, html {
+        -webkit-overflow-scrolling: auto;
+    }
 }
 
 /* 基础间距修复 */
@@ -172,7 +200,7 @@ img {
         margin-bottom: 12px;
     }
     
-    /* 防止表单元素在交互时导致页面跳转 */
+    /* 防止表单元素在交互时导致页面跳转 - 仅在移动设备上应用 */
     .booking-form {
         position: relative;
         overflow: visible;

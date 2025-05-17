@@ -19,6 +19,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initBookTransportButton();
 });
 
+// 定义设备检测函数
+function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 /**
  * 初始化"Book Transport"按钮跳转功能
  */
@@ -71,8 +76,8 @@ function initBookTransportButton() {
                 const currentPos = window.pageYOffset;
                 const targetDiff = Math.abs(currentPos - targetPosition);
                 
-                // 如果我们不在目标位置附近，尝试再次滚动
-                if (targetDiff > 50) {
+                // 只在移动设备上进行额外处理，PC端保留正常滚动行为
+                if (isMobileDevice() && targetDiff > 50) {
                     window.scrollTo({
                         top: targetPosition,
                         behavior: 'auto'
@@ -116,6 +121,15 @@ function initBookTransportButton() {
  * 防止移动端用户填写表单时页面跳回顶部
  */
 function initFormScrollMemory() {
+    // 仅在移动设备上应用滚动位置记忆功能
+    const isMobile = isMobileDevice();
+    
+    // 如果是桌面设备，不需要特殊处理
+    if (!isMobile) {
+        console.log('Desktop device detected, skipping form scroll memory setup');
+        return;
+    }
+
     // 要监听的表单元素
     const formElements = [
         'serviceType',
@@ -132,6 +146,9 @@ function initFormScrollMemory() {
     
     // 增强版的恢复滚动位置函数
     function enhancedRestoreScrollPosition() {
+        // 仅在移动设备上执行
+        if (!isMobileDevice()) return;
+        
         const now = Date.now();
         // 确保至少间隔100ms才恢复滚动位置，避免频繁恢复导致的问题
         if (now - lastRestoreTime > 100) {
@@ -196,6 +213,8 @@ function initFormScrollMemory() {
     
     // 防止地图选择框关闭后页面跳转
     document.addEventListener('click', function(event) {
+        if (!isMobileDevice()) return; // 仅在移动设备上执行
+        
         const mapModal = document.getElementById('mapModal');
         if (mapModal && mapModal.style.display === 'flex' && !mapModal.contains(event.target)) {
             saveScrollPosition();
@@ -210,16 +229,16 @@ function initFormScrollMemory() {
     if (getQuoteBtn) {
         getQuoteBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            saveScrollPosition();
+            if (isMobileDevice()) saveScrollPosition();
             calculateQuote();
-            setTimeout(enhancedRestoreScrollPosition, 300);
+            if (isMobileDevice()) setTimeout(enhancedRestoreScrollPosition, 300);
         });
     }
     
     if (bookNowBtn) {
         bookNowBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            saveScrollPosition();
+            if (isMobileDevice()) saveScrollPosition();
             processBooking();
             // 不在这里恢复滚动位置，因为可能会显示确认模态框
         });
@@ -230,21 +249,27 @@ function initFormScrollMemory() {
     const destinationMapBtn = document.getElementById('destinationMapBtn');
     
     if (pickupMapBtn) {
-        pickupMapBtn.addEventListener('click', saveScrollPosition);
+        pickupMapBtn.addEventListener('click', function() {
+            if (isMobileDevice()) saveScrollPosition();
+        });
     }
     
     if (destinationMapBtn) {
-        destinationMapBtn.addEventListener('click', saveScrollPosition);
+        destinationMapBtn.addEventListener('click', function() {
+            if (isMobileDevice()) saveScrollPosition();
+        });
     }
     
     // 监听窗口大小变化和屏幕方向变化，保持滚动位置
     window.addEventListener('resize', function() {
-        setTimeout(enhancedRestoreScrollPosition, 100);
+        if (isMobileDevice()) setTimeout(enhancedRestoreScrollPosition, 100);
     });
     
     window.addEventListener('orientationchange', function() {
-        saveScrollPosition();
-        setTimeout(enhancedRestoreScrollPosition, 300);
+        if (isMobileDevice()) {
+            saveScrollPosition();
+            setTimeout(enhancedRestoreScrollPosition, 300);
+        }
     });
     
     // 阻止日期时间输入框的浏览器默认行为
@@ -255,15 +280,17 @@ function initFormScrollMemory() {
  * 阻止日期和时间输入框的浏览器默认滚动行为
  */
 function preventDefaultDateTimeScrolling() {
+    // 仅在移动设备上应用此功能
+    if (!isMobileDevice()) {
+        console.log('Desktop device detected, skipping date/time input handlers');
+        return;
+    }
+    
     const dateInput = document.getElementById('journeyDate');
     const timeInput = document.getElementById('journeyTime');
     
     // 用自定义处理替换原生日期选择器的函数
     function createCustomDateTimePicker(input, type) {
-        if (!(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))) {
-            return; // 只在移动设备上应用这个增强功能
-        }
-        
         // 设置为只读，防止键盘弹出
         input.setAttribute('readonly', 'readonly');
         
@@ -354,7 +381,7 @@ function preventDefaultDateTimeScrolling() {
         createCustomDateTimePicker(timeInput, 'time');
     }
     
-    // 为表单添加总体处理，防止任何元素导致页面跳转
+    // 仅在移动设备上为表单添加总体处理，防止任何元素导致页面跳转
     const bookingForm = document.querySelector('.booking-form');
     if (bookingForm) {
         bookingForm.addEventListener('touchstart', function(e) {
@@ -1712,7 +1739,9 @@ function showMobileNotification(message) {
                     notification.style.display = 'none';
                     
                     // 确保关闭通知后恢复滚动位置
-                    window.scrollTo(0, savedPosition);
+                    if (isMobileDevice()) {
+                        window.scrollTo(0, savedPosition);
+                    }
                 }, 300);
             });
         }
@@ -1737,7 +1766,9 @@ function showMobileNotification(message) {
                     notification.style.display = 'none';
                     
                     // 确保关闭通知后恢复滚动位置
-                    window.scrollTo(0, savedPosition);
+                    if (isMobileDevice()) {
+                        window.scrollTo(0, savedPosition);
+                    }
                 }, 300);
             });
         }
@@ -1752,24 +1783,34 @@ function showMobileNotification(message) {
     // 设置不透明度为1以触发过渡效果
     notification.style.opacity = '1';
     
-    // 确保通知显示后不会改变页面滚动位置
-    window.scrollTo(0, savedPosition);
-    
-    // 添加防抖动特性，阻止通知导致的页面跳动
-    const preventScroll = (e) => {
+    // 确保通知显示后不会改变页面滚动位置 (仅针对移动设备)
+    if (isMobileDevice()) {
         window.scrollTo(0, savedPosition);
-    };
-    window.addEventListener('scroll', preventScroll, { passive: false });
-    
-    // 4秒后自动隐藏
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => {
-            notification.style.display = 'none';
-            window.removeEventListener('scroll', preventScroll);
-            
-            // 确保通知关闭后恢复滚动位置
+        
+        // 添加防抖动特性，阻止通知导致的页面跳动
+        const preventScroll = (e) => {
             window.scrollTo(0, savedPosition);
-        }, 300);
-    }, 4000);
+        };
+        window.addEventListener('scroll', preventScroll, { passive: false });
+        
+        // 4秒后自动隐藏
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.style.display = 'none';
+                window.removeEventListener('scroll', preventScroll);
+                
+                // 确保通知关闭后恢复滚动位置
+                window.scrollTo(0, savedPosition);
+            }, 300);
+        }, 4000);
+    } else {
+        // 在桌面端简单地等待4秒后关闭，不阻止滚动
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 300);
+        }, 4000);
+    }
 }
