@@ -410,4 +410,310 @@ input:focus, select:focus, textarea:focus {
 .disable-select {
     user-select: none;
     -webkit-user-select: none;
+}
+
+/* Mobile Optimization CSS - v2 - Enhanced mobile experience */
+
+/* 全局移动端优化 */
+@media (max-width: 768px) {
+    /* 基础文本大小调整 */
+    body {
+        font-size: 16px;
+        overflow-x: hidden;
+    }
+    
+    /* 容器内边距调整 */
+    .container {
+        padding: 0 15px;
+    }
+    
+    /* 标题大小调整 */
+    h2.section-title {
+        font-size: 26px;
+        margin-bottom: 20px;
+    }
+    
+    h3 {
+        font-size: 20px;
+    }
+    
+    /* 导航优化 */
+    .main-nav {
+        padding: 10px 15px;
+    }
+    
+    .nav-links li a {
+        font-size: 0.9rem;
+        padding: 5px;
+    }
+    
+    /* 统一按钮样式 */
+    .btn, .btn-secondary {
+        padding: 10px 18px;
+        font-size: 0.9rem;
+    }
+    
+    /* 修复底部悬浮按钮位置 */
+    .feedback-btn {
+        bottom: 80px;
+        right: 15px;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        z-index: 99;
+    }
+    
+    .show-ai-btn {
+        bottom: 20px;
+        right: 15px;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        z-index: 99;
+    }
+    
+    /* 确保按钮之间没有重叠 */
+    .feedback-btn, .show-ai-btn {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+}
+
+/* 英雄区域优化 */
+@media (max-width: 768px) {
+    .hero {
+        min-height: 85vh;
+    }
+    
+    .hero-content {
+        width: 90%;
+        padding: 20px;
+    }
+    
+    .hero-content h2 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+    
+    .hero-content p {
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+    
+    .hero-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+    }
+    
+    .hero-buttons .btn,
+    .hero-buttons .btn-secondary {
+        width: 100%;
+        text-align: center;
+        margin: 0;
+    }
+}
+
+/* Transport和Booking部分优化 */
+@media (max-width: 768px) {
+    .transport-booking-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .transport-card {
+        padding: 15px;
+    }
+    
+    .service-features {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .booking-container {
+        padding: 15px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-group {
+        width: 100% !important;
+        margin-bottom: 15px;
+    }
+    
+    /* 地图相关组件优化 */
+    .location-input-container {
+        flex-direction: column;
+    }
+    
+    .map-select-btn {
+        margin-top: 10px;
+        width: 100%;
+    }
+    
+    #routeMap {
+        height: 250px !important;
+    }
+}
+
+/* 图库部分优化 */
+@media (max-width: 768px) {
+    .gallery-filter {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .gallery-filter-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        margin: 3px;
+    }
+    
+    .featured-image {
+        height: 200px;
+    }
+    
+    .gallery-thumbnails {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+}
+
+/* 联系部分优化 */
+@media (max-width: 768px) {
+    .contact-info {
+        flex-direction: column;
+    }
+    
+    .contact-details {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .contact-item {
+        margin-bottom: 15px;
+    }
+}
+
+/* 评价部分优化 */
+@media (max-width: 768px) {
+    .testimonials-grid {
+        display: flex;
+        overflow-x: hidden;
+        scroll-snap-type: x mandatory;
+    }
+    
+    .testimonial-card {
+        min-width: 90%;
+        scroll-snap-align: center;
+        margin-right: 15px;
+    }
+    
+    .testimonial-author img {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* AI助手优化 */
+@media (max-width: 768px) {
+    .ai-assistant {
+        width: 95%;
+        max-width: 350px;
+        right: 10px;
+        bottom: 70px;
+    }
+    
+    .ai-header {
+        padding: 12px;
+    }
+    
+    .chat-messages {
+        max-height: 300px;
+    }
+    
+    .chat-input textarea {
+        font-size: 14px;
+        padding: 8px;
+    }
+    
+    /* 确保AI助手和底部按钮不重叠 */
+    .ai-assistant.expanded {
+        bottom: 80px;
+    }
+}
+
+/* 底部导航条修复 */
+@media (max-width: 768px) {
+    .footer {
+        padding-bottom: 70px; /* 为移动浏览器底部工具栏留出空间 */
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .footer-logo {
+        margin-bottom: 15px;
+    }
+    
+    .footer-social {
+        margin-top: 15px;
+    }
+}
+
+/* 模态框优化 */
+@media (max-width: 768px) {
+    .map-modal-content {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    #modalMap {
+        height: 300px !important;
+    }
+    
+    .map-modal-header h3 {
+        font-size: 18px;
+    }
+    
+    .close-map-btn {
+        font-size: 24px;
+    }
+}
+
+/* 修复移动端布局在滑动时的稳定性 */
+html, body {
+    position: relative;
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* 防止iOS Safari浏览器在滚动时出现橡皮筋效果导致的布局问题 */
+html {
+    position: fixed;
+    height: 100%;
+    overflow: scroll;
+    width: 100vw;
+}
+
+@supports (-webkit-overflow-scrolling: touch) {
+    html {
+        position: static;
+        overflow: auto;
+    }
+    
+    body {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .feedback-btn, .show-ai-btn {
+        bottom: 100px; /* 为iOS Safari底部工具栏增加额外空间 */
+    }
+    
+    .show-ai-btn {
+        bottom: 30px;
+    }
 } 

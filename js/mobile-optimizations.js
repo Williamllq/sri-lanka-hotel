@@ -236,3 +236,216 @@
     });
 
 })(); 
+
+// 移动端优化脚本
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 检测是否是移动设备
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        // 初始化移动端导航
+        initMobileNav();
+        
+        // 优化移动端按钮位置
+        optimizeButtonPositions();
+        
+        // 改进移动端表单体验
+        enhanceMobileFormExperience();
+        
+        // 监听窗口大小变化，以便在旋转屏幕时重新优化
+        window.addEventListener('resize', handleResize);
+    }
+    
+    // 修复iOS Safari滚动问题
+    fixIOSSafariScroll();
+});
+
+// 初始化移动端导航
+function initMobileNav() {
+    const header = document.querySelector('header');
+    const nav = document.querySelector('.main-nav');
+    
+    if (!header || !nav) return;
+    
+    // 创建汉堡菜单按钮
+    const hamburgerBtn = document.createElement('button');
+    hamburgerBtn.className = 'hamburger-menu';
+    hamburgerBtn.innerHTML = '<i class="fas fa-bars"></i>';
+    hamburgerBtn.setAttribute('aria-label', 'Toggle navigation menu');
+    
+    // 将原始菜单转换为下拉菜单
+    const navLinks = document.querySelector('.nav-links');
+    if (navLinks) {
+        navLinks.classList.add('mobile-nav-links');
+        navLinks.style.display = 'none'; // 初始隐藏
+        
+        // 添加汉堡菜单到导航
+        nav.insertBefore(hamburgerBtn, navLinks);
+        
+        // 添加点击事件
+        hamburgerBtn.addEventListener('click', function() {
+            if (navLinks.style.display === 'none') {
+                navLinks.style.display = 'flex';
+                hamburgerBtn.innerHTML = '<i class="fas fa-times"></i>';
+            } else {
+                navLinks.style.display = 'none';
+                hamburgerBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            }
+        });
+        
+        // 点击导航链接后自动关闭菜单
+        navLinks.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A') {
+                navLinks.style.display = 'none';
+                hamburgerBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            }
+        });
+    }
+    
+    // 添加移动端导航样式
+    const style = document.createElement('style');
+    style.textContent = `
+        .hamburger-menu {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .hamburger-menu {
+                display: block;
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                z-index: 1000;
+            }
+            
+            .mobile-nav-links {
+                position: absolute;
+                top: 60px;
+                left: 0;
+                width: 100%;
+                flex-direction: column;
+                background-color: rgba(0, 0, 0, 0.9);
+                z-index: 999;
+                padding: 10px 0;
+                box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            }
+            
+            .mobile-nav-links li {
+                width: 100%;
+                text-align: center;
+                margin: 5px 0;
+            }
+            
+            .mobile-nav-links li a {
+                display: block;
+                padding: 10px;
+            }
+            
+            .logo {
+                position: relative;
+                z-index: 1001;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// 优化移动端按钮位置
+function optimizeButtonPositions() {
+    const feedbackBtn = document.getElementById('showFeedback');
+    const aiBtn = document.getElementById('showAI');
+    
+    if (feedbackBtn && aiBtn) {
+        // 确保按钮不重叠
+        feedbackBtn.style.bottom = '80px';
+        aiBtn.style.bottom = '20px';
+    }
+}
+
+// 改进移动端表单体验
+function enhanceMobileFormExperience() {
+    // 增大输入框点击区域
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.style.padding = '12px';
+        input.style.fontSize = '16px'; // 预防iOS缩放
+    });
+    
+    // 调整表单按钮大小
+    const formButtons = document.querySelectorAll('.form-buttons button');
+    formButtons.forEach(button => {
+        button.style.padding = '12px 15px';
+        button.style.fontSize = '16px';
+        button.style.margin = '5px';
+    });
+}
+
+// 修复iOS Safari滚动问题
+function fixIOSSafariScroll() {
+    // 检测是否是iOS设备
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
+    if (isIOS) {
+        // 修复iOS中软键盘弹出时的页面抖动
+        document.addEventListener('focus', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                // 当输入框获得焦点时，暂时禁用页面滚动
+                document.body.style.position = 'fixed';
+                document.body.style.width = '100%';
+            }
+        }, true);
+        
+        document.addEventListener('blur', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                // 当输入框失去焦点时，恢复页面滚动
+                document.body.style.position = '';
+                document.body.style.width = '';
+            }
+        }, true);
+    }
+}
+
+// 处理屏幕大小变化
+function handleResize() {
+    const isMobile = window.innerWidth <= 768;
+    const navLinks = document.querySelector('.nav-links');
+    const hamburgerBtn = document.querySelector('.hamburger-menu');
+    
+    if (!isMobile && navLinks && hamburgerBtn) {
+        // 如果不再是移动尺寸，重置导航
+        navLinks.style.display = '';
+        hamburgerBtn.style.display = 'none';
+    } else if (isMobile && navLinks && hamburgerBtn) {
+        // 确保在移动模式下汉堡按钮可见
+        hamburgerBtn.style.display = 'block';
+    }
+}
+
+// 优化图片懒加载
+document.addEventListener('DOMContentLoaded', function() {
+    if ('IntersectionObserver' in window) {
+        const lazyImages = document.querySelectorAll('img[data-src]');
+        
+        const imageObserver = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                    imageObserver.unobserve(img);
+                }
+            });
+        });
+        
+        lazyImages.forEach(function(image) {
+            imageObserver.observe(image);
+        });
+    }
+}); 

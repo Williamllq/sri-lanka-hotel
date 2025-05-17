@@ -1,0 +1,134 @@
+/* 移动端修复样式 - v1.0 */
+
+/* 防止iOS中顶部和底部导航栏的干扰 */
+.hero {
+    min-height: 100vh; /* 使用视窗高度确保内容填充整个屏幕 */
+    width: 100%;
+    box-sizing: border-box;
+    padding-top: 70px; /* 为顶部导航栏留出空间 */
+    padding-bottom: 70px; /* 为底部导航栏留出空间 */
+}
+
+/* 修复图片尺寸 */
+img {
+    max-width: 100%; /* 确保所有图片不会溢出容器 */
+    height: auto; /* 保持图片比例 */
+}
+
+/* 基础间距修复 */
+@media (max-width: 768px) {
+    /* 修复标题和文本的阅读体验 */
+    h1, h2, h3, h4, h5, h6 {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+    }
+    
+    p {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+    }
+    
+    /* 修复section间距 */
+    section {
+        padding: 40px 0;
+    }
+    
+    /* 修复容器内边距，防止内容贴边 */
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    /* 调整网格布局，使其在移动端垂直排列 */
+    .grid, .rooms-grid, .service-features {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    /* 修复按钮的可点击大小 */
+    button, .btn, .btn-secondary {
+        min-height: 44px; /* 确保按钮足够大，易于触摸 */
+        min-width: 44px;
+    }
+    
+    /* 调整表单输入域大小 */
+    input, select, textarea {
+        font-size: 16px; /* 防止iOS自动缩放 */
+        height: auto;
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+    
+    /* 修复底部悬浮按钮位置 */
+    .feedback-btn, .show-ai-btn {
+        position: fixed;
+        transform: scale(0.9); /* 稍微缩小按钮 */
+    }
+    
+    .feedback-btn {
+        bottom: 90px;
+        right: 15px;
+    }
+    
+    .show-ai-btn {
+        bottom: 25px;
+        right: 15px;
+    }
+    
+    /* 确保AI助手正确显示 */
+    .ai-assistant {
+        max-height: 80vh; /* 限制最大高度 */
+        max-width: 90vw; /* 限制最大宽度 */
+    }
+    
+    /* 修复页脚在移动端的显示 */
+    .footer {
+        padding-bottom: 100px; /* 为底部导航留出足够空间 */
+    }
+}
+
+/* 特别为小屏设备（如iPhone SE）优化 */
+@media (max-width: 375px) {
+    body {
+        font-size: 14px; /* 稍微减小文字大小 */
+    }
+    
+    .feedback-btn span, .show-ai-btn span {
+        display: none; /* 在极小屏幕上隐藏按钮文字，只显示图标 */
+    }
+    
+    .feedback-btn, .show-ai-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .feedback-btn i, .show-ai-btn i {
+        font-size: 18px;
+    }
+}
+
+/* 修复特定的iOS Safari问题 */
+@supports (-webkit-touch-callout: none) {
+    /* 这些样式只会在iOS设备上应用 */
+    
+    /* 修复iOS中固定元素的问题 */
+    .fixed-element, .feedback-btn, .show-ai-btn {
+        -webkit-transform: translateZ(0);
+    }
+    
+    /* 避免iOS Safari中触摸元素时的闪烁效果 */
+    a, button, .btn, .btn-secondary {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* 修复iOS Safari中触摸滚动的流畅度 */
+    .scrollable-element, body, html {
+        -webkit-overflow-scrolling: touch;
+    }
+} 
