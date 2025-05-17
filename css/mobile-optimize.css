@@ -1,0 +1,413 @@
+/**
+ * Sri Lanka Stay & Explore - Mobile Optimization CSS
+ * Enhances the responsive design for mobile devices
+ */
+
+/* Improved Breakpoints for Modern Devices */
+/* Large Phones (428px+) - iPhone 12 Pro Max, iPhone 13/14 Pro Max */
+@media (max-width: 428px) {
+    .hero-content h2 {
+        font-size: 2rem !important;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
+    
+    .hero-content p {
+        font-size: 1rem !important;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.8rem !important;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* More space for touch inputs */
+    input, select, textarea, button {
+        min-height: 44px; /* Apple's recommended minimum touch target size */
+    }
+    
+    /* Ensure large buttons are easy to tap */
+    .btn, .btn-secondary, .admin-btn {
+        padding: 12px 20px !important;
+    }
+    
+    /* Optimize chat assistant for mobile */
+    .ai-assistant {
+        width: 100% !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        border-radius: 15px 15px 0 0 !important;
+    }
+    
+    /* Fix the booking form */
+    .booking-form {
+        padding: 15px !important;
+    }
+    
+    /* Fix map containers for mobile */
+    #routeMap, #map, #modalMap {
+        height: 250px !important;
+    }
+    
+    /* Fix gallery display */
+    .gallery-thumbnail {
+        width: 70px !important;
+        height: 70px !important;
+    }
+}
+
+/* Very Small Phones (375px and below) - iPhone SE, older phones */
+@media (max-width: 375px) {
+    .hero-content h2 {
+        font-size: 1.8rem !important;
+    }
+    
+    .section-title {
+        font-size: 1.5rem !important;
+    }
+    
+    .gallery-filter-btn {
+        font-size: 0.85rem !important;
+        padding: 6px 10px !important;
+    }
+
+    /* Ensure the form elements stack properly */
+    .form-row {
+        flex-direction: column !important;
+    }
+    
+    .form-group.half {
+        width: 100% !important;
+    }
+    
+    /* Smaller map size for very small screens */
+    #routeMap, #map, #modalMap {
+        height: 200px !important;
+    }
+}
+
+/* Enhanced Touch Target Sizes for All Mobiles */
+@media (max-width: 767px) {
+    /* Improve tap targets */
+    .nav-links a, button, .btn, .btn-secondary, .gallery-filter-btn,
+    .testimonial-nav, .social-links a, .feature-card, .transport-card,
+    .vehicle-option, .map-select-btn, .form-group input[type="radio"],
+    .form-group input[type="checkbox"] {
+        cursor: pointer;
+        touch-action: manipulation;
+    }
+    
+    /* Better spacing for tap targets */
+    .nav-links li {
+        margin: 8px 0 !important;
+    }
+    
+    /* Ensure mobile buttons are easier to tap */
+    .btn, .btn-secondary, button[type="submit"] {
+        width: 100% !important;
+        margin: 8px 0 !important;
+        min-height: 44px;
+    }
+    
+    /* Better spacing for form elements */
+    .form-group {
+        margin-bottom: 16px !important;
+    }
+    
+    label {
+        margin-bottom: 8px !important;
+        display: block !important;
+    }
+    
+    /* Fix mobile menu navigation */
+    .mobile-nav-toggle {
+        display: block !important;
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
+        background: none;
+        border: none;
+        color: var(--light-text);
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    
+    /* Mobile-friendly gallery */
+    .featured-image {
+        height: 220px !important;
+    }
+    
+    .gallery-thumbnails {
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+    
+    /* Testimonials card improvements */
+    .testimonial-card {
+        padding: 15px !important;
+    }
+    
+    /* Fix the feedback button position */
+    .feedback-btn {
+        bottom: 70px !important;
+        right: 15px !important;
+    }
+    
+    /* Fix the location input container */
+    .location-input-container {
+        flex-direction: column !important;
+    }
+    
+    .location-input-container input {
+        margin-bottom: 8px !important;
+    }
+    
+    .map-select-btn {
+        width: 100% !important;
+    }
+    
+    /* Fix footer spacing */
+    .footer-content {
+        flex-direction: column !important;
+        text-align: center !important;
+    }
+    
+    .footer-logo, .footer-social {
+        margin-bottom: 20px !important;
+    }
+}
+
+/* Fix Font Size Issues on iOS */
+@media screen and (max-width: 767px) and (-webkit-min-device-pixel-ratio: 2) {
+    input, select, textarea, button {
+        font-size: 16px !important; /* Prevents iOS zoom on focus */
+    }
+}
+
+/* Optimize Admin Dashboard for Mobile */
+@media (max-width: 767px) {
+    /* Make sidebar collapsible by default */
+    .admin-sidebar {
+        width: 0 !important;
+        overflow: hidden;
+        transition: width 0.3s ease;
+    }
+    
+    .sidebar-collapsed .admin-sidebar {
+        width: 250px !important;
+    }
+    
+    .admin-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    .sidebar-collapsed .admin-content {
+        margin-left: 250px !important;
+        width: calc(100% - 250px) !important;
+    }
+    
+    /* Better admin form elements */
+    .admin-section input, 
+    .admin-section select, 
+    .admin-section textarea {
+        font-size: 16px !important;
+    }
+    
+    /* Picture grid for smaller screens */
+    .picture-grid, .select-picture-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    /* Stats grid for dashboard */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Fix modal content on small screens */
+    .admin-modal .modal-content {
+        width: 95% !important;
+        max-height: 80vh !important;
+    }
+}
+
+/* Fix iOS and Safari Specific Issues */
+@supports (-webkit-touch-callout: none) {
+    /* Fix for iOS Safari viewport height issue */
+    .hero {
+        height: 100vh; /* Use fallback */
+        height: -webkit-fill-available; /* Mobile Safari */
+    }
+    
+    /* Fix for iOS form elements */
+    select {
+        background-position: right 8px center !important;
+        background-size: 12px !important;
+    }
+}
+
+/* Button Ripple Effect for Mobile */
+.btn, .btn-secondary, .admin-btn, .gallery-filter-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:after, .btn-secondary:after, .admin-btn:after, .gallery-filter-btn:after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10, 10);
+    opacity: 0;
+    transition: transform .3s, opacity .5s;
+}
+
+.btn:active:after, .btn-secondary:active:after, 
+.admin-btn:active:after, .gallery-filter-btn:active:after {
+    transform: scale(0, 0);
+    opacity: .3;
+    transition: 0s;
+}
+
+/* Improve Form Field Accessibility */
+input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--primary-color) !important;
+    outline-offset: 2px !important;
+}
+
+/* Add loading indicator for slow-loading elements */
+.lazy-load {
+    position: relative;
+    min-height: 100px;
+}
+
+.lazy-load:before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+    border: 2px solid var(--primary-color);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Hide lazy load spinner when content is loaded */
+.lazy-loaded:before {
+    display: none;
+}
+
+/* Optimize for dark mode */ 
+@media (prefers-color-scheme: dark) {
+    /* Enhanced dark mode details */
+    .form-group label {
+        color: #e0e0e0 !important;
+    }
+    
+    input, select, textarea {
+        background-color: #333 !important;
+        color: #fff !important;
+        border-color: #555 !important;
+    }
+    
+    input::placeholder, textarea::placeholder {
+        color: #aaa !important;
+    }
+}
+
+/* Touch Active states for better mobile interaction */
+.touch-feedback {
+    transition: transform 0.15s ease, opacity 0.15s ease !important;
+}
+
+.touch-active {
+    transform: scale(0.97) !important;
+    opacity: 0.9 !important;
+}
+
+/* Fix for mobile bottom nav overlapping with content */
+.adjust-for-bottom-nav {
+    padding-bottom: 90px !important; /* Adjust based on your bottom navigation height */
+}
+
+/* Better mobile form inputs */
+@media (max-width: 767px) {
+    /* Make date and time inputs more consistent across devices */
+    input[type="date"], 
+    input[type="time"],
+    input[type="datetime-local"] {
+        height: 44px !important;
+        line-height: 44px !important;
+        font-size: 16px !important;
+        padding: 0 10px !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Fix for better touch on checkboxes and radio buttons */
+    input[type="checkbox"], 
+    input[type="radio"] {
+        width: 22px !important;
+        height: 22px !important;
+        margin-right: 8px !important;
+    }
+    
+    /* Enhance select dropdown visibility */
+    select {
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23333' d='M4.5 6l3.5 3.5L11.5 6z'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 8px center !important;
+        padding-right: 30px !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+    }
+    
+    /* Fix for form submit buttons on iOS */
+    button[type="submit"] {
+        -webkit-appearance: none !important;
+        appearance: none !important;
+        border-radius: 8px !important;
+    }
+}
+
+/* Add native-like pulldown refresh effect on mobile */
+.enable-pull-refresh {
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+}
+
+/* Prevent overscrolling/bouncing on iOS */
+.prevent-overscroll {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Fix 100vh issue on mobile browsers */
+.full-height {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Disable user selection for interactive elements on mobile */
+.disable-select {
+    user-select: none;
+    -webkit-user-select: none;
+} 
