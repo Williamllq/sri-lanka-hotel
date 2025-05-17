@@ -249,45 +249,12 @@ function openMapModal() {
 }
 
 /**
- * 当模态框关闭时恢复之前的滚动位置
- */
-function restoreScrollAfterMapModal() {
-    // 检查全局变量lastScrollPosition是否存在
-    if (typeof lastScrollPosition !== 'undefined' && lastScrollPosition > 0) {
-        // 延迟更长时间以确保界面完全关闭
-        setTimeout(function() {
-            window.scrollTo({
-                top: lastScrollPosition,
-                behavior: 'auto'
-            });
-            console.log('Restored scroll position after map modal:', lastScrollPosition);
-            
-            // 多次尝试恢复位置以确保在移动设备上正确滚动
-            setTimeout(function() {
-                if (Math.abs(window.scrollY - lastScrollPosition) > 50) {
-                    console.log('Position not properly restored after map modal, trying again');
-                    window.scrollTo({
-                        top: lastScrollPosition,
-                        behavior: 'auto'
-                    });
-                }
-            }, 300);
-        }, 300);
-    }
-}
-
-/**
  * 关闭地图模态框
  */
 function closeMapModal() {
     // 获取模态框元素
     const mapModal = document.getElementById('mapModal');
     if (mapModal) {
-        // 保存滚动位置（以防它在模态框打开期间发生变化）
-        if (typeof saveScrollPosition === 'function') {
-            saveScrollPosition();
-        }
-        
         mapModal.style.display = 'none';
         // 关闭模态框后恢复滚动位置
         restoreScrollAfterMapModal();
@@ -300,6 +267,30 @@ function closeMapModal() {
     if (tempMarker && map) {
         tempMarker.remove();
         tempMarker = null;
+    }
+}
+
+/**
+ * 当模态框关闭时恢复之前的滚动位置
+ */
+function restoreScrollAfterMapModal() {
+    // 检查全局变量lastScrollPosition是否存在
+    if (typeof lastScrollPosition !== 'undefined' && lastScrollPosition > 0) {
+        setTimeout(function() {
+            window.scrollTo({
+                top: lastScrollPosition,
+                behavior: 'auto'
+            });
+            console.log('Restored scroll position after map modal:', lastScrollPosition);
+            
+            // 在极端情况下，再次尝试恢复滚动位置，确保页面不会跳跃
+            setTimeout(function() {
+                window.scrollTo({
+                    top: lastScrollPosition,
+                    behavior: 'auto'
+                });
+            }, 500);
+        }, 100);
     }
 }
 
@@ -765,13 +756,7 @@ function setMarker(latlng) {
         
     } catch (error) {
         console.error('Error setting marker:', error);
-        // 使用移动端友好的通知代替alert
-        if (typeof showMobileNotification === 'function') {
-            showMobileNotification('Failed to set marker on the map. Please try again.');
-        } else {
-            // 回退到显示地图消息
-            showMapMessage('Failed to set marker on the map. Please try again.', 'error');
-        }
+        alert('Failed to set marker on the map. Please try again.');
     }
 }
 
@@ -822,6 +807,17 @@ function confirmLocation() {
     if (!activeLocationInput) {
         console.error('No active location input');
         return;
+    }
+    
+    // 保存当前滚动位置（确保在modalMap关闭前保存）
+    if (typeof saveScrollPosition === 'function') {
+        saveScrollPosition();
+    } else {
+        // 如果saveScrollPosition函数不存在，则创建一个全局变量
+        if (typeof lastScrollPosition === 'undefined') {
+            window.lastScrollPosition = window.scrollY || window.pageYOffset;
+            console.log('Created and saved scroll position:', window.lastScrollPosition);
+        }
     }
     
     // 根据当前模态标题获取位置类型（接送地点或目的地）

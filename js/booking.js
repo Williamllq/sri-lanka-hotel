@@ -14,7 +14,42 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 添加表单滚动位置记忆功能
     initFormScrollMemory();
+    
+    // 添加"Book Transport"按钮跳转到预订表单功能
+    initBookTransportButton();
 });
+
+/**
+ * 初始化"Book Transport"按钮跳转功能
+ */
+function initBookTransportButton() {
+    // 查找所有"Book Transport"按钮
+    const bookTransportButtons = document.querySelectorAll('a[href="#transport"]');
+    
+    bookTransportButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // 延迟执行，确保页面有足够时间滚动到transport部分
+            setTimeout(() => {
+                // 获取预订表单元素
+                const bookingForm = document.querySelector('.booking-form');
+                if (bookingForm) {
+                    // 使用平滑滚动到预订表单
+                    bookingForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    console.log('Scrolled to booking form');
+                } else {
+                    // 如果找不到预订表单，则滚动到整个transport部分
+                    const transportSection = document.getElementById('transport');
+                    if (transportSection) {
+                        transportSection.scrollIntoView({ behavior: 'smooth' });
+                        console.log('Scrolled to transport section');
+                    }
+                }
+            }, 300);
+        });
+    });
+}
 
 /**
  * 初始化表单滚动位置记忆功能
@@ -32,33 +67,79 @@ function initFormScrollMemory() {
         'specialRequirements'
     ];
     
-    // 为每个表单元素添加事件监听器
+    // 记录上次触发的时间，用于防止过于频繁的滚动恢复
+    let lastRestoreTime = 0;
+    
+    // 增强版的恢复滚动位置函数
+    function enhancedRestoreScrollPosition() {
+        const now = Date.now();
+        // 确保至少间隔100ms才恢复滚动位置，避免频繁恢复导致的问题
+        if (now - lastRestoreTime > 100) {
+            lastRestoreTime = now;
+            // 使用更可靠的方式恢复滚动位置
+            if (lastScrollPosition > 0) {
+                window.scrollTo({
+                    top: lastScrollPosition,
+                    behavior: 'auto' // 使用'auto'而不是'smooth'以避免动画过渡
+                });
+                console.log('Restored scroll position:', lastScrollPosition);
+            }
+        }
+    }
+    
+    // 为每个表单元素添加增强的事件监听器
     formElements.forEach(elementId => {
         const element = document.getElementById(elementId);
         if (element) {
             // 保存当前滚动位置
             element.addEventListener('focus', saveScrollPosition);
-            element.addEventListener('touchstart', saveScrollPosition);
             
             // 针对不同类型的元素添加不同的事件监听器
             if (element.tagName === 'SELECT') {
-                element.addEventListener('change', () => setTimeout(restoreScrollPosition, 300));
-                element.addEventListener('blur', () => setTimeout(restoreScrollPosition, 300));
+                element.addEventListener('change', enhancedRestoreScrollPosition);
+                element.addEventListener('touchend', saveScrollPosition); // 触摸结束后保存位置
             } else if (element.type === 'date' || element.type === 'time') {
-                // 为日期和时间输入添加更强大的事件处理
-                element.addEventListener('change', () => setTimeout(restoreScrollPosition, 500));
-                element.addEventListener('blur', () => setTimeout(restoreScrollPosition, 500));
-                element.addEventListener('touchend', () => setTimeout(restoreScrollPosition, 500));
+                // 对日期和时间输入添加更多事件监听
+                element.addEventListener('change', enhancedRestoreScrollPosition);
+                element.addEventListener('blur', enhancedRestoreScrollPosition);
+                element.addEventListener('touchend', saveScrollPosition);
+                element.addEventListener('touchcancel', enhancedRestoreScrollPosition);
                 
-                // 在点击事件之前保存位置
-                element.addEventListener('mousedown', saveScrollPosition);
-                element.addEventListener('touchstart', saveScrollPosition);
+                // 对日期和时间输入添加特殊处理，以解决本地日期选择器问题
+                element.addEventListener('click', function(e) {
+                    saveScrollPosition();
+                    // 使用MutationObserver监控DOM变化，在选择器关闭后恢复滚动位置
+                    const observer = new MutationObserver(function(mutations) {
+                        setTimeout(enhancedRestoreScrollPosition, 300);
+                    });
+                    observer.observe(document.body, { childList: true, subtree: true });
+                    // 5秒后自动断开观察器
+                    setTimeout(() => observer.disconnect(), 5000);
+                });
                 
-                // 在用户选择日期或时间后额外处理
-                element.addEventListener('input', () => setTimeout(restoreScrollPosition, 500));
+                // 防止隐藏输入相关的滚动跳转
+                // 这是处理iOS和Android原生日期/时间选择器的关键部分
+                element.addEventListener('touchstart', function(e) {
+                    saveScrollPosition();
+                    e.stopPropagation(); // 阻止事件冒泡
+                });
             } else {
-                element.addEventListener('blur', () => setTimeout(restoreScrollPosition, 300));
+                element.addEventListener('blur', enhancedRestoreScrollPosition);
+                element.addEventListener('touchend', function(e) {
+                    // 输入完成后保存位置
+                    saveScrollPosition();
+                    setTimeout(enhancedRestoreScrollPosition, 100);
+                });
             }
+        }
+    });
+    
+    // 防止地图选择框关闭后页面跳转
+    document.addEventListener('click', function(event) {
+        const mapModal = document.getElementById('mapModal');
+        if (mapModal && mapModal.style.display === 'flex' && !mapModal.contains(event.target)) {
+            saveScrollPosition();
+            setTimeout(enhancedRestoreScrollPosition, 300);
         }
     });
     
@@ -71,7 +152,7 @@ function initFormScrollMemory() {
             e.preventDefault();
             saveScrollPosition();
             calculateQuote();
-            setTimeout(restoreScrollPosition, 500);
+            setTimeout(enhancedRestoreScrollPosition, 300);
         });
     }
     
@@ -96,57 +177,79 @@ function initFormScrollMemory() {
         destinationMapBtn.addEventListener('click', saveScrollPosition);
     }
     
-    // 处理移动设备上的日期和时间输入弹出问题
-    handleMobileDateTimeInputs();
+    // 监听窗口大小变化和屏幕方向变化，保持滚动位置
+    window.addEventListener('resize', function() {
+        setTimeout(enhancedRestoreScrollPosition, 100);
+    });
+    
+    window.addEventListener('orientationchange', function() {
+        saveScrollPosition();
+        setTimeout(enhancedRestoreScrollPosition, 300);
+    });
+    
+    // 阻止日期时间输入框的浏览器默认行为
+    preventDefaultDateTimeScrolling();
 }
 
 /**
- * 处理移动设备上日期和时间输入的特殊行为
+ * 阻止日期和时间输入框的浏览器默认滚动行为
  */
-function handleMobileDateTimeInputs() {
-    // 检测是否是移动设备
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+function preventDefaultDateTimeScrolling() {
+    const dateInput = document.getElementById('journeyDate');
+    const timeInput = document.getElementById('journeyTime');
     
-    if (isMobile) {
-        const dateInput = document.getElementById('journeyDate');
-        const timeInput = document.getElementById('journeyTime');
-        
-        if (dateInput) {
-            // 移动设备上日期选择器的特殊处理
-            dateInput.addEventListener('touchstart', function(e) {
+    if (dateInput) {
+        // 在移动设备上使用只读属性，点击时临时启用
+        if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            dateInput.setAttribute('readonly', 'readonly');
+            dateInput.addEventListener('click', function() {
+                this.removeAttribute('readonly');
+                
+                // 保存当前滚动位置
                 saveScrollPosition();
-            });
-            
-            dateInput.addEventListener('change', function(e) {
-                // 使用更长的延迟确保原生控件已关闭
-                setTimeout(restoreScrollPosition, 700);
+                
+                // 选择后重新添加只读属性并恢复滚动位置
+                this.addEventListener('blur', function onBlur() {
+                    this.setAttribute('readonly', 'readonly');
+                    setTimeout(function() {
+                        if (lastScrollPosition > 0) {
+                            window.scrollTo({
+                                top: lastScrollPosition,
+                                behavior: 'auto'
+                            });
+                        }
+                    }, 100);
+                    this.removeEventListener('blur', onBlur);
+                });
             });
         }
-        
-        if (timeInput) {
-            // 移动设备上时间选择器的特殊处理
-            timeInput.addEventListener('touchstart', function(e) {
+    }
+    
+    if (timeInput) {
+        // 对时间输入框应用同样的处理
+        if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            timeInput.setAttribute('readonly', 'readonly');
+            timeInput.addEventListener('click', function() {
+                this.removeAttribute('readonly');
+                
+                // 保存当前滚动位置
                 saveScrollPosition();
-            });
-            
-            timeInput.addEventListener('change', function(e) {
-                // 使用更长的延迟确保原生控件已关闭
-                setTimeout(restoreScrollPosition, 700);
+                
+                // 选择后重新添加只读属性并恢复滚动位置
+                this.addEventListener('blur', function onBlur() {
+                    this.setAttribute('readonly', 'readonly');
+                    setTimeout(function() {
+                        if (lastScrollPosition > 0) {
+                            window.scrollTo({
+                                top: lastScrollPosition,
+                                behavior: 'auto'
+                            });
+                        }
+                    }, 100);
+                    this.removeEventListener('blur', onBlur);
+                });
             });
         }
-        
-        // 监听窗口滚动事件以检测用户交互后的自动滚动
-        let scrollTimeout;
-        window.addEventListener('scroll', function() {
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(function() {
-                // 如果检测到页面自动滚动到顶部，则恢复之前保存的位置
-                if (window.scrollY < 10 && lastScrollPosition > 100) {
-                    console.log('Detected unwanted scroll to top, restoring position');
-                    restoreScrollPosition();
-                }
-            }, 300);
-        });
     }
 }
 
@@ -173,23 +276,8 @@ function restoreScrollPosition() {
                 behavior: 'auto' // 使用'auto'而不是'smooth'以避免动画过渡
             });
             console.log('Restored scroll position:', lastScrollPosition);
-            
-            // 在移动设备上，可能需要多次尝试恢复位置
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (isMobile) {
-                // 再次检查位置是否正确恢复，如果不正确则再次尝试
-                setTimeout(function() {
-                    if (Math.abs(window.scrollY - lastScrollPosition) > 50) {
-                        console.log('Position not properly restored, trying again');
-                        window.scrollTo({
-                            top: lastScrollPosition,
-                            behavior: 'auto'
-                        });
-                    }
-                }, 200);
-            }
         }
-    }, 50);
+    }, 10);
 }
 
 /**
@@ -512,10 +600,10 @@ function calculateQuote() {
     
     // Validate inputs
     if (!serviceType || !journeyDate || !journeyTime || !pickupLocation || !destinationLocation) {
-        // 使用移动端友好的通知提示
+        // 替换alert为更友好的提示方式
         showMobileNotification('Please fill out all required fields to get a quote');
         // 恢复滚动位置
-        setTimeout(restoreScrollPosition, 300);
+        setTimeout(enhancedRestoreScrollPosition, 100);
         return;
     }
     
@@ -550,7 +638,7 @@ function calculateQuote() {
         displayQuote(distance, fare, deposit);
         
         // 恢复滚动位置
-        setTimeout(restoreScrollPosition, 300);
+        setTimeout(enhancedRestoreScrollPosition, 300);
         
         // Call showRouteMap to display the route and get the actual driving distance
         if (typeof showRouteMap === 'function') {
@@ -578,7 +666,7 @@ function calculateQuote() {
                             updateQuoteDisplay(updatedDistance, updatedFare, updatedDeposit);
                             
                             // 恢复滚动位置
-                            setTimeout(restoreScrollPosition, 100);
+                            setTimeout(enhancedRestoreScrollPosition, 100);
                         }
                     }
                 }
@@ -596,7 +684,7 @@ function calculateQuote() {
         displayQuote(distance, fare, deposit);
         
         // 恢复滚动位置
-        setTimeout(restoreScrollPosition, 300);
+        setTimeout(enhancedRestoreScrollPosition, 300);
     }
 }
 
@@ -767,8 +855,6 @@ function processBooking() {
         if (typeof UserAuth !== 'undefined') {
             UserAuth.showLoginModal();
         }
-        // 恢复滚动位置
-        setTimeout(restoreScrollPosition, 300);
         return;
     }
     
@@ -788,7 +874,7 @@ function processBooking() {
     if (!serviceType || !journeyDate || !journeyTime || !pickupLocation || !destinationLocation) {
         showMobileNotification('Please fill out all required fields');
         // 恢复滚动位置
-        setTimeout(restoreScrollPosition, 300);
+        setTimeout(enhancedRestoreScrollPosition, 100);
         return;
     }
     
@@ -1479,39 +1565,73 @@ function showMobileNotification(message) {
         notification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
         notification.style.fontSize = '14px';
         notification.style.display = 'none';
-        notification.style.animation = 'fadeIn 0.3s ease-out';
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.3s ease';
+        // 添加关闭按钮
+        notification.innerHTML = `
+            <span style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 16px;">&times;</span>
+            <span id="notificationMessage"></span>
+        `;
         document.body.appendChild(notification);
         
-        // 添加动画样式
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translate(-50%, 20px); }
-                to { opacity: 1; transform: translate(-50%, 0); }
-            }
-            @keyframes fadeOut {
-                from { opacity: 1; transform: translate(-50%, 0); }
-                to { opacity: 0; transform: translate(-50%, 20px); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    // 清除任何现有的超时
-    if (notification.timeoutId) {
-        clearTimeout(notification.timeoutId);
+        // 添加关闭按钮事件
+        const closeBtn = notification.querySelector('span');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 300);
+            });
+        }
     }
     
     // 设置消息内容并显示
-    notification.textContent = message;
+    const messageSpan = notification.querySelector('#notificationMessage');
+    if (messageSpan) {
+        messageSpan.textContent = message;
+    } else {
+        notification.innerHTML = `
+            <span style="position: absolute; top: 5px; right: 10px; cursor: pointer; font-size: 16px;">&times;</span>
+            <span id="notificationMessage">${message}</span>
+        `;
+        
+        // 重新添加关闭按钮事件
+        const closeBtn = notification.querySelector('span');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 300);
+            });
+        }
+    }
+    
+    // 使用淡入效果显示通知
     notification.style.display = 'block';
-    notification.style.animation = 'fadeIn 0.3s ease-out';
+    
+    // 强制重绘
+    notification.offsetHeight;
+    
+    // 设置不透明度为1以触发过渡效果
+    notification.style.opacity = '1';
     
     // 3秒后自动隐藏
-    notification.timeoutId = setTimeout(() => {
-        notification.style.animation = 'fadeOut 0.3s ease-out';
+    setTimeout(() => {
+        notification.style.opacity = '0';
         setTimeout(() => {
             notification.style.display = 'none';
         }, 300);
-    }, 3000);
+    }, 4000);
+    
+    // 在通知显示后恢复滚动位置
+    if (typeof lastScrollPosition !== 'undefined' && lastScrollPosition > 0) {
+        setTimeout(function() {
+            window.scrollTo({
+                top: lastScrollPosition,
+                behavior: 'auto'
+            });
+        }, 50);
+    }
 }
