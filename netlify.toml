@@ -1,15 +1,53 @@
-[build]
-  publish = "."
-  command = "npm install"
+## "base" is the directory where we get the site from
+base = ""
 
+## "command" is the command to build the site
+command = ""
+
+## "publish" is the directory where the built site goes
+publish = ""
+
+## "functions" is the directory where the serverless functions live
+functions = "server/functions"
+
+## Header configs
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' *.netlify.app; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://unpkg.com https://www.googletagmanager.com https://static.cloudflareinsights.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https://cdn.jsdelivr.net; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; frame-src 'self'; form-action 'self'; upgrade-insecure-requests;"
+
+## Lambda function settings
 [functions]
-  directory = "server/functions"
+  # Maximum payload size
+  maxPayloadSize = 10 # MB
+  # Increase function timeout for image processing
+  node_bundler = "esbuild"
+  
+  ## Individual function settings
+  [functions.processImage]
+    # Extended timeout for image processing
+    timeout = 30 # seconds
+  
+  [functions.imageSync]
+    # Timeout for image synchronization
+    timeout = 20 # seconds
 
+## Redirects and rewrites
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  from = "/.netlify/functions/processImage"
+  to = "/.netlify/functions/processImage"
   status = 200
 
+[[redirects]]
+  from = "/.netlify/functions/imageSync/*"
+  to = "/.netlify/functions/imageSync/:splat"
+  status = 200
+
+## SPA fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"

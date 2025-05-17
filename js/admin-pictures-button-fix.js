@@ -1,7 +1,6 @@
 /**
- * Admin Pictures Button Fix & Resolution Enhancement
- * 
- * 修复图片管理系统中的按钮交互问题，并增强图片管理功能
+ * Admin Pictures Button Fix
+ * This script fixes issues with non-responsive buttons in the admin pictures interface
  */
 
 (function() {

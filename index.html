@@ -22,33 +22,12 @@
     <meta property="twitter:description" content="Discover the best accommodations and experiences in Sri Lanka with our curated selection of hotels, villas, and local adventures.">
     <meta property="twitter:image" content="https://sri-lanka-stay-explore.netlify.app/images/og-image.jpg">
     
-    <!-- SEO优化元数据 -->
-    <link rel="canonical" href="https://sri-lanka-stay-explore.netlify.app/">
-    <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#4285f4">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Web App Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="images/favicon.ico">
     <link rel="apple-touch-icon" href="images/ranga_bandara_logo_v2.png">
     <!-- Additional favicon formats for better browser compatibility -->
     <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
-    
-    <!-- DNS预获取 -->
-    <link rel="dns-prefetch" href="//unpkg.com">
-    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    
-    <!-- 预加载关键资源 -->
-    <link rel="preload" href="css/style.css" as="style">
-    <link rel="preload" href="css/gallery-fix.css" as="style">
-    <link rel="preload" href="js/simple-gallery.js" as="script">
-    <link rel="preload" href="images/ranga_bandara_logo_v2.png" as="image">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
@@ -61,7 +40,25 @@
     
     <!-- JavaScript -->
     <script src="js/translations.js"></script>
+    <script src="js/indexed-db.js"></script>
+    <script src="js/image-manager.js"></script>
     <script src="js/main.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      // Check if service worker is supported
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/js/service-worker.js')
+            .then(registration => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch(error => {
+              console.error('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
 
     <!-- 结构化数据用于SEO -->
     <script type="application/ld+json">
@@ -99,6 +96,9 @@
     <!-- Cloudflare Web Analytics -->
     <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "XXXXXXXXXX"}'></script>
 
+    <!-- Leaflet CSS -->
+    <!-- 重复加载，已移除 -->
+
     <!-- User Authentication Script -->
     <script src="js/user-auth.js" defer></script>
     
@@ -107,33 +107,6 @@
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    
-    <!-- 注册Service Worker -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', async function() {
-          try {
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            console.log('Service Worker registered! Scope:', registration.scope);
-            
-            // 如果支持后台同步，注册图库同步
-            if ('sync' in registration) {
-              navigator.serviceWorker.ready.then(function(registration) {
-                registration.sync.register('sync-gallery-images')
-                  .then(function() {
-                    console.log('Registered background sync for gallery images');
-                  })
-                  .catch(function(err) {
-                    console.error('Background sync registration failed:', err);
-                  });
-              });
-            }
-          } catch (error) {
-            console.error('Service Worker registration failed:', error);
-          }
-        });
-      }
-    </script>
     
     <style>
     /* Ensure My Bookings nav item aligns with other menu items */
@@ -175,38 +148,6 @@
         display: inline-flex !important;
         align-items: center;
     }
-    
-    /* 离线状态提示 */
-    .offline-notification {
-        display: none;
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        background-color: #f44336;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 4px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        z-index: 1000;
-        font-size: 14px;
-        animation: slideIn 0.3s ease;
-    }
-    
-    .offline-notification.online {
-        background-color: #4CAF50;
-        animation: fadeOut 3s forwards;
-        animation-delay: 2s;
-    }
-    
-    @keyframes slideIn {
-        from { transform: translateY(100px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-    
-    @keyframes fadeOut {
-        from { opacity: 1; }
-        to { opacity: 0; visibility: hidden; }
-    }
     </style>
 </head>
 <body>
@@ -227,11 +168,6 @@
             </div>
         </nav>
     </header>
-
-    <!-- 离线提示 -->
-    <div id="offlineNotification" class="offline-notification">
-        <i class="fas fa-wifi"></i> You are currently offline. Some features may be limited.
-    </div>
 
     <main>
         <!-- Hero Section -->
@@ -899,55 +835,6 @@
                 destinationInput.setAttribute('data-i18n-placeholder', 'enter-destination');
             }
         });
-    </script>
-
-    <!-- 离线状态处理脚本 -->
-    <script>
-      // 离线状态处理
-      function handleNetworkStatus() {
-        const notification = document.getElementById('offlineNotification');
-        
-        function updateOnlineStatus() {
-          if (navigator.onLine) {
-            notification.textContent = '🌐 You are back online!';
-            notification.classList.remove('offline');
-            notification.classList.add('online');
-            notification.style.display = 'block';
-            
-            // 触发后台同步
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-              navigator.serviceWorker.ready.then(function(registration) {
-                if (registration.sync) {
-                  registration.sync.register('sync-gallery-images')
-                    .catch(function(err) {
-                      console.error('Background sync registration failed:', err);
-                    });
-                }
-              });
-            }
-            
-            // 几秒后隐藏通知
-            setTimeout(() => {
-              notification.style.display = 'none';
-            }, 5000);
-          } else {
-            notification.textContent = '📶 You are currently offline. Some features may be limited.';
-            notification.classList.remove('online');
-            notification.classList.add('offline');
-            notification.style.display = 'block';
-          }
-        }
-        
-        // 监听在线状态变化
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        
-        // 初始检查
-        updateOnlineStatus();
-      }
-      
-      // 页面加载后初始化
-      window.addEventListener('load', handleNetworkStatus);
     </script>
 </body>
 </html> 
