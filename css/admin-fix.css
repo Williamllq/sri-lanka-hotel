@@ -176,4 +176,42 @@ body.modal-open .modal-backdrop {
 /* 修复不正常的点击事件穿透 */
 * {
     pointer-events: auto;
+}
+
+/* Admin help button styles */
+.admin-help-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-left: auto;
+    margin-right: 20px;
+    transition: all 0.3s ease;
+}
+
+.admin-help-btn:hover {
+    background-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.admin-help-btn i {
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .admin-help-btn span {
+        display: none;
+    }
+    
+    .admin-help-btn {
+        padding: 0.5rem;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        justify-content: center;
+    }
 } 

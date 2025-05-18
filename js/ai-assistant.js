@@ -114,7 +114,7 @@ class AIAssistant {
         this.activeAPI = null;
         
         // System prompt for travel assistant
-        this.systemPrompt = "You are a knowledgeable Sri Lanka travel assistant. Help visitors with hotel information, local attractions, travel tips, and booking assistance. Be friendly, concise, and provide specific information about Sri Lanka. If asked about booking or reservations, suggest using the booking form on the website.";
+        this.systemPrompt = "You are a knowledgeable Sri Lanka travel assistant. Help visitors with hotel information, local attractions, travel tips, and booking assistance. Be friendly, concise, and provide specific information about Sri Lanka. If asked about booking or reservations, suggest using the booking form on the website. If users need detailed guidance on how to use the website, direct them to the User Manual available by clicking on the 'Need Help?' button in the bottom right corner or tell them to visit https://sri-lanka-stay-explore.netlify.app/user-manual.html directly.";
     }
 
     async testAPIConnection() {
@@ -169,7 +169,7 @@ class AIAssistant {
     showWelcomeMessage() {
         // Check if welcome message exists
         if (this.chatMessages && this.chatMessages.children.length === 0) {
-            const welcomeMessage = "Hello! I'm your Sri Lanka travel assistant. I can help you with: <ul><li>Hotel information</li><li>Local attractions</li><li>Travel tips</li><li>Booking assistance</li></ul>How may I assist you today?";
+            const welcomeMessage = "Hello! I'm your Sri Lanka travel assistant. I can help you with: <ul><li>Hotel information</li><li>Local attractions</li><li>Travel tips</li><li>Booking assistance</li></ul>If you need detailed guidance on using the website, you can also check our <a href='user-manual.html' target='_blank'>User Manual</a>.<br><br>How may I assist you today?";
             
             this.addMessage(welcomeMessage, 'ai');
         }
@@ -189,6 +189,15 @@ class AIAssistant {
             this.isCollapsed = false;
             this.aiContainer.classList.remove('collapsed');
             console.log('Chat window should now be visible');
+            
+            // Check URL parameters to see if we should offer help with the user manual
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('help') || urlParams.has('manual')) {
+                // If URL has help or manual parameter, suggest the user manual
+                setTimeout(() => {
+                    this.addMessage("It seems you're looking for help with using our website. Would you like to view our <a href='user-manual.html' target='_blank'>User Manual</a> for detailed guidance on all features?", 'ai');
+                }, 1000);
+            }
         } else {
             console.error('aiContainer is null or undefined');
         }

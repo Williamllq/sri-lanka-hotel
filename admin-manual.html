@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Manual - Sri Lanka Stay & Explore</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/admin-fix.css">
+    <link rel="stylesheet" href="css/mobile-optimize.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <style>
+        /* Admin Manual Specific Styles */
+        .manual-container {
+            max-width: 1000px;
+            margin: 100px auto 50px;
+            padding: 30px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 166, 166, 0.1);
+        }
+        
+        .manual-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .manual-header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .manual-header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .manual-section {
+            margin-bottom: 40px;
+        }
+        
+        .manual-section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .manual-section h3 {
+            color: var(--accent-color);
+            margin: 25px 0 15px;
+        }
+        
+        .manual-content p {
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+        
+        .manual-content ul, .manual-content ol {
+            margin-bottom: 20px;
+            padding-left: 20px;
+        }
+        
+        .manual-content li {
+            margin-bottom: 10px;
+        }
+        
+        .manual-content .note {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-left: 4px solid var(--accent-color);
+            margin-bottom: 20px;
+        }
+        
+        .manual-content .warning {
+            background-color: #fff8e1;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 20px;
+        }
+        
+        .manual-content .tip {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            margin-bottom: 20px;
+        }
+        
+        .manual-content img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .manual-footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .manual-nav {
+            position: sticky;
+            top: 30px;
+            max-height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+        
+        .manual-nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .manual-nav ul li {
+            margin-bottom: 10px;
+        }
+        
+        .manual-nav ul li a {
+            color: var(--text-color);
+            text-decoration: none;
+            display: block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .manual-nav ul li a:hover {
+            background: #f0f0f0;
+            color: var(--primary-color);
+        }
+        
+        .manual-nav ul li a.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .manual-nav-child {
+            padding-left: 20px !important;
+            font-size: 0.9em;
+        }
+        
+        /* Code block styling */
+        .code-block {
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #333;
+        }
+        
+        .key-value {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .key {
+            font-weight: bold;
+            width: 150px;
+            color: #333;
+        }
+        
+        .value {
+            flex: 1;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .manual-container {
+                padding: 20px;
+                margin: 80px auto 30px;
+            }
+            
+            .manual-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .manual-section h2 {
+                font-size: 1.5rem;
+            }
+            
+            .manual-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .manual-nav {
+                position: relative;
+                top: 0;
+                margin-bottom: 30px;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 20px;
+            }
+            
+            .key-value {
+                flex-direction: column;
+            }
+            
+            .key {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+        
+        /* Two-column layout */
+        .manual-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 40px;
+        }
+        
+        @media (max-width: 992px) {
+            .manual-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Back to dashboard button */
+        .back-dashboard {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-dashboard:hover {
+            background: var(--accent-color);
+            transform: translateY(-2px);
+        }
+        
+        /* Table styles */
+        .manual-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .manual-table th, .manual-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        .manual-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        
+        .manual-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .manual-table tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <main class="manual-container">
+        <div class="manual-header">
+            <h1>Sri Lanka Stay & Explore - Admin Manual</h1>
+            <p>Comprehensive guide for administrators to manage the website effectively</p>
+        </div>
+        
+        <div class="manual-grid">
+            <div class="manual-nav">
+                <ul>
+                    <li><a href="#introduction" class="active">Introduction</a></li>
+                    <li><a href="#admin-dashboard">Admin Dashboard</a></li>
+                    <li><a href="#manage-pictures">Manage Pictures</a>
+                        <ul class="manual-nav-child">
+                            <li><a href="#uploading-pictures">Uploading Pictures</a></li>
+                            <li><a href="#organizing-pictures">Organizing Pictures</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#image-carousel">Image Carousel</a></li>
+                    <li><a href="#content-management">Content Management</a>
+                        <ul class="manual-nav-child">
+                            <li><a href="#articles-management">Articles Management</a></li>
+                            <li><a href="#videos-management">Videos Management</a></li>
+                            <li><a href="#links-management">Links Management</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#accommodations-management">Accommodations Management</a>
+                        <ul class="manual-nav-child">
+                            <li><a href="#hotels-management">Hotels Management</a></li>
+                            <li><a href="#rooms-management">Rooms Management</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#order-management">Order Management</a>
+                        <ul class="manual-nav-child">
+                            <li><a href="#viewing-orders">Viewing Orders</a></li>
+                            <li><a href="#processing-orders">Processing Orders</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#transport-settings">Transport Settings</a></li>
+                    <li><a href="#admin-settings">Admin Settings</a></li>
+                    <li><a href="#troubleshooting">Troubleshooting</a></li>
+                </ul>
+                
+                <a href="admin-dashboard.html" class="back-dashboard"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+            </div>
+            
+            <div class="manual-content">
+                <section id="introduction" class="manual-section">
+                    <h2>Introduction</h2>
+                    <p>Welcome to the Sri Lanka Stay & Explore Admin Manual. This comprehensive guide is designed to help administrators effectively manage the website, its content, and user interactions.</p>
+                    
+                    <p>As an administrator, you have access to a range of powerful tools and features that allow you to:</p>
+                    <ul>
+                        <li>Monitor website performance and user activity</li>
+                        <li>Manage image content across the site</li>
+                        <li>Create and edit articles, videos, and recommended links</li>
+                        <li>Manage accommodation listings</li>
+                        <li>Process and track customer orders</li>
+                        <li>Configure transport pricing and settings</li>
+                        <li>Adjust system settings and security options</li>
+                    </ul>
+                    
+                    <p>This manual provides detailed instructions for using each feature of the admin dashboard to ensure smooth operation of the Sri Lanka Stay & Explore website.</p>
+                    
+                    <div class="note">
+                        <p><strong>Note:</strong> Admin access should be limited to authorized personnel only. Never share your login credentials with others.</p>
+                    </div>
+                </section>
+                
+                <section id="admin-dashboard" class="manual-section">
+                    <h2>Admin Dashboard</h2>
+                    <p>The admin dashboard provides a comprehensive overview of website performance and key metrics.</p>
+                    
+                    <h3>Accessing the Dashboard</h3>
+                    <ol>
+                        <li>Navigate to <a href="https://sri-lanka-stay-explore.netlify.app/admin-login.html" target="_blank">https://sri-lanka-stay-explore.netlify.app/admin-login.html</a></li>
+                        <li>Enter your admin credentials</li>
+                        <li>Upon successful login, you'll be directed to the admin dashboard</li>
+                    </ol>
+                    
+                    <h3>Dashboard Components</h3>
+                    <p>The dashboard contains the following key metrics and components:</p>
+                    
+                    <ul>
+                        <li><strong>Total Visits:</strong> Displays the number of visitors to the website</li>
+                        <li><strong>Bookings:</strong> Shows the total number of bookings made</li>
+                        <li><strong>Average Rating:</strong> Displays the average customer rating</li>
+                        <li><strong>Popular Routes:</strong> Lists the most frequently booked transportation routes</li>
+                        <li><strong>Recent Feedback:</strong> Shows the latest customer feedback submissions</li>
+                    </ul>
+                    
+                    <h3>Navigation</h3>
+                    <p>The admin dashboard uses a sidebar navigation system:</p>
+                    <ul>
+                        <li>Click on any sidebar item to navigate to the corresponding section</li>
+                        <li>The active section will be highlighted in the sidebar</li>
+                        <li>Use the hamburger menu icon (☰) in the top-left corner to toggle the sidebar visibility on mobile devices</li>
+                    </ul>
+                    
+                    <div class="tip">
+                        <p><strong>Tip:</strong> You can quickly return to the front-end website by clicking "View Website" in the sidebar footer.</p>
+                    </div>
+                </section>
+                
+                <section id="manage-pictures" class="manual-section">
+                    <h2>Manage Pictures</h2>
+                    <p>The Pictures Management section allows you to upload, organize, and manage images used throughout the website.</p>
+                    
+                    <h3 id="uploading-pictures">Uploading Pictures</h3>
+                    <p>To upload new pictures to the website:</p>
+                    <ol>
+                        <li>Navigate to "Manage Pictures" in the sidebar</li>
+                        <li>Click the "Upload Picture" button</li>
+                        <li>In the upload modal:
+                            <ul>
+                                <li>Click "Select Image" to choose an image file from your computer</li>
+                                <li>Enter a descriptive name for the image</li>
+                                <li>Select the appropriate category (Scenery, Wildlife, Culture, Food, Beach)</li>
+                                <li>Add a detailed description that will be displayed with the image</li>
+                            </ul>
+                        </li>
+                        <li>Click "Upload Image" to complete the process</li>
+                    </ol>
+                    
+                    <div class="note">
+                        <p><strong>Note:</strong> For optimal performance, images should be in JPG, PNG, or WebP format, with a recommended size of 1200×800 pixels and less than 500KB in file size.</p>
+                    </div>
+                    
+                    <h3 id="organizing-pictures">Organizing Pictures</h3>
+                    <p>To organize and manage existing pictures:</p>
+                    <ol>
+                        <li>Navigate to "Manage Pictures" in the sidebar</li>
+                        <li>Use the category dropdown to filter images by category</li>
+                        <li>For each image, you can:
+                            <ul>
+                                <li><strong>View:</strong> Click on the image to view it in full size</li>
+                                <li><strong>Edit:</strong> Click the edit icon to modify the image details</li>
+                                <li><strong>Delete:</strong> Click the trash icon to remove the image</li>
+                                <li><strong>Add to Carousel:</strong> Click the carousel icon to add the image to the homepage carousel</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <div class="warning">
+                        <p><strong>Warning:</strong> Deleting an image is permanent and cannot be undone. Make sure the image is not being used elsewhere on the site before deletion.</p>
+                    </div>
+                </section>
+                
+                <section id="image-carousel" class="manual-section">
+                    <h2>Image Carousel</h2>
+                    <p>The Image Carousel section allows you to manage the rotating images displayed on the homepage.</p>
+                    
+                    <h3>Adding Images to the Carousel</h3>
+                    <ol>
+                        <li>Navigate to "Image Carousel" in the sidebar</li>
+                        <li>Click the "Add Image to Carousel" button</li>
+                        <li>In the selection modal, browse the available images</li>
+                        <li>Click on the images you want to add to select them</li>
+                        <li>Click "Add Selected" to add the chosen images to the carousel</li>
+                    </ol>
+                    
+                    <h3>Reordering Carousel Images</h3>
+                    <ol>
+                        <li>Navigate to "Image Carousel" in the sidebar</li>
+                        <li>In the "Current Carousel Images" section, drag and drop images to change their order</li>
+                        <li>Click "Save Order" to apply the changes</li>
+                    </ol>
+                    
+                    <h3>Removing Images from the Carousel</h3>
+                    <ol>
+                        <li>Navigate to "Image Carousel" in the sidebar</li>
+                        <li>For each image in the carousel, click the "Remove" button (X)</li>
+                        <li>The image will be removed from the carousel but will remain in the image library</li>
+                    </ol>
+                    
+                    <div class="tip">
+                        <p><strong>Tip:</strong> For the best visual appearance, select images with similar aspect ratios and compositions. Landscape orientation works best for the carousel.</p>
+                    </div>
+                </section>
+                
+                <section id="content-management" class="manual-section">
+                    <h2>Content Management</h2>
+                    <p>The Content Management section allows you to create and manage various types of content displayed on the website.</p>
+                    
+                    <h3 id="articles-management">Articles Management</h3>
+                    <p>To manage articles and news content:</p>
+                    <ol>
+                        <li>Navigate to "Content Management" in the sidebar</li>
+                        <li>Select the "Articles & News" tab</li>
+                        <li>To add a new article:
+                            <ul>
+                                <li>Click the "Add New Article" button</li>
+                                <li>Fill in the article title, content, and select a featured image</li>
+                                <li>Add tags and set a publish date</li>
+                                <li>Click "Save Article" to publish</li>
+                            </ul>
+                        </li>
+                        <li>To edit an existing article:
+                            <ul>
+                                <li>Locate the article in the list</li>
+                                <li>Click the "Edit" button</li>
+                                <li>Make your changes in the edit form</li>
+                                <li>Click "Update Article" to save changes</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <h3 id="videos-management">Videos Management</h3>
+                    <p>To manage video content:</p>
+                    <ol>
+                        <li>Navigate to "Content Management" in the sidebar</li>
+                        <li>Select the "Videos" tab</li>
+                        <li>To add a new video:
+                            <ul>
+                                <li>Click the "Add New Video" button</li>
+                                <li>Enter the video title and description</li>
+                                <li>Paste the YouTube or Vimeo embed code or URL</li>
+                                <li>Select a thumbnail image or use the auto-generated one</li>
+                                <li>Click "Save Video" to publish</li>
+                            </ul>
+                        </li>
+                        <li>To edit an existing video:
+                            <ul>
+                                <li>Locate the video in the list</li>
+                                <li>Click the "Edit" button</li>
+                                <li>Make your changes in the edit form</li>
+                                <li>Click "Update Video" to save changes</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <h3 id="links-management">Links Management</h3>
+                    <p>To manage recommended links:</p>
+                    <ol>
+                        <li>Navigate to "Content Management" in the sidebar</li>
+                        <li>Select the "Recommended Links" tab</li>
+                        <li>To add a new link:
+                            <ul>
+                                <li>Click the "Add New Link" button</li>
+                                <li>Enter the link title, URL, and description</li>
+                                <li>Select an icon and category</li>
+                                <li>Click "Save Link" to add it to the site</li>
+                            </ul>
+                        </li>
+                        <li>To edit an existing link:
+                            <ul>
+                                <li>Locate the link in the list</li>
+                                <li>Click the "Edit" button</li>
+                                <li>Make your changes in the edit form</li>
+                                <li>Click "Update Link" to save changes</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </section>
+                
+                <section id="accommodations-management" class="manual-section">
+                    <h2>Accommodations Management</h2>
+                    <p>The Accommodations Management section allows you to manage hotels and room listings on the website.</p>
+                    
+                    <h3 id="hotels-management">Hotels Management</h3>
+                    <p>To manage hotel listings:</p>
+                    <ol>
+                        <li>Navigate to "Accommodations Management" in the sidebar</li>
+                        <li>Select the "Hotels" tab</li>
+                        <li>To add a new hotel:
+                            <ul>
+                                <li>Click the "Add New Hotel" button</li>
+                                <li>Fill in the hotel details: name, location, price range, rating, etc.</li>
+                                <li>Upload hotel images</li>
+                                <li>Add amenities (comma-separated list)</li>
+                                <li>Enter the hotel website URL (if applicable)</li>
+                                <li>Click "Save Hotel" to publish</li>
+                            </ul>
+                        </li>
+                        <li>To edit an existing hotel:
+                            <ul>
+                                <li>Locate the hotel in the list</li>
+                                <li>Click the "Edit" button</li>
+                                <li>Make your changes in the edit form</li>
+                                <li>Click "Update Hotel" to save changes</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <h3 id="rooms-management">Rooms Management</h3>
+                    <p>To manage room listings:</p>
+                    <ol>
+                        <li>Navigate to "Accommodations Management" in the sidebar</li>
+                        <li>Select the "Rooms" tab</li>
+                        <li>To add a new room:
+                            <ul>
+                                <li>Click the "Add New Room" button</li>
+                                <li>Fill in the room details: name, description, price per night, etc.</li>
+                                <li>Specify room size and bed type</li>
+                                <li>Indicate available amenities</li>
+                                <li>Upload room images</li>
+                                <li>Click "Save Room" to publish</li>
+                            </ul>
+                        </li>
+                        <li>To edit an existing room:
+                            <ul>
+                                <li>Locate the room in the list</li>
+                                <li>Click the "Edit" button</li>
+                                <li>Make your changes in the edit form</li>
+                                <li>Click "Update Room" to save changes</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <div class="tip">
+                        <p><strong>Tip:</strong> High-quality room images significantly increase booking rates. Use professional photography when possible, and include multiple images showing different angles and features of each room.</p>
+                    </div>
+                </section>
+                
+                <section id="order-management" class="manual-section">
+                    <h2>Order Management</h2>
+                    <p>The Order Management section allows you to view, process, and manage customer bookings and orders.</p>
+                    
+                    <h3 id="viewing-orders">Viewing Orders</h3>
+                    <p>To view and filter orders:</p>
+                    <ol>
+                        <li>Navigate to "Order Management" in the sidebar</li>
+                        <li>By default, all orders are displayed</li>
+                        <li>Use the tab filters to view orders by status:
+                            <ul>
+                                <li>All Orders</li>
+                                <li>Pending</li>
+                                <li>Confirmed</li>
+                                <li>Completed</li>
+                                <li>Cancelled</li>
+                            </ul>
+                        </li>
+                        <li>Use the search box to find specific orders by customer name, order ID, or location</li>
+                        <li>Use the user filter dropdown to view orders from specific customers</li>
+                    </ol>
+                    
+                    <h3 id="processing-orders">Processing Orders</h3>
+                    <p>To process and update orders:</p>
+                    <ol>
+                        <li>Locate the order you want to process in the orders table</li>
+                        <li>Click the "View" button to see detailed information</li>
+                        <li>In the order details modal:
+                            <ul>
+                                <li>Review all order information, including customer details, booking information, and payment status</li>
+                                <li>Update the order status using the action buttons:
+                                    <ul>
+                                        <li>"Mark as Pending" - Sets the order status to pending</li>
+                                        <li>"Confirm Order" - Confirms the booking</li>
+                                        <li>"Mark as Completed" - Marks the service as delivered</li>
+                                        <li>"Cancel Order" - Cancels the booking</li>
+                                    </ul>
+                                </li>
+                                <li>Add internal notes if needed</li>
+                            </ul>
+                        </li>
+                        <li>Click "Close" to exit the details modal</li>
+                    </ol>
+                    
+                    <div class="note">
+                        <p><strong>Note:</strong> When an order status is changed, the customer will automatically receive an email notification about the status update.</p>
+                    </div>
+                    
+                    <div class="warning">
+                        <p><strong>Warning:</strong> The "Clear All Orders" button will permanently delete all order data. Use this function with extreme caution and only when absolutely necessary.</p>
+                    </div>
+                </section>
+                
+                <section id="transport-settings" class="manual-section">
+                    <h2>Transport Settings</h2>
+                    <p>The Transport Settings section allows you to configure pricing and rates for transportation services.</p>
+                    
+                    <h3>Base Pricing Configuration</h3>
+                    <p>To configure base pricing:</p>
+                    <ol>
+                        <li>Navigate to "Transport Settings" in the sidebar</li>
+                        <li>In the "Base Price and Distance Calculation" section:
+                            <ul>
+                                <li>Set the "Base Fare (USD)" - the minimum fare for any journey</li>
+                                <li>Set the "Rate per Kilometer (USD)" - the amount charged per kilometer traveled</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <h3>Time-based Multipliers</h3>
+                    <p>To configure time-based pricing multipliers:</p>
+                    <ol>
+                        <li>In the "Time-based Multipliers" section:
+                            <ul>
+                                <li>Set the "Rush Hour Multiplier" - applied during peak traffic hours (6-9 AM, 4-7 PM)</li>
+                                <li>Set the "Night Time Multiplier" - applied for night journeys (10 PM - 6 AM)</li>
+                                <li>Set the "Weekend Multiplier" - applied for weekend bookings</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <h3>Vehicle Type Rates</h3>
+                    <p>To configure vehicle-specific rates:</p>
+                    <ol>
+                        <li>In the "Vehicle Types" section:
+                            <ul>
+                                <li>Set the "Sedan Rate Multiplier" - for standard sedan vehicles</li>
+                                <li>Set the "SUV Rate Multiplier" - for SUV and larger vehicles</li>
+                                <li>Set the "Van Rate Multiplier" - for passenger vans</li>
+                                <li>Set the "Luxury Vehicle Multiplier" - for premium and luxury vehicles</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    
+                    <p>After making any changes, click "Save Transport Settings" to apply the new rates.</p>
+                    
+                    <div class="tip">
+                        <p><strong>Tip:</strong> Price adjustments will affect new bookings only. Existing confirmed bookings will maintain their original pricing.</p>
+                    </div>
+                    
+                    <h3>Fare Calculation Formula</h3>
+                    <p>The system calculates fares using the following formula:</p>
+                    <div class="code-block">
+                        Base Fare = Distance (km) × Rate per Kilometer<br>
+                        Time Adjustment = Base Fare × Applicable Time Multiplier<br>
+                        Vehicle Adjustment = Base Fare × Vehicle Type Multiplier<br>
+                        Total Fare = Base Fare + Time Adjustment + Vehicle Adjustment
+                    </div>
+                </section>
+                
+                <section id="admin-settings" class="manual-section">
+                    <h2>Admin Settings</h2>
+                    <p>The Settings section allows you to manage administrator accounts and system configurations.</p>
+                    
+                    <h3>Account Management</h3>
+                    <p>To update your admin account:</p>
+                    <ol>
+                        <li>Navigate to "Settings" in the sidebar</li>
+                        <li>In the account management section:
+                            <ul>
+                                <li>Update your username if needed</li>
+                                <li>Change your password (requires entering the new password twice for confirmation)</li>
+                            </ul>
+                        </li>
+                        <li>Click "Save Settings" to apply changes</li>
+                    </ol>
+                    
+                    <div class="warning">
+                        <p><strong>Warning:</strong> Choose a strong password that includes a mix of uppercase and lowercase letters, numbers, and special characters. Admin account security is crucial for website protection.</p>
+                    </div>
+                    
+                    <h3>System Configuration</h3>
+                    <p>Additional system settings may be available depending on your admin level:</p>
+                    <ul>
+                        <li>Email notification settings</li>
+                        <li>Payment gateway configuration</li>
+                        <li>Backup and maintenance options</li>
+                        <li>API integration settings</li>
+                    </ul>
+                    
+                    <p>Access to these settings may require super-admin privileges.</p>
+                </section>
+                
+                <section id="troubleshooting" class="manual-section">
+                    <h2>Troubleshooting</h2>
+                    <p>Common issues administrators may encounter and how to resolve them.</p>
+                    
+                    <h3>Image Upload Issues</h3>
+                    <p>If you experience problems with image uploads:</p>
+                    <ul>
+                        <li>Ensure the image file is in a supported format (JPG, PNG, WebP)</li>
+                        <li>Check that the file size is less than 5MB</li>
+                        <li>Try compressing the image before uploading</li>
+                        <li>Clear your browser cache and try again</li>
+                        <li>Use a different browser if the issue persists</li>
+                    </ul>
+                    
+                    <h3>Dashboard Not Loading Properly</h3>
+                    <ul>
+                        <li>Clear your browser cache and cookies</li>
+                        <li>Try using a different browser</li>
+                        <li>Ensure you have a stable internet connection</li>
+                        <li>Check that JavaScript is enabled in your browser</li>
+                        <li>Try logging out and logging back in</li>
+                    </ul>
+                    
+                    <h3>Data Not Saving</h3>
+                    <ul>
+                        <li>Check that all required fields are filled out</li>
+                        <li>Look for any error messages that might indicate specific issues</li>
+                        <li>Ensure your session hasn't timed out (log out and back in)</li>
+                        <li>Try saving smaller amounts of data at a time</li>
+                    </ul>
+                    
+                    <h3>Admin Access Issues</h3>
+                    <ul>
+                        <li>If you can't log in, try the password reset function</li>
+                        <li>Ensure you're using the correct URL for admin access</li>
+                        <li>Check if your admin privileges have been changed</li>
+                        <li>Contact the system administrator if you continue to have issues</li>
+                    </ul>
+                    
+                    <div class="note">
+                        <p><strong>Note:</strong> If you encounter persistent technical issues that you cannot resolve, please contact the website developer for assistance.</p>
+                    </div>
+                </section>
+                
+                <div class="manual-footer">
+                    <p>&copy; 2024 Sri Lanka Stay & Explore. All rights reserved.</p>
+                    <a href="admin-dashboard.html" class="back-dashboard"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Scripts -->
+    <script>
+        // Smooth scrolling for navigation links
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.manual-nav a');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    // Get the target section
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(targetId);
+                    
+                    if (targetSection) {
+                        // Scroll to the target section
+                        window.scrollTo({
+                            top: targetSection.offsetTop - 20,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // Highlight active section on scroll
+            window.addEventListener('scroll', function() {
+                const sections = document.querySelectorAll('.manual-section');
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.offsetHeight;
+                    const scrollPosition = window.scrollY;
+                    
+                    if (scrollPosition >= sectionTop - 100 && scrollPosition < sectionTop + sectionHeight - 100) {
+                        const targetLink = document.querySelector(`.manual-nav a[href="#${section.id}"]`);
+                        if (targetLink) {
+                            navLinks.forEach(l => l.classList.remove('active'));
+                            targetLink.classList.add('active');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 
