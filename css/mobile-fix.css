@@ -98,30 +98,30 @@ img {
     }
     
     .feedback-btn span, .show-ai-btn span {
-        display: none; /* 在极小屏幕上隐藏按钮文字，只显示图标 */
+        display: none !important; /* 在极小屏幕上隐藏按钮文字，只显示图标 */
     }
     
     .feedback-btn, .show-ai-btn {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     .feedback-btn {
-        left: 15px;
-        bottom: 25px;
+        left: 15px !important;
+        bottom: 25px !important;
     }
     
     .show-ai-btn {
-        right: 15px;
-        bottom: 25px;
+        right: 15px !important;
+        bottom: 25px !important;
     }
     
     .feedback-btn i, .show-ai-btn i {
-        font-size: 18px;
+        font-size: 18px !important;
     }
 } 

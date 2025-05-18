@@ -402,9 +402,19 @@ function optimizeButtonPositions() {
     const aiBtn = document.getElementById('showAI');
     
     if (feedbackBtn && aiBtn) {
-        // 确保按钮不重叠
-        feedbackBtn.style.bottom = '80px';
-        aiBtn.style.bottom = '20px';
+        // 移除任何内联样式，让CSS完全控制按钮样式和位置
+        feedbackBtn.style.removeProperty('bottom');
+        aiBtn.style.removeProperty('bottom');
+        
+        // 确保按钮大小一致，不修改水平位置（水平位置由CSS控制）
+        feedbackBtn.style.width = 'auto';
+        aiBtn.style.width = 'auto';
+        feedbackBtn.style.borderRadius = '50px';
+        aiBtn.style.borderRadius = '50px';
+        
+        // 设置相同的内边距
+        feedbackBtn.style.padding = '0.7rem 1rem';
+        aiBtn.style.padding = '0.7rem 1rem';
     }
 }
 
@@ -506,4 +516,23 @@ function handleResizeForMobileNav() {
              navLinks.style.display = 'none'; // Hide if it was visible from desktop
         }
     }
-} 
+}
+
+// 文件末尾添加初始化代码
+document.addEventListener('DOMContentLoaded', function() {
+    // 确保按钮布局一致
+    optimizeButtonPositions();
+    
+    // 在页面加载后延迟再次应用，以防其他脚本覆盖了我们的样式
+    setTimeout(optimizeButtonPositions, 500);
+    setTimeout(optimizeButtonPositions, 1000);
+    
+    // 也在窗口大小改变时应用
+    window.addEventListener('resize', optimizeButtonPositions);
+});
+
+// 强制执行一次布局优化
+window.addEventListener('load', function() {
+    // 在页面完全加载后强制执行修复
+    optimizeButtonPositions();
+}); 
