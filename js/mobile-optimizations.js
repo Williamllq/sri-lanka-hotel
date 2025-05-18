@@ -26,7 +26,7 @@
     
     // Optimize scroll performance
     let scrollTimeout;
-    window.addEventListener('scroll', function() {
+    function handleScroll() {
         // Add a class while scrolling
         document.body.classList.add('is-scrolling');
         
@@ -35,7 +35,7 @@
         scrollTimeout = setTimeout(function() {
             document.body.classList.remove('is-scrolling');
         }, 100);
-    });
+    }
     
     // Add touch feedback effects to buttons and interactive elements
     function addTouchFeedback() {
@@ -72,7 +72,9 @@
         // Focus handling to prevent unnecessary zooming
         document.querySelectorAll('input, select, textarea').forEach(input => {
             // Set font-size to 16px to prevent iOS zoom on focus
-            input.style.fontSize = '16px';
+            if (isMobile) {
+                input.style.fontSize = '16px';
+            }
             
             // Auto-blur inputs when Enter key is pressed
             input.addEventListener('keydown', function(e) {
@@ -113,6 +115,23 @@
                 });
             }
         });
+
+        if ('IntersectionObserver' in window) {
+            const dataSrcImages = document.querySelectorAll('img[data-src]');
+            const imageObserver = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+            dataSrcImages.forEach(function(image) {
+                imageObserver.observe(image);
+            });
+        }
     }
     
     // Optimize mobile menu behavior
@@ -136,6 +155,7 @@
             document.addEventListener('click', function(e) {
                 if (navLinks.style.display === 'flex' && 
                     !navLinks.contains(e.target) && 
+                    !mobileMenuToggle.contains(e.target) && // Ensure not clicking the toggle itself
                     e.target !== mobileMenuToggle) {
                     navLinks.style.display = 'none';
                     mobileMenuToggle.classList.remove('active');
@@ -175,7 +195,7 @@
     }
     
     // Optimize scrolling performance
-    function optimizeScrolling() {
+    function optimizePassiveScrolling() {
         // Add passive event listeners for better scroll performance
         const passiveSupported = () => {
             let passive = false;
@@ -201,7 +221,7 @@
         const sidebarToggle = document.getElementById('sidebarToggle');
         const adminLayout = document.querySelector('.admin-layout');
         
-        if (sidebarToggle && adminLayout) {
+        if (sidebarToggle && adminLayout && isMobile) {
             // Default to collapsed on mobile
             adminLayout.classList.add('sidebar-collapsed');
             
@@ -223,16 +243,35 @@
 
     // Initialize all mobile optimizations when document is ready
     document.addEventListener('DOMContentLoaded', function() {
-        addTouchFeedback();
-        removeTouchDelay();
-        optimizeForms();
-        enhanceLazyLoading();
-        optimizeMobileMenu();
-        fixSmoothScrolling();
-        optimizeScrolling();
-        fixAdminSidebar();
+        // Initial iOS Height Fix
+        if (isMobile) {
+             fixIOSHeight();
+        }
+       
+        // Scroll handling
+        window.addEventListener('scroll', handleScroll);
+
+        // Mobile specific initializations
+        if (isMobile) {
+            addTouchFeedback();
+            removeTouchDelay();
+            optimizeForms();
+            optimizeMobileMenu(); // This is the first mobile menu system
+            initMobileNav(); // This is the second mobile menu system, ensure they don't conflict or choose one.
+            optimizeButtonPositions();
+            enhanceMobileFormExperience();
+            fixIOSSafariScroll(); 
+            window.addEventListener('resize', fixIOSHeight); // Resize for iOS height
+            window.addEventListener('resize', handleResizeForMobileNav); // Resize for the second mobile nav
+        }
         
-        console.log('Mobile optimizations applied');
+        // Optimizations for all devices (or as configured)
+        enhanceLazyLoading(); // Lazy loading for all
+        fixSmoothScrolling(); // Smooth scroll for all
+        optimizePassiveScrolling(); // Passive scroll listeners for all
+        fixAdminSidebar(); // Admin sidebar (conditionally mobile)
+
+        console.log('All mobile/general optimizations and initializations applied via single DOMContentLoaded.');
     });
 
 })(); 
@@ -397,16 +436,18 @@ function fixIOSSafariScroll() {
         document.addEventListener('focus', function(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
                 // 当输入框获得焦点时，暂时禁用页面滚动
-                document.body.style.position = 'fixed';
-                document.body.style.width = '100%';
+                // document.body.style.position = 'fixed'; // PROBLEMATIC LINE - Commented out
+                // document.body.style.width = '100%';
+                console.log('iOS input focus, body.style.position was fixed, now commented out.');
             }
         }, true);
         
         document.addEventListener('blur', function(e) {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
                 // 当输入框失去焦点时，恢复页面滚动
-                document.body.style.position = '';
-                document.body.style.width = '';
+                // document.body.style.position = ''; // Corresponding part for the problematic line
+                // document.body.style.width = '';
+                console.log('iOS input blur, body.style.position was reset, now commented out.');
             }
         }, true);
     }
@@ -449,3 +490,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 }); 
+
+// 处理屏幕大小变化 (for initMobileNav)
+function handleResizeForMobileNav() {
+    const isMobileNow = window.innerWidth <= 768;
+    const navLinks = document.querySelector('.main-nav .nav-links'); // Be more specific
+    const hamburgerBtn = document.querySelector('.hamburger-menu');
+    
+    if (!isMobileNow && navLinks && hamburgerBtn && hamburgerBtn.style.display !== 'none') {
+        navLinks.style.display = ''; // Reset to CSS default (flex)
+        hamburgerBtn.style.display = 'none';
+    } else if (isMobileNow && navLinks && hamburgerBtn && hamburgerBtn.style.display === 'none') {
+        hamburgerBtn.style.display = 'block';
+        if (!navLinks.classList.contains('mobile-nav-links')) { // Ensure mobile styles are active
+             navLinks.style.display = 'none'; // Hide if it was visible from desktop
+        }
+    }
+} 

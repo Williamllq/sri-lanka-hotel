@@ -111,24 +111,4 @@ img {
     .feedback-btn i, .show-ai-btn i {
         font-size: 18px;
     }
-}
-
-/* 修复特定的iOS Safari问题 */
-@supports (-webkit-touch-callout: none) {
-    /* 这些样式只会在iOS设备上应用 */
-    
-    /* 修复iOS中固定元素的问题 */
-    .fixed-element, .feedback-btn, .show-ai-btn {
-        -webkit-transform: translateZ(0);
-    }
-    
-    /* 避免iOS Safari中触摸元素时的闪烁效果 */
-    a, button, .btn, .btn-secondary {
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    /* 修复iOS Safari中触摸滚动的流畅度 */
-    .scrollable-element, body, html {
-        -webkit-overflow-scrolling: touch;
-    }
 } 
