@@ -827,6 +827,10 @@ function initOrderManagement() {
         console.log('Orders section not found, skipping initOrderManagement.');
         return;
     }
+
+    localStorage.removeItem('bookings'); // Clear existing bookings data
+    console.log('Cleared bookings from localStorage.');
+
     console.log('Initializing order management...');
     
     // Debug localStorage content
