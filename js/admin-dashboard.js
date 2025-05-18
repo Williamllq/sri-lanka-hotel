@@ -946,9 +946,8 @@ function initOrderManagement() {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${orderId}</td>
-                <td>${orderDate}</td>
                 <td>${order.customerName || 'Anonymous Customer'}</td>
-                <td>${order.serviceType || 'Transport'}</td>
+                <td>${orderDate}</td>
                 <td>${order.pickupLocation || 'N/A'}</td>
                 <td>${order.destination || 'N/A'}</td>
                 <td>${amount}</td>
