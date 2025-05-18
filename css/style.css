@@ -481,19 +481,19 @@ body {
 
 /* Footer / Combined Contact Section */
 .footer {
-    background-color: var(--bg-light); /* Changed to white background */
-    color: var(--text-color); /* Changed to dark text color */
-    padding: 2rem 1rem; /* Reduced padding */
+    background-color: var(--primary-color); /* Same as feedback button */
+    color: var(--light-text);
+    padding: 2rem 1rem; /* Reduced top/bottom padding */
     text-align: center;
 }
 
 .footer-contact-title {
-    color: var(--primary-color); /* Primary color for the title */
-    font-size: 2rem; /* Adjusted title size */
+    color: var(--light-text);
+    font-size: 1.8rem; /* Reduced font size */
     margin-bottom: 1.5rem; /* Reduced margin */
-    border-bottom: 2px solid var(--accent-color);
+    border-bottom: 1px solid var(--accent-color); /* Thinner border */
     display: inline-block;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
 }
 
 .footer-content-wrapper {
@@ -508,28 +508,28 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center; 
-    gap: 0.8rem; /* Reduced gap */
+    gap: 0.5rem; /* Reduced gap */
 }
 
 .footer-contact-details .contact-item {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    font-size: 1rem; /* Adjusted font size */
+    gap: 0.6rem; /* Reduced gap */
+    font-size: 1rem; /* Reduced font size */
+    margin-bottom: 0.5rem; /* Reduced margin */
 }
 
 .footer-contact-details .contact-item i {
-    font-size: 1.2rem; /* Adjusted icon size */
-    color: var(--primary-color); /* Primary color for icons */
+    font-size: 1.2rem; /* Reduced icon size */
+    color: var(--accent-color);
 }
 
 .footer-contact-details .contact-item p {
     margin: 0;
-    color: var(--text-color); /* Dark text color */
 }
 
 .footer-contact-details .contact-item a {
-    color: var(--text-color); /* Dark text color for links */
+    color: var(--light-text);
     text-decoration: none;
     transition: color 0.3s ease;
 }
@@ -548,43 +548,42 @@ body {
 
 .footer-logo-area {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; 
     align-items: center;
     gap: 0.3rem; /* Reduced gap */
 }
 
 .footer-site-logo {
-    width: 60px; /* Adjusted logo size */
+    width: 60px; /* Reduced logo size */
     height: auto;
 }
 
 .footer-logo-area h3 {
-    font-size: 1.3rem; /* Adjusted title size */
+    font-size: 1.3rem; /* Reduced title size */
     font-weight: 300;
     margin: 0;
-    color: var(--text-color); /* Dark text color */
+    color: var(--light-text);
 }
 
 .footer-social-links {
     display: flex;
-    gap: 1.2rem; /* Reduced gap */
+    gap: 1rem; /* Reduced gap */
 }
 
 .footer-social-links a {
-    color: var(--text-color); /* Dark text color */
-    font-size: 1.4rem; /* Adjusted icon size */
+    color: var(--light-text);
+    font-size: 1.4rem; /* Reduced icon size */
     transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .footer-social-links a:hover {
-    color: var(--primary-color);
+    color: var(--accent-color);
     transform: scale(1.1);
 }
 
 .footer-copyright {
     margin-top: 1.5rem; /* Reduced margin */
-    font-size: 0.85rem; /* Adjusted font size */
-    color: var(--text-color); /* Dark text color */
+    font-size: 0.85rem; /* Slightly smaller font */
 }
 
 .footer-copyright p {
@@ -592,7 +591,7 @@ body {
 }
 
 .footer-link {
-    color: var(--primary-color); /* Primary color for links */
+    color: var(--light-text);
     text-decoration: underline;
     transition: color 0.3s ease;
 }
@@ -601,21 +600,19 @@ body {
     color: var(--accent-color);
 }
 
-/* Ensure the old #contact section is hidden if it was only styled and not removed from HTML */
+/* Remove old #contact section styles if they exist to avoid conflict */
 section#contact.section {
     display: none !important; 
 }
 
 /* Responsive adjustments for combined footer */
 @media (min-width: 768px) {
-    .footer {
-        padding: 2.5rem 1rem; /* Adjusted padding for larger screens */
-    }
     .footer-content-wrapper {
         flex-direction: row;
-        justify-content: space-around;
-        align-items: flex-start;
+        justify-content: space-around; 
+        align-items: flex-start; 
         text-align: left;
+        gap: 2rem; /* Maintain a reasonable gap for wider screens */
     }
 
     .footer-contact-details {
@@ -627,11 +624,14 @@ section#contact.section {
     }
 
     .footer-main-content {
-        align-items: center;
+        align-items: center; 
     }
     
     .footer-logo-area {
         align-items: center;
+    }
+     .footer {
+        padding: 2.5rem 1rem; /* Slightly more padding on larger screens but still reduced */
     }
 }
 
