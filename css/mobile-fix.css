@@ -60,20 +60,23 @@ img {
         margin-bottom: 15px;
     }
     
-    /* 修复底部悬浮按钮位置 */
+    /* 修复底部悬浮按钮位置 - 对称布局 */
     .feedback-btn, .show-ai-btn {
         position: fixed;
         transform: scale(0.9); /* 稍微缩小按钮 */
+        padding: 10px 15px;
+        border-radius: 50px;
+        box-shadow: 0 5px 15px rgba(0, 166, 166, 0.2);
+        z-index: 999;
+        bottom: 25px;
     }
     
     .feedback-btn {
-        bottom: 90px;
-        right: 15px;
+        left: 15px; /* 放在左下角 */
     }
     
     .show-ai-btn {
-        bottom: 25px;
-        right: 15px;
+        right: 15px; /* 放在右下角 */
     }
     
     /* 确保AI助手正确显示 */
@@ -106,6 +109,16 @@ img {
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+    
+    .feedback-btn {
+        left: 15px;
+        bottom: 25px;
+    }
+    
+    .show-ai-btn {
+        right: 15px;
+        bottom: 25px;
     }
     
     .feedback-btn i, .show-ai-btn i {

@@ -455,17 +455,18 @@ input:focus, select:focus, textarea:focus {
     
     /* 修复底部悬浮按钮位置 */
     .feedback-btn {
-        bottom: 80px;
-        right: 15px;
-        padding: 10px 12px;
+        bottom: 25px;
+        left: 15px;
+        padding: 10px 15px;
         font-size: 0.9rem;
         z-index: 99;
+        border-radius: 50px;
     }
     
     .show-ai-btn {
-        bottom: 20px;
+        bottom: 25px;
         right: 15px;
-        padding: 10px 12px;
+        padding: 10px 15px;
         font-size: 0.9rem;
         z-index: 99;
     }
@@ -709,11 +710,13 @@ html {
         -webkit-overflow-scrolling: touch;
     }
     
-    .feedback-btn, .show-ai-btn {
-        bottom: 100px; /* 为iOS Safari底部工具栏增加额外空间 */
+    .feedback-btn {
+        bottom: 30px; /* 为iOS Safari底部工具栏增加额外空间 */
+        left: 15px;
     }
     
     .show-ai-btn {
         bottom: 30px;
+        right: 15px;
     }
 } 
