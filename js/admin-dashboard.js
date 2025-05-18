@@ -828,14 +828,17 @@ function initOrderManagement() {
         return;
     }
 
-    localStorage.removeItem('bookings'); // Ensure this is here to clear existing bookings data
-    console.log('Cleared bookings from localStorage for initOrderManagement.');
-
+    // Clear all existing order data
+    clearAllOrderData();
+    
+    // Set a flag to prevent demo data from being shown
+    window.ordersManuallyCleared = true;
+    
     console.log('Initializing order management...');
     
     // Debug localStorage content
     try {
-        console.log('localStorage bookings content:', localStorage.getItem('bookings'));
+        console.log('localStorage bookings content after clearing:', localStorage.getItem('bookings'));
         console.log('localStorage userBookings content:', localStorage.getItem('userBookings'));
     } catch (e) {
         console.error('Error accessing localStorage:', e);
@@ -897,36 +900,44 @@ function initOrderManagement() {
         // Get orders from localStorage
         let orders = [];
         try {
-            const storedOrders = localStorage.getItem('bookings'); // This will be null if we just cleared it
+            const storedOrders = localStorage.getItem('bookings');
             if (storedOrders) {
                 orders = JSON.parse(storedOrders);
                 console.log('Loaded orders from localStorage:', orders);
             }
         } catch (error) {
             console.error('Error loading orders:', error);
-            // Display a clear message in the table if there's an error loading
-            if (ordersTableBody) {
-                ordersTableBody.innerHTML = '<tr><td colspan="9" class="no-data error">Error loading orders.</td></tr>';
-            }
-            if (noOrdersMessage) {
-                noOrdersMessage.textContent = 'Error loading orders.';
-                noOrdersMessage.style.display = 'flex';
-            }
             return;
         }
         
-        // If no orders (e.g., after clearing or if genuinely empty)
+        // If no orders, show empty state instead of demo data if we've manually cleared
         if (!orders || orders.length === 0) {
-            console.log('No orders found in localStorage. Displaying empty state.');
-            if (noOrdersMessage) {
-                noOrdersMessage.textContent = 'No orders found.'; // Set specific message
-                noOrdersMessage.style.display = 'flex';
+            if (window.ordersManuallyCleared) {
+                console.log('No orders found and orders were manually cleared. Showing empty state.');
+                if (noOrdersMessage) {
+                    noOrdersMessage.style.display = 'flex';
+                }
+                if (ordersTableBody) {
+                    ordersTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No orders found</td></tr>';
+                }
+                return;
             }
-            if (ordersTableBody) {
-                ordersTableBody.innerHTML = '<tr><td colspan="9" class="no-data">No orders found</td></tr>';
+            
+            // Only show demo data if not manually cleared
+            const showDemoData = !window.ordersManuallyCleared; 
+            
+            if (showDemoData) {
+                console.log('No orders found, creating demo data');
+                orders = createDemoOrders();
+            } else {
+                if (noOrdersMessage) {
+                    noOrdersMessage.style.display = 'flex';
+                }
+                if (ordersTableBody) {
+                    ordersTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No orders found</td></tr>';
+                }
+                return;
             }
-            // Explicitly DO NOT call createDemoOrders() here for the clearing request.
-            return; 
         }
         
         // Filter orders by status
@@ -1435,6 +1446,84 @@ function initOrderManagement() {
         } catch (error) {
             console.error('Error updating order in storage:', error);
         }
+    }
+}
+
+// Function to clear all existing order data
+function clearAllOrderData() {
+    try {
+        // Remove all orders related data from localStorage
+        localStorage.removeItem('bookings');
+        localStorage.removeItem('userBookings');
+        localStorage.removeItem('transportBookings');
+        localStorage.removeItem('bookingsArchive');
+        
+        // Also check for any other potential keys in localStorage that might store order data
+        const keysToCheck = [];
+        for(let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (
+                key.toLowerCase().includes('order') || 
+                key.toLowerCase().includes('book') ||
+                key.toLowerCase().includes('reservation')
+            )) {
+                keysToCheck.push(key);
+            }
+        }
+        
+        // Remove any other order-related keys found in localStorage
+        keysToCheck.forEach(key => {
+            console.log('Removing potentially order-related localStorage key:', key);
+            localStorage.removeItem(key);
+        });
+        
+        // Also clear from sessionStorage
+        sessionStorage.removeItem('bookings');
+        sessionStorage.removeItem('userBookings');
+        sessionStorage.removeItem('transportBookings');
+        sessionStorage.removeItem('bookingsArchive');
+        
+        // Check for any other potential keys in sessionStorage
+        const sessionKeysToCheck = [];
+        for(let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key && (
+                key.toLowerCase().includes('order') || 
+                key.toLowerCase().includes('book') ||
+                key.toLowerCase().includes('reservation')
+            )) {
+                sessionKeysToCheck.push(key);
+            }
+        }
+        
+        // Remove any other order-related keys found in sessionStorage
+        sessionKeysToCheck.forEach(key => {
+            console.log('Removing potentially order-related sessionStorage key:', key);
+            sessionStorage.removeItem(key);
+        });
+        
+        console.log('Successfully cleared all order data from localStorage and sessionStorage');
+        
+        // Check if ordersTableBody exists and clear it directly for immediate visual feedback
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        if (ordersTableBody) {
+            // Clear the table body completely - this is more direct than waiting for loadOrders
+            ordersTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No orders found</td></tr>';
+            
+            // Also try to find and remove any rows containing order data
+            const allTrs = document.querySelectorAll('#ordersTableBody tr');
+            allTrs.forEach(tr => {
+                // Skip the "no orders" message row
+                if (!tr.innerHTML.includes('No orders found')) {
+                    tr.remove();
+                }
+            });
+        }
+        
+        // Set global flag to indicate orders have been manually cleared
+        window.ordersManuallyCleared = true;
+    } catch (error) {
+        console.error('Error clearing order data:', error);
     }
 }
 
