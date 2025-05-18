@@ -1316,14 +1316,10 @@ function initOrderManagement() {
         
         if (initialOrderCount === finalOrderCount) {
             console.warn(`Order ID ${orderId} not found in the list. No order deleted.`);
-            // It's possible the ID passed doesn't match any existing order.
-            // Check if the demo data is being used and if the ID matches demo data format.
-            const isDemoOrder = orders.some(o => o.id === orderId && o.serviceType); // A simple check for demo orders
+            const isDemoOrder = orders.some(o => o.id === orderId && o.serviceType); 
             if (isDemoOrder) {
                  console.log(`Order ID ${orderId} might be a demo order. Ensure deletion logic handles this or data is persistent.`);
             }
-            // alert(`Order with ID ${orderId} not found. Nothing deleted.`);
-            // We still call loadOrders() to refresh the view in case the table was out of sync.
         }
         
         // Save to localStorage
@@ -1331,15 +1327,30 @@ function initOrderManagement() {
             localStorage.setItem('bookings', JSON.stringify(filteredOrders));
             console.log('Orders saved to localStorage after attempting deletion:', JSON.parse(JSON.stringify(filteredOrders)));
             
-            // Reload orders
-            console.log('Reloading orders table after deletion attempt...');
-            loadOrders();
+            // Attempt to remove the row directly from the DOM for immediate visual feedback
+            if (initialOrderCount > finalOrderCount) {
+                const rowToDelete = ordersTableBody.querySelector(`button.delete-btn[data-id="${orderId}"]`)?.closest('tr');
+                if (rowToDelete) {
+                    rowToDelete.remove();
+                    console.log('Successfully removed row from DOM for order ID:', orderId);
+                } else {
+                    console.warn('Could not find row in DOM to remove for order ID:', orderId);
+                }
+            }
+
+            // Reload orders table to ensure full consistency, respecting current search and filter
+            const currentSearchTerm = orderSearchInput ? orderSearchInput.value : '';
+            console.log('Reloading orders table after deletion attempt with search:', currentSearchTerm, 'and filter:', currentOrderFilter);
+            loadOrders(currentSearchTerm); // Pass current search term
             console.log('Orders table reload initiated.');
+            
             if (initialOrderCount > finalOrderCount) {
                 alert('Order deleted successfully!');
-            } else if (initialOrderCount === finalOrderCount) {
-                // alert('Order not found or already deleted.'); // Consider if this alert is needed
-                console.log(`Order ID ${orderId} was not present or already removed.`);
+            } else if (initialOrderCount === finalOrderCount && !document.querySelector(`button.delete-btn[data-id="${orderId}"]`)){
+                 // If the item wasn't in the data, and also not in the DOM, it might have been a ghost.
+                 console.log(`Order ID ${orderId} was not present or already removed from DOM and data.`);
+            } else if (initialOrderCount === finalOrderCount){
+                alert('Order not found in data. Table refreshed.');
             }
 
         } catch (error) {
