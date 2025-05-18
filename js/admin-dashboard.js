@@ -63,14 +63,36 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('Hotel section link not found');
     }
     
-    // Initialize charts
-    initCharts();
+    // Initialize charts if the dashboard section is present
+    if (document.getElementById('dashboardSection')) {
+        initCharts();
+        initDashboardStats();
+    }
     
-    // Initialize content management
-    initContentManagement();
+    // Initialize content management if the content section is present
+    if (document.getElementById('contentSection')) {
+        initContentManagement();
+    }
     
-    // Initialize hotel management
-    initHotelManagement();
+    // Initialize hotel management if the hotels section is present
+    if (document.getElementById('hotelsSection')) {
+        initHotelManagement();
+    }
+
+    // Initialize order management if the orders section is present
+    if (document.getElementById('ordersSection')) {
+        initOrderManagement();
+    }
+
+    // Initialize transport settings if the transport settings section is present
+    if (document.getElementById('transportSettingsSection')) {
+        initTransportSettings();
+    }
+
+    // Initialize settings if the settings section is present
+    if (document.getElementById('settingsSection')) {
+        initSettings();
+    }
     
     // Initialize sidebar toggle
     if (sidebarToggle) {
@@ -225,6 +247,16 @@ function initModalHandling() {
 
 // Dashboard statistics initialization
 function initDashboardStats() {
+    // Check if the dashboard section and stat elements are present
+    if (!document.getElementById('dashboardSection') || 
+        !document.getElementById('totalVisits') || 
+        !document.getElementById('totalBookings') ||
+        !document.getElementById('avgRating') ||
+        !document.getElementById('popularRoutes') ||
+        !document.getElementById('feedbackList')) {
+        console.log('Dashboard section or stat elements not found, skipping initDashboardStats.');
+        return;
+    }
     // Mock data - in a real app, this would come from an API
     document.getElementById('totalVisits').textContent = '1,245';
     document.getElementById('totalBookings').textContent = '32';
@@ -269,6 +301,11 @@ function initDashboardStats() {
 
 // Picture Management functionality
 function initPictureManagement() {
+    // Check if the picture management section or relevant elements are present
+    if (!document.getElementById('picturesSection') && !document.getElementById('pictureGrid')) {
+        console.log('Picture management section or grid not found, skipping initPictureManagement.');
+        return;
+    }
     console.log('Initializing picture management from admin-dashboard.js');
     
     const pictureGrid = document.getElementById('pictureGrid');
@@ -549,6 +586,11 @@ function initPictureManagement() {
 
 // Carousel Management functionality
 function initCarouselManagement() {
+    // Check if the carousel management section or relevant elements are present
+    if (!document.getElementById('carouselSection') && !document.getElementById('carouselImagesList')) {
+        console.log('Carousel management section or list not found, skipping initCarouselManagement.');
+        return;
+    }
     const addToCarouselBtn = document.getElementById('addToCarouselBtn');
     const carouselModal = document.getElementById('carouselModal');
     const closeModalBtns = document.querySelectorAll('.close-modal');
@@ -753,6 +795,11 @@ function initCarouselManagement() {
 
 // Initialize hotel management
 function initHotelManagement() {
+    // Check if the hotel management section is present
+    if (!document.getElementById('hotelsSection')) {
+        console.log('Hotels section not found, skipping initHotelManagement.');
+        return;
+    }
     console.log('Initializing hotel management - delegating to admin-hotels.js');
     
     // We'll let admin-hotels.js handle all the room management functionality
@@ -784,6 +831,11 @@ function initHotelManagement() {
 
 // Order Management
 function initOrderManagement() {
+    // Check if the orders section is present
+    if (!document.getElementById('ordersSection')) {
+        console.log('Orders section not found, skipping initOrderManagement.');
+        return;
+    }
     console.log('Initializing order management...');
     
     // Debug localStorage content
@@ -1390,6 +1442,11 @@ function initOrderManagement() {
 
 // Transport Settings functionality
 function initTransportSettings() {
+    // Check if the transport settings section is present
+    if (!document.getElementById('transportSettingsSection')) {
+        console.log('Transport Settings section not found, skipping initTransportSettings.');
+        return;
+    }
     console.log('Initializing transport settings...');
     
     // 获取保存按钮元素
@@ -1619,6 +1676,11 @@ function initTransportSettings() {
 
 // Settings Management functionality
 function initSettings() {
+    // Check if the settings section is present
+    if (!document.getElementById('settingsSection')) {
+        console.log('Settings section not found, skipping initSettings.');
+        return;
+    }
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
     const adminUsername = document.getElementById('adminUsername');
     const adminPassword = document.getElementById('adminPassword');
@@ -1667,6 +1729,11 @@ function initContentManagement() {
     // Tab functionality
     const contentTabs = document.querySelectorAll('.admin-tab');
     const contentTabContents = document.querySelectorAll('.admin-tab-content');
+
+    if (contentTabs.length === 0 && contentTabContents.length === 0 && !document.getElementById('contentSection')) {
+        console.log('Content management section elements not found, skipping initialization.');
+        return;
+    }
     
     contentTabs.forEach(tab => {
         tab.addEventListener('click', function() {
@@ -1698,6 +1765,11 @@ function initArticlesManagement() {
     const articlesList = document.getElementById('articlesList');
     const addArticleBtn = document.getElementById('addArticleBtn');
     const articleModal = document.getElementById('articleModal');
+    // Early exit if essential elements for this section are not found
+    if (!articlesList || !addArticleBtn || !articleModal) {
+        console.warn('Articles Management section elements not found, skipping initialization.');
+        return;
+    }
     const articleForm = document.getElementById('articleForm');
     const closeModalBtns = articleModal.querySelectorAll('.close-modal, #cancelArticleBtn');
     const saveArticleBtn = document.getElementById('saveArticleBtn');
@@ -1898,6 +1970,11 @@ function initVideosManagement() {
     const videosList = document.getElementById('videosList');
     const addVideoBtn = document.getElementById('addVideoBtn');
     const videoModal = document.getElementById('videoModal');
+    // Early exit if essential elements for this section are not found
+    if (!videosList || !addVideoBtn || !videoModal) {
+        console.warn('Videos Management section elements not found, skipping initialization.');
+        return;
+    }
     const videoForm = document.getElementById('videoForm');
     const closeModalBtns = videoModal.querySelectorAll('.close-modal, #cancelVideoBtn');
     const saveVideoBtn = document.getElementById('saveVideoBtn');
@@ -2094,6 +2171,11 @@ function initLinksManagement() {
     const linksList = document.getElementById('linksList');
     const addLinkBtn = document.getElementById('addLinkBtn');
     const linkModal = document.getElementById('linkModal');
+    // Early exit if essential elements for this section are not found
+    if (!linksList || !addLinkBtn || !linkModal) {
+        console.warn('Links Management section elements not found, skipping initialization.');
+        return;
+    }
     const linkForm = document.getElementById('linkForm');
     const closeModalBtns = linkModal.querySelectorAll('.close-modal, #cancelLinkBtn');
     const saveLinkBtn = document.getElementById('saveLinkBtn');
