@@ -1,0 +1,39 @@
+/* 
+ * Scroll Fix CSS
+ * Simple fix for scrolling issues
+ */
+
+html, body {
+  position: relative !important; /* Override any fixed positioning */
+  overflow-y: auto !important;   /* Force vertical scrolling */
+  overflow-x: hidden;            /* Prevent horizontal scrolling */
+  height: auto !important;       /* Let the content determine height */
+  min-height: 100%;              /* Ensure minimum full height */
+}
+
+/* For mobile devices */
+@media (max-width: 767px) {
+  html, body {
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+}
+
+/* Force body to be scrollable */
+body.force-scroll {
+  overflow: auto !important;
+  position: relative !important;
+  height: auto !important;
+}
+
+/* Make sure main content is visible and scrollable */
+main {
+  display: block;
+  position: relative;
+  overflow: visible;
+}
+
+/* Ensure sections below hero are visible */
+section:not(.hero) {
+  position: relative;
+  overflow: visible;
+} 

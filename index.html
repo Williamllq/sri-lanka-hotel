@@ -29,6 +29,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
     
+    <!-- Critical CSS for scrolling fixes - Load this first -->
+    <link rel="stylesheet" href="css/scroll-fix.css">
+    
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/responsive.css">
@@ -145,7 +148,7 @@
     }
     </style>
 </head>
-<body>
+<body class="force-scroll">
     <header>
         <nav class="main-nav">
             <ul class="nav-links">
@@ -743,65 +746,131 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/script.js"></script>
-    <!-- Simple Gallery - Lightweight gallery implementation -->
-    <script src="js/simple-gallery.js"></script>
-    <script src="js/ai-assistant.js"></script>
-    <script src="js/feedback.js"></script>
-    <script src="js/testimonials.js"></script>
-    <script src="js/rooms.js"></script>
-    
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
-    <!-- Custom Map JS - Ensure map.js is loaded before booking.js -->
-    <script src="js/map.js"></script>
-    <script src="js/booking.js"></script>
-    
-    <!-- User Auth -->
-    <script src="js/user-auth.js"></script>
-    <script src="js/my-bookings.js"></script>
-    
-    <!-- Removed problematic gallery scripts that were causing memory issues -->
-    <!-- Now using lightweight simple-gallery.js implementation above -->
-
-    <!-- Force Leaflet Load -->
     <script>
-        // Force check for Leaflet loading
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Checking Leaflet status:', typeof L !== 'undefined' ? 'Loaded' : 'Not loaded');
+        // Preload core modules immediately
+        
+        // Create a function to load scripts in order
+        function loadScriptSequentially(scripts, callback) {
+            let index = 0;
             
-            // If Leaflet is not loaded, try to load it again
-            if (typeof L === 'undefined') {
-                console.log('Attempting to load Leaflet again');
-                var script = document.createElement('script');
-                script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-                script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
-                script.crossOrigin = '';
+            function loadNext() {
+                if (index >= scripts.length) {
+                    if (callback) callback();
+                    return;
+                }
+                
+                const scriptInfo = scripts[index++];
+                const script = document.createElement('script');
+                script.src = scriptInfo.src;
+                
+                if (scriptInfo.defer) script.defer = true;
+                if (scriptInfo.async) script.async = true;
                 
                 script.onload = function() {
-                    console.log('Leaflet loaded successfully');
-                    // Wait a moment, then try to initialize the map
-                    setTimeout(function() {
-                        if (typeof initMap === 'function') {
-                            console.log('Attempting to initialize map after Leaflet load');
-                            initMap();
-                        }
-                    }, 500);
+                    loadNext();
+                };
+                
+                script.onerror = function(e) {
+                    console.error(`Failed to load script: ${scriptInfo.src}`, e);
+                    // Continue loading other scripts even if one fails
+                    loadNext();
                 };
                 
                 document.head.appendChild(script);
             }
+            
+            loadNext();
+        }
+        
+        // Define core scripts that must load first
+        const coreScripts = [
+            { src: 'js/translations.js' },
+            { src: 'js/main.js' }
+        ];
+        
+        // Define secondary scripts that can load after core
+        const secondaryScripts = [
+            { src: 'js/indexed-db.js' },
+            { src: 'js/image-manager.js' },
+            { src: 'js/simple-gallery.js' },
+            { src: 'js/script.js' }
+        ];
+        
+        // Define scripts that should load after page render
+        const deferredScripts = [
+            { src: 'js/analytics.js', defer: true },
+            { src: 'js/user-auth.js', defer: true },
+            { src: 'js/my-bookings.js', defer: true },
+            { src: 'js/ai-assistant.js', defer: true },
+            { src: 'js/feedback.js', defer: true },
+            { src: 'js/testimonials.js', defer: true },
+            { src: 'js/rooms.js', defer: true },
+            { src: 'js/mobile-optimizations.js', defer: true }
+        ];
+        
+        // Load Leaflet separately since it's a critical dependency
+        function loadLeaflet(callback) {
+            const leafletCSS = document.createElement('link');
+            leafletCSS.rel = 'stylesheet';
+            leafletCSS.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            leafletCSS.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+            leafletCSS.crossOrigin = '';
+            document.head.appendChild(leafletCSS);
+            
+            const leafletScript = document.createElement('script');
+            leafletScript.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            leafletScript.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+            leafletScript.crossOrigin = '';
+            
+            leafletScript.onload = function() {
+                
+                // Load map and booking scripts after Leaflet
+                loadScriptSequentially([
+                    { src: 'js/map.js' },
+                    { src: 'js/booking.js' }
+                ], callback);
+            };
+            
+            leafletScript.onerror = function(e) {
+                console.error('Failed to load Leaflet', e);
+                // Continue anyway
+                if (callback) callback();
+            };
+            
+            document.head.appendChild(leafletScript);
+        }
+        
+        // Start the script loading process
+        loadScriptSequentially(coreScripts, function() {
+            // Core scripts loaded, now load secondary ones
+            loadScriptSequentially(secondaryScripts, function() {
+                // Load Leaflet and its dependencies
+                loadLeaflet(function() {
+                    // Finally load deferred scripts
+                    loadScriptSequentially(deferredScripts);
+                });
+            });
         });
     </script>
 
     <!-- AOS Animations -->
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
-        AOS.init({
-            duration: 800,
-            offset: 120,
-            once: true
+        // Initialize AOS after window load to ensure it doesn't block rendering
+        window.addEventListener('load', function() {
+            // Short timeout to ensure other critical functions have completed
+            setTimeout(function() {
+                try {
+                    AOS.init({
+                        duration: 800,
+                        offset: 120,
+                        once: true,
+                        disable: window.innerWidth < 768 // Disable on mobile for performance
+                    });
+                } catch (e) {
+                    console.error('AOS initialization error:', e);
+                }
+            }, 1000);
         });
     </script>
     
@@ -836,6 +905,48 @@
                 destinationInput.setAttribute('data-i18n-placeholder', 'enter-destination');
             }
         });
+    </script>
+    
+    <!-- Scroll Fix Script -->
+    <script>
+        // Add scroll fix when page loaded
+        window.addEventListener('load', function() {
+            // Enable scrolling
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.overflow = 'auto';
+            document.body.classList.add('force-scroll');
+            
+            console.log('Scroll fix applied on window load');
+            
+            // Check if page is tall enough to be scrolled
+            const pageHeight = Math.max(
+                document.body.scrollHeight,
+                document.documentElement.scrollHeight,
+                document.body.offsetHeight,
+                document.documentElement.offsetHeight,
+                document.body.clientHeight,
+                document.documentElement.clientHeight
+            );
+            
+            if (pageHeight > window.innerHeight) {
+                console.log('Page content is taller than viewport, should be scrollable');
+            } else {
+                console.log('Page content fits in viewport, no scrolling needed');
+            }
+        });
+        
+        // Check periodically if scrolling is disabled and re-enable it
+        setInterval(function() {
+            if (document.body.style.overflow === 'hidden' || getComputedStyle(document.body).overflow === 'hidden') {
+                document.body.style.overflow = 'auto';
+                console.log('Periodic check: Re-enabled scrolling');
+            }
+            
+            if (document.documentElement.style.position === 'fixed') {
+                document.documentElement.style.position = 'relative';
+                console.log('Periodic check: Fixed position on HTML tag removed');
+            }
+        }, 2000);
     </script>
 </body>
 </html> 
