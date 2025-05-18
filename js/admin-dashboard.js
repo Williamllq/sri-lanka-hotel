@@ -828,8 +828,8 @@ function initOrderManagement() {
         return;
     }
 
-    localStorage.removeItem('bookings'); // Clear existing bookings data
-    console.log('Cleared bookings from localStorage.');
+    localStorage.removeItem('bookings'); // Ensure this is here to clear existing bookings data
+    console.log('Cleared bookings from localStorage for initOrderManagement.');
 
     console.log('Initializing order management...');
     
@@ -897,33 +897,36 @@ function initOrderManagement() {
         // Get orders from localStorage
         let orders = [];
         try {
-            const storedOrders = localStorage.getItem('bookings');
+            const storedOrders = localStorage.getItem('bookings'); // This will be null if we just cleared it
             if (storedOrders) {
                 orders = JSON.parse(storedOrders);
                 console.log('Loaded orders from localStorage:', orders);
             }
         } catch (error) {
             console.error('Error loading orders:', error);
+            // Display a clear message in the table if there's an error loading
+            if (ordersTableBody) {
+                ordersTableBody.innerHTML = '<tr><td colspan="9" class="no-data error">Error loading orders.</td></tr>';
+            }
+            if (noOrdersMessage) {
+                noOrdersMessage.textContent = 'Error loading orders.';
+                noOrdersMessage.style.display = 'flex';
+            }
             return;
         }
         
-        // If no orders, create and use demo data
+        // If no orders (e.g., after clearing or if genuinely empty)
         if (!orders || orders.length === 0) {
-            // Check if we want to show demo data
-            const showDemoData = true; // Set to false in production if needed
-            
-            if (showDemoData) {
-                console.log('No orders found, creating demo data');
-                orders = createDemoOrders();
-            } else {
-                if (noOrdersMessage) {
-                    noOrdersMessage.style.display = 'flex';
-                }
-                if (ordersTableBody) {
-                    ordersTableBody.innerHTML = '<tr><td colspan="9" class="no-data">No orders found</td></tr>';
-                }
-                return;
+            console.log('No orders found in localStorage. Displaying empty state.');
+            if (noOrdersMessage) {
+                noOrdersMessage.textContent = 'No orders found.'; // Set specific message
+                noOrdersMessage.style.display = 'flex';
             }
+            if (ordersTableBody) {
+                ordersTableBody.innerHTML = '<tr><td colspan="9" class="no-data">No orders found</td></tr>';
+            }
+            // Explicitly DO NOT call createDemoOrders() here for the clearing request.
+            return; 
         }
         
         // Filter orders by status
