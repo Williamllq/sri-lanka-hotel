@@ -2,605 +2,161 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Manual - Sri Lanka Stay & Explore</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
-    
-    <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/mobile-optimize.css">
-    <link rel="stylesheet" href="css/mobile-fix.css">
+    <link rel="stylesheet" href="css/manual.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    
-    <style>
-        /* User Manual Specific Styles */
-        .manual-container {
-            max-width: 1000px;
-            margin: 100px auto 50px;
-            padding: 30px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 166, 166, 0.1);
-        }
-        
-        .manual-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .manual-header h1 {
-            color: var(--primary-color);
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        
-        .manual-header p {
-            color: #666;
-            font-size: 1.1rem;
-        }
-        
-        .manual-section {
-            margin-bottom: 40px;
-        }
-        
-        .manual-section h2 {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .manual-section h3 {
-            color: var(--accent-color);
-            margin: 25px 0 15px;
-        }
-        
-        .manual-content p {
-            line-height: 1.7;
-            margin-bottom: 15px;
-        }
-        
-        .manual-content ul, .manual-content ol {
-            margin-bottom: 20px;
-            padding-left: 20px;
-        }
-        
-        .manual-content li {
-            margin-bottom: 10px;
-        }
-        
-        .manual-content .note {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-left: 4px solid var(--accent-color);
-            margin-bottom: 20px;
-        }
-        
-        .manual-content .important {
-            background-color: #fff8e1;
-            padding: 15px;
-            border-left: 4px solid #ffc107;
-            margin-bottom: 20px;
-        }
-        
-        .manual-content img {
-            max-width: 100%;
-            height: auto;
-            margin: 20px 0;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .manual-footer {
-            text-align: center;
-            margin-top: 50px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        
-        .manual-nav {
-            position: sticky;
-            top: 30px;
-            max-height: calc(100vh - 60px);
-            overflow-y: auto;
-        }
-        
-        .manual-nav ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        
-        .manual-nav ul li {
-            margin-bottom: 10px;
-        }
-        
-        .manual-nav ul li a {
-            color: var(--text-color);
-            text-decoration: none;
-            display: block;
-            padding: 5px 10px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-        
-        .manual-nav ul li a:hover {
-            background: #f0f0f0;
-            color: var(--primary-color);
-        }
-        
-        .manual-nav ul li a.active {
-            background: var(--primary-color);
-            color: white;
-        }
-        
-        .manual-nav-child {
-            padding-left: 20px !important;
-            font-size: 0.9em;
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .manual-container {
-                padding: 20px;
-                margin: 80px auto 30px;
-            }
-            
-            .manual-header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .manual-section h2 {
-                font-size: 1.5rem;
-            }
-            
-            .manual-section h3 {
-                font-size: 1.2rem;
-            }
-            
-            .manual-nav {
-                position: relative;
-                top: 0;
-                margin-bottom: 30px;
-                border-bottom: 1px solid #eee;
-                padding-bottom: 20px;
-            }
-        }
-        
-        /* Two-column layout */
-        .manual-grid {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 40px;
-        }
-        
-        @media (max-width: 992px) {
-            .manual-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* Back to website button */
-        .back-website {
-            display: inline-block;
-            background: var(--primary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .back-website:hover {
-            background: var(--accent-color);
-            transform: translateY(-2px);
-        }
-    </style>
 </head>
 <body>
-    <main class="manual-container">
-        <div class="manual-header">
-            <h1>Sri Lanka Stay & Explore - User Manual</h1>
-            <p>Your guide to navigating and getting the most out of our travel platform</p>
+    <header class="manual-header">
+        <div class="container">
+            <h1><i class="fas fa-book-open"></i> User Manual</h1>
+            <p>Your guide to using the Sri Lanka Stay & Explore website.</p>
         </div>
+    </header>
+
+    <nav class="manual-nav">
+        <div class="container">
+            <ul>
+                <li><a href="#introduction"><i class="fas fa-info-circle"></i> Introduction</a></li>
+                <li><a href="#navigation"><i class="fas fa-compass"></i> Navigation</a></li>
+                <li><a href="#booking-transport"><i class="fas fa-car"></i> Booking Transport</a></li>
+                <li><a href="#exploring-sri-lanka"><i class="fas fa-map-marked-alt"></i> Exploring Sri Lanka</a></li>
+                <li><a href="#accommodations"><i class="fas fa-hotel"></i> Accommodations</a></li>
+                <li><a href="#contact-us"><i class="fas fa-envelope"></i> Contact & Feedback</a></li>
+                <li><a href="#account"><i class="fas fa-user-circle"></i> Your Account</a></li>
+                 <li><a href="#ai-assistant"><i class="fas fa-robot"></i> AI Assistant</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container manual-content">
+        <section id="introduction">
+            <h2><i class="fas fa-info-circle"></i> Introduction</h2>
+            <p>Welcome to the Sri Lanka Stay & Explore website! This manual will guide you through the various features and help you make the most of your experience planning your Sri Lankan adventure.</p>
+        </section>
+
+        <section id="navigation">
+            <h2><i class="fas fa-compass"></i> Navigating the Website</h2>
+            <p>The main navigation bar at the top of the page allows you to access different sections:</p>
+            <ul>
+                <li><strong>Home:</strong> Returns you to the main landing page.</li>
+                <li><strong>Transport:</strong> Access information and booking for transport services.</li>
+                <li><strong>Explore:</strong> Discover popular destinations and attractions in Sri Lanka through our gallery.</li>
+                <li><strong>Contact:</strong> Find our contact information.</li>
+                <li><strong>Login/My Bookings:</strong> Access your account or view your existing bookings (appears after login).</li>
+            </ul>
+             <p>The Ranga Bandara logo also serves as a link to the Home page.</p>
+        </section>
+
+        <section id="booking-transport">
+            <h2><i class="fas fa-car"></i> Booking Transport Services</h2>
+            <p>Our website makes it easy to book reliable transport for your travels in Sri Lanka.</p>
+            <h3>Finding Transport Information</h3>
+            <p>In the "Transport Services" section (accessible via the "Transport" navigation link or by scrolling down on the homepage), you can find details about:</p>
+            <ul>
+                <li><strong>Vehicle Quality:</strong> Information about our well-maintained and comfortable vehicles.</li>
+                <li><strong>Expert Drivers:</strong> Details about our professional, English-speaking local drivers.</li>
+                <li><strong>Safety and Protection:</strong> Our commitment to your security.</li>
+                <li><strong>Insider Knowledge:</strong> How our drivers can help you discover hidden gems.</li>
+            </ul>
+            <h3>Booking Your Journey</h3>
+            <p>The booking form is located within the "Transport" section.</p>
+            <ol>
+                <li><strong>Service Type:</strong> Choose from Airport Transfer, City Tour, or Custom Journey.</li>
+                <li><strong>Date and Time:</strong> Select your desired date and time for the service.</li>
+                <li><strong>Passengers:</strong> Indicate the number of people traveling.</li>
+                <li><strong>Pickup Location:</strong> Enter your pickup address or click "<strong><i class="fas fa-map-marker-alt"></i> Select on Map</strong>" to choose a location from an interactive map. Search for locations or click directly on the map in the modal, then confirm.</li>
+                <li><strong>Destination:</strong> Enter your destination address or use the "<strong><i class="fas fa-map-marker-alt"></i> Select on Map</strong>" feature.</li>
+                <li><strong>Special Requirements:</strong> Add any specific needs or requests (e.g., child seat, extra luggage).</li>
+            </ol>
+            <h3>Getting a Quote and Booking</h3>
+            <ul>
+                <li>Click "<strong>Get Quote</strong>" to see an estimated price based on your inputs. The quote will display the distance, vehicle type, estimated total, and the required 30% deposit. The route may also be displayed on a map.</li>
+                <li>If you are satisfied with the quote, click "<strong>Book Now</strong>" to proceed with the booking (this may require login/registration).</li>
+            </ul>
+            <p><em>A 30% deposit is required at the time of booking. The full amount is payable on the day of travel.</em></p>
+        </section>
+
+        <section id="exploring-sri-lanka">
+            <h2><i class="fas fa-map-marked-alt"></i> Exploring Sri Lanka (Discover Section)</h2>
+            <p>The "Discover Sri Lanka" section (accessible via the "Explore" navigation link or by scrolling) showcases the beauty and diversity of the island.</p>
+            <ul>
+                <li><strong>Filter Gallery:</strong> Use the filter buttons (All, Scenery, Wildlife, Culture, Food, Beach) to view images related to specific interests.</li>
+                <li><strong>Featured Image:</strong> A large image is displayed with a title and description.</li>
+                <li><strong>Thumbnails:</strong> Click on any thumbnail image below the featured image to view it in the main featured image area.</li>
+            </ul>
+        </section>
+
+        <section id="accommodations">
+            <h2><i class="fas fa-hotel"></i> Luxurious Accommodations</h2>
+            <p>Browse our selection of curated accommodations.</p>
+            <ul>
+                <li>Each listing shows the room/suite type (e.g., Ocean View Suite, Tropical Garden Suite).</li>
+                <li>Key details like bed type, room size, and WiFi availability are provided.</li>
+                <li>Pricing is indicated (e.g., "From $250/night").</li>
+                <li>Currently, direct booking for accommodations through this section might require contacting us.</li>
+            </ul>
+        </section>
+
+        <section id="contact-us">
+            <h2><i class="fas fa-envelope"></i> Contact Us & Give Feedback</h2>
+            <h3>Contact Information</h3>
+            <p>The "Contact Us" section (accessible via the "Contact" navigation link or by scrolling) provides our:</p>
+            <ul>
+                <li>Phone Number</li>
+                <li>Email Address</li>
+                <li>WhatsApp Number</li>
+            </ul>
+            <h3>Giving Feedback</h3>
+            <p>We value your opinion! To share your experience:</p>
+            <ol>
+                <li>Click the "<strong><i class="fas fa-comment-alt"></i> Give Feedback</strong>" button, usually found floating at the bottom left of the screen.</li>
+                <li>A modal window will appear.</li>
+                <li>Fill in your "<strong>Name</strong>" and "<strong>Country</strong>".</li>
+                <li>Select your "<strong>Rating</strong>" using the stars (5 stars is best).</li>
+                <li>Write your "<strong>Feedback</strong>" in the text area.</li>
+                <li>Click "<strong><i class="fas fa-paper-plane"></i> Submit Feedback</strong>".</li>
+            </ol>
+        </section>
+
+        <section id="account">
+            <h2><i class="fas fa-user-circle"></i> Your Account (Login & My Bookings)</h2>
+            <h3>Login/Logout</h3>
+            <ul>
+                <li>Click the "<strong><i class="fas fa-user"></i> Login</strong>" button in the main navigation.</li>
+                <li>If you have an account, enter your credentials. If not, you may find an option to register.</li>
+                <li>Once logged in, the button may change to show your username or a logout option. Clicking it again will allow you to logout.</li>
+            </ul>
+            <h3>My Bookings</h3>
+            <ul>
+                <li>After logging in, a "<strong><i class="fas fa-receipt"></i> My Bookings</strong>" link will appear in the navigation.</li>
+                <li>Click this link to view your past and current transport bookings, check their status, and manage them if options are available.</li>
+            </ul>
+        </section>
         
-        <div class="manual-grid">
-            <div class="manual-nav">
-                <ul>
-                    <li><a href="#introduction" class="active">Introduction</a></li>
-                    <li><a href="#getting-started">Getting Started</a></li>
-                    <li><a href="#booking-transport">Booking Transport</a>
-                        <ul class="manual-nav-child">
-                            <li><a href="#selecting-locations">Selecting Locations</a></li>
-                            <li><a href="#fare-calculation">Fare Calculation</a></li>
-                            <li><a href="#booking-process">Booking Process</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#exploring-sri-lanka">Exploring Sri Lanka</a>
-                        <ul class="manual-nav-child">
-                            <li><a href="#discover-section">Discover Section</a></li>
-                            <li><a href="#gallery">Photo Gallery</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#accommodations">Accommodations</a></li>
-                    <li><a href="#user-account">User Account</a>
-                        <ul class="manual-nav-child">
-                            <li><a href="#registration">Registration</a></li>
-                            <li><a href="#login">Login</a></li>
-                            <li><a href="#my-bookings">My Bookings</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#ai-assistant">AI Travel Assistant</a></li>
-                    <li><a href="#feedback">Providing Feedback</a></li>
-                    <li><a href="#troubleshooting">Troubleshooting</a></li>
-                    <li><a href="#contact-us">Contact Us</a></li>
-                </ul>
-                
-                <a href="index.html" class="back-website"><i class="fas fa-arrow-left"></i> Back to Website</a>
-            </div>
-            
-            <div class="manual-content">
-                <section id="introduction" class="manual-section">
-                    <h2>Introduction</h2>
-                    <p>Welcome to the Sri Lanka Stay & Explore user manual. This guide will help you navigate our platform and make the most of the features available for planning your Sri Lankan adventure.</p>
-                    
-                    <p>Our website offers comprehensive travel services including:</p>
-                    <ul>
-                        <li>Transportation booking throughout Sri Lanka</li>
-                        <li>Information about attractions and experiences</li>
-                        <li>Luxury accommodation options</li>
-                        <li>Travel tips and recommendations</li>
-                    </ul>
-                    
-                    <p>This manual provides step-by-step instructions for using each feature of our website.</p>
-                </section>
-                
-                <section id="getting-started" class="manual-section">
-                    <h2>Getting Started</h2>
-                    <p>Our website is designed to be intuitive and easy to navigate. Here's a quick overview of the main sections:</p>
-                    
-                    <ul>
-                        <li><strong>Home:</strong> The main landing page with an overview of our services</li>
-                        <li><strong>Transport:</strong> Book transportation services throughout Sri Lanka</li>
-                        <li><strong>Explore:</strong> Discover attractions and experiences in Sri Lanka</li>
-                        <li><strong>Contact:</strong> Get in touch with our team</li>
-                        <li><strong>Login/My Bookings:</strong> Access your account and view your bookings</li>
-                    </ul>
-                    
-                    <p>The main navigation menu at the top of the page lets you quickly access these sections. On mobile devices, you can tap the menu icon in the top-right corner to access the navigation menu.</p>
-                </section>
-                
-                <section id="booking-transport" class="manual-section">
-                    <h2>Booking Transport</h2>
-                    <p>Our transport booking system allows you to easily arrange transportation throughout Sri Lanka. Whether you need an airport transfer, city tour, or custom journey, we've got you covered.</p>
-                    
-                    <h3 id="selecting-locations">Selecting Locations</h3>
-                    <p>To book transport, follow these steps:</p>
-                    <ol>
-                        <li>Navigate to the Transport section by clicking "Transport" in the navigation menu or the "Book Transport" button on the homepage.</li>
-                        <li>Fill out the booking form with your requirements:
-                            <ul>
-                                <li>Select service type (Airport Transfer, City Tour, or Custom Journey)</li>
-                                <li>Choose your desired date and time</li>
-                                <li>Indicate the number of passengers</li>
-                            </ul>
-                        </li>
-                        <li>Enter pickup and destination locations:
-                            <ul>
-                                <li>You can type the location directly</li>
-                                <li>Or click "Select on Map" to choose the location visually on a map</li>
-                            </ul>
-                        </li>
-                    </ol>
-                    
-                    <div class="note">
-                        <p><strong>Note:</strong> When using the map selection, you can search for specific places, zoom in/out, and click on the map to select your exact location.</p>
-                    </div>
-                    
-                    <h3 id="fare-calculation">Fare Calculation</h3>
-                    <p>Once you've entered your pickup and destination locations, click the "Get Quote" button to calculate the fare. The fare is calculated based on:</p>
-                    <ul>
-                        <li>The actual driving distance between locations (not straight-line distance)</li>
-                        <li>The service type selected</li>
-                        <li>The number of passengers</li>
-                        <li>Any applicable time-based multipliers (rush hour, night, weekend)</li>
-                    </ul>
-                    
-                    <p>The quote will show:</p>
-                    <ul>
-                        <li>The distance between your locations</li>
-                        <li>The vehicle type assigned</li>
-                        <li>The estimated total fare</li>
-                        <li>The required deposit amount (30% of the total)</li>
-                    </ul>
-                    
-                    <h3 id="booking-process">Booking Process</h3>
-                    <p>After reviewing your quote, follow these steps to complete your booking:</p>
-                    <ol>
-                        <li>Click the "Book Now" button</li>
-                        <li>Fill in your contact information</li>
-                        <li>Review your booking details</li>
-                        <li>Pay the 30% deposit using your preferred payment method</li>
-                        <li>Receive a booking confirmation email with all details</li>
-                    </ol>
-                    
-                    <div class="important">
-                        <p><strong>Important:</strong> The full amount is payable on the day of travel. Your booking is only confirmed after the deposit is received.</p>
-                    </div>
-                </section>
-                
-                <section id="exploring-sri-lanka" class="manual-section">
-                    <h2>Exploring Sri Lanka</h2>
-                    <p>Our website offers rich content to help you discover the beauty and diversity of Sri Lanka.</p>
-                    
-                    <h3 id="discover-section">Discover Section</h3>
-                    <p>The "Discover Sri Lanka" section showcases various attractions and experiences across the island. Here's how to use it:</p>
-                    <ol>
-                        <li>Navigate to the Explore section by clicking "Explore" in the navigation menu or the "Explore Sri Lanka" button on the homepage.</li>
-                        <li>Browse through the featured items showcasing Sri Lanka's attractions.</li>
-                        <li>Use the filter buttons to narrow down content by category:
-                            <ul>
-                                <li>Scenery: Natural landscapes and viewpoints</li>
-                                <li>Wildlife: National parks and animal encounters</li>
-                                <li>Culture: Temples, historical sites, and local traditions</li>
-                                <li>Food: Culinary experiences and local dishes</li>
-                                <li>Beach: Coastal areas and beach activities</li>
-                            </ul>
-                        </li>
-                        <li>Click on any item to view more details about that attraction.</li>
-                    </ol>
-                    
-                    <h3 id="gallery">Photo Gallery</h3>
-                    <p>Our photo gallery provides visual inspiration for your Sri Lankan adventure:</p>
-                    <ol>
-                        <li>Browse through the main featured image at the top of the gallery.</li>
-                        <li>Navigate using the thumbnails below to view different images.</li>
-                        <li>Use the category filters to view images by theme.</li>
-                        <li>Click on any image to view it in full size with detailed information.</li>
-                    </ol>
-                </section>
-                
-                <section id="accommodations" class="manual-section">
-                    <h2>Accommodations</h2>
-                    <p>We offer a selection of premium accommodations throughout Sri Lanka.</p>
-                    
-                    <p>To explore our accommodation options:</p>
-                    <ol>
-                        <li>Scroll to the "Luxurious Accommodations" section on the homepage.</li>
-                        <li>Browse through the featured room types and properties.</li>
-                        <li>Click on any accommodation option to view more details, including:
-                            <ul>
-                                <li>Room features and amenities</li>
-                                <li>Pricing information</li>
-                                <li>Availability</li>
-                                <li>Photos of the property</li>
-                            </ul>
-                        </li>
-                    </ol>
-                    
-                    <p>For booking accommodations, you can either:</p>
-                    <ul>
-                        <li>Click the "Book Now" button on the accommodation details page</li>
-                        <li>Contact our team directly through the Contact section</li>
-                        <li>Ask our AI Assistant for help with booking</li>
-                    </ul>
-                </section>
-                
-                <section id="user-account" class="manual-section">
-                    <h2>User Account</h2>
-                    
-                    <h3 id="registration">Registration</h3>
-                    <p>Creating an account allows you to manage your bookings and access additional features:</p>
-                    <ol>
-                        <li>Click "Login" in the navigation menu</li>
-                        <li>Select "Create Account" or "Register"</li>
-                        <li>Fill in the registration form with your:
-                            <ul>
-                                <li>Full name</li>
-                                <li>Email address</li>
-                                <li>Password</li>
-                                <li>Contact information</li>
-                            </ul>
-                        </li>
-                        <li>Verify your email address by clicking the link sent to your inbox</li>
-                        <li>Once verified, you can log in to your account</li>
-                    </ol>
-                    
-                    <h3 id="login">Login</h3>
-                    <p>To access your account:</p>
-                    <ol>
-                        <li>Click "Login" in the navigation menu</li>
-                        <li>Enter your email address and password</li>
-                        <li>Click the "Login" button</li>
-                    </ol>
-                    
-                    <p>If you forget your password:</p>
-                    <ol>
-                        <li>Click "Forgot Password" on the login page</li>
-                        <li>Enter your email address</li>
-                        <li>Check your email for password reset instructions</li>
-                        <li>Create a new password and log in</li>
-                    </ol>
-                    
-                    <h3 id="my-bookings">My Bookings</h3>
-                    <p>Once logged in, you can access your bookings:</p>
-                    <ol>
-                        <li>Click "My Bookings" in the navigation menu</li>
-                        <li>View a list of all your past and upcoming bookings</li>
-                        <li>Click on any booking to view detailed information</li>
-                        <li>From the booking details page, you can:
-                            <ul>
-                                <li>Download your booking confirmation</li>
-                                <li>Modify your booking (subject to availability)</li>
-                                <li>Cancel your booking (subject to cancellation policy)</li>
-                                <li>Contact support regarding your booking</li>
-                            </ul>
-                        </li>
-                    </ol>
-                </section>
-                
-                <section id="ai-assistant" class="manual-section">
-                    <h2>AI Travel Assistant</h2>
-                    <p>Our AI Travel Assistant is designed to provide instant help and information about Sri Lanka and our services.</p>
-                    
-                    <p>To use the AI Assistant:</p>
-                    <ol>
-                        <li>Click the "Need Help?" button located in the bottom right corner of any page</li>
-                        <li>The AI Assistant chat window will open</li>
-                        <li>Type your question or request in the text box at the bottom of the chat window</li>
-                        <li>Press Enter or click the send button to submit your question</li>
-                        <li>The AI will respond with relevant information and assistance</li>
-                    </ol>
-                    
-                    <p>The AI Assistant can help with:</p>
-                    <ul>
-                        <li>Information about Sri Lankan attractions and experiences</li>
-                        <li>Details about our transport and accommodation services</li>
-                        <li>Booking assistance and recommendations</li>
-                        <li>Travel tips and guidance</li>
-                        <li>General questions about Sri Lanka</li>
-                    </ul>
-                    
-                    <div class="note">
-                        <p><strong>Note:</strong> The AI Assistant is designed to provide information and guidance. For complex bookings or specific inquiries, it may recommend contacting our team directly.</p>
-                    </div>
-                </section>
-                
-                <section id="feedback" class="manual-section">
-                    <h2>Providing Feedback</h2>
-                    <p>We value your feedback to help us improve our services. Here's how you can share your experience:</p>
-                    
-                    <ol>
-                        <li>Click the "Give Feedback" button located in the bottom left corner of any page</li>
-                        <li>Fill out the feedback form with:
-                            <ul>
-                                <li>Your name</li>
-                                <li>Your country</li>
-                                <li>Rating of your experience (1-5 stars)</li>
-                                <li>Detailed feedback comments</li>
-                            </ul>
-                        </li>
-                        <li>Click "Submit Feedback" to send your comments to our team</li>
-                    </ol>
-                    
-                    <p>Your feedback is reviewed by our management team and used to enhance our services and address any issues.</p>
-                </section>
-                
-                <section id="troubleshooting" class="manual-section">
-                    <h2>Troubleshooting</h2>
-                    <p>If you encounter any issues while using our website, here are some common solutions:</p>
-                    
-                    <h3>Map Loading Issues</h3>
-                    <ul>
-                        <li>Ensure your browser allows location services</li>
-                        <li>Try refreshing the page</li>
-                        <li>Clear your browser cache and cookies</li>
-                        <li>Try using a different browser</li>
-                    </ul>
-                    
-                    <h3>Booking Form Problems</h3>
-                    <ul>
-                        <li>Make sure all required fields are filled out</li>
-                        <li>Check that your dates are valid (not in the past)</li>
-                        <li>Ensure both pickup and destination locations are specified</li>
-                        <li>If the form still doesn't submit, try using a different browser</li>
-                    </ul>
-                    
-                    <h3>Payment Issues</h3>
-                    <ul>
-                        <li>Verify your payment details are entered correctly</li>
-                        <li>Ensure your card is not expired and has sufficient funds</li>
-                        <li>Check if your bank is blocking the transaction</li>
-                        <li>Try using a different payment method</li>
-                    </ul>
-                    
-                    <h3>Account Access Problems</h3>
-                    <ul>
-                        <li>Reset your password using the "Forgot Password" link</li>
-                        <li>Check that you're using the correct email address</li>
-                        <li>Ensure your account has been verified</li>
-                        <li>Clear browser cookies and try again</li>
-                    </ul>
-                    
-                    <div class="important">
-                        <p><strong>Important:</strong> If you continue to experience issues, please contact our support team using the information in the Contact Us section.</p>
-                    </div>
-                </section>
-                
-                <section id="contact-us" class="manual-section">
-                    <h2>Contact Us</h2>
-                    <p>If you need further assistance or have specific inquiries, our team is ready to help:</p>
-                    
-                    <ul>
-                        <li><strong>Phone:</strong> +94 77 760 5921</li>
-                        <li><strong>Email:</strong> info@srilankastayexplore.com</li>
-                        <li><strong>WhatsApp:</strong> +94 77 760 5921</li>
-                    </ul>
-                    
-                    <p>Our customer service team is available daily from 8:00 AM to 8:00 PM Sri Lanka time (GMT+5:30).</p>
-                    
-                    <p>For urgent matters outside these hours, please send us an email with "URGENT" in the subject line, and we will respond as soon as possible.</p>
-                </section>
-                
-                <div class="manual-footer">
-                    <p>&copy; 2024 Sri Lanka Stay & Explore. All rights reserved.</p>
-                    <a href="index.html" class="back-website"><i class="fas fa-arrow-left"></i> Back to Website</a>
-                </div>
-            </div>
-        </div>
+        <section id="ai-assistant">
+            <h2><i class="fas fa-robot"></i> AI Assistant (Need Help?)</h2>
+            <p>Get instant help and information using our AI Travel Assistant.</p>
+            <ul>
+                <li>Click the "<strong><i class="fas fa-robot"></i> Need Help?</strong>" button, usually floating at the bottom right of the screen.</li>
+                <li>A chat window will open.</li>
+                <li>Type your questions about Sri Lanka, our services, or your travel plans in the input field.</li>
+                <li>Press Enter or click the send button (<i class="fas fa-paper-plane"></i>) to get a response.</li>
+                <li>You can minimize or close the AI assistant window using the controls in its header.</li>
+            </ul>
+        </section>
+
     </main>
-    
-    <!-- Scripts -->
+
+    <footer class="manual-footer">
+        <div class="container">
+            <p>&copy; <span id="current-year"></span> Sri Lanka Stay & Explore. User Manual.</p>
+        </div>
+    </footer>
     <script>
-        // Smooth scrolling for navigation links
-        document.addEventListener('DOMContentLoaded', function() {
-            const navLinks = document.querySelectorAll('.manual-nav a');
-            
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Remove active class from all links
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    
-                    // Add active class to clicked link
-                    this.classList.add('active');
-                    
-                    // Get the target section
-                    const targetId = this.getAttribute('href').substring(1);
-                    const targetSection = document.getElementById(targetId);
-                    
-                    if (targetSection) {
-                        // Scroll to the target section
-                        window.scrollTo({
-                            top: targetSection.offsetTop - 20,
-                            behavior: 'smooth'
-                        });
-                    }
-                });
-            });
-            
-            // Highlight active section on scroll
-            window.addEventListener('scroll', function() {
-                const sections = document.querySelectorAll('.manual-section');
-                
-                sections.forEach(section => {
-                    const sectionTop = section.offsetTop;
-                    const sectionHeight = section.offsetHeight;
-                    const scrollPosition = window.scrollY;
-                    
-                    if (scrollPosition >= sectionTop - 100 && scrollPosition < sectionTop + sectionHeight - 100) {
-                        const targetLink = document.querySelector(`.manual-nav a[href="#${section.id}"]`);
-                        if (targetLink) {
-                            navLinks.forEach(l => l.classList.remove('active'));
-                            targetLink.classList.add('active');
-                        }
-                    }
-                });
-            });
-        });
+        document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
 </body>
 </html> 
