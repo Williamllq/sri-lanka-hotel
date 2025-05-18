@@ -416,6 +416,9 @@
                     </div>
                     <div class="d-flex">
                         <input type="text" id="orderSearchInput" class="form-control me-2" placeholder="Search orders...">
+                        <button id="clearOrdersBtn" class="btn btn-danger me-2" onclick="if(window.clearAllOrdersData && confirm('Are you sure you want to clear all orders data? This cannot be undone.')) { clearAllOrdersData(); alert('Orders data cleared successfully!'); }">
+                            <i class="fas fa-trash"></i> Clear All Orders
+                        </button>
                         <div class="dropdown">
                             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 Filter by User
@@ -770,14 +773,15 @@
         });
     </script>
 
-    <!-- Load order cleaner for admin dashboard -->
+    <!-- Load order cleaner for admin dashboard, but don't execute it -->
     <script>
-        // Check if we're on the orders section
-        if (window.location.hash === '#orders') {
-            // Dynamically load the clear-orders.js script
-            console.log('Loading order cleaner for admin dashboard');
+        // Load the clear-orders.js script only once without auto-execution
+        if (window.location.hash === '#orders' && !window.clearOrdersScriptLoaded) {
+            console.log('Loading order cleaner script for admin dashboard');
+            window.clearOrdersScriptLoaded = true;
+            
             const script = document.createElement('script');
-            script.src = 'js/clear-orders.js';
+            script.src = 'js/clear-orders.js?v=' + new Date().getTime(); // Add cache buster
             script.async = true;
             document.head.appendChild(script);
         }

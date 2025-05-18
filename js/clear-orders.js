@@ -5,97 +5,98 @@
  * It can be used as a bookmarklet or included as a script.
  */
 
-(function() {
-    console.log('Running clear-orders.js');
+// Flag to prevent the script from running multiple times
+window.ordersAlreadyCleared = window.ordersAlreadyCleared || false;
 
-    // Function to clear all orders data
-    function clearAllOrdersData() {
-        try {
-            // Clear from localStorage
-            localStorage.removeItem('bookings');
-            localStorage.removeItem('userBookings');
-            localStorage.removeItem('transportBookings');
-            localStorage.removeItem('bookingsArchive');
-            
-            // Check for any other order-related keys
-            const keysToRemove = [];
-            for(let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && (
-                    key.toLowerCase().includes('order') || 
-                    key.toLowerCase().includes('book') ||
-                    key.toLowerCase().includes('reservation')
-                )) {
-                    keysToRemove.push(key);
-                }
-            }
-            
-            // Remove the found keys
-            keysToRemove.forEach(key => {
-                console.log('Removing localStorage key:', key);
-                localStorage.removeItem(key);
-            });
-            
-            // Also clear from sessionStorage
-            sessionStorage.removeItem('bookings');
-            sessionStorage.removeItem('userBookings');
-            sessionStorage.removeItem('transportBookings');
-            sessionStorage.removeItem('bookingsArchive');
-            
-            // Check for session storage keys too
-            const sessionKeysToRemove = [];
-            for(let i = 0; i < sessionStorage.length; i++) {
-                const key = sessionStorage.key(i);
-                if (key && (
-                    key.toLowerCase().includes('order') || 
-                    key.toLowerCase().includes('book') ||
-                    key.toLowerCase().includes('reservation')
-                )) {
-                    sessionKeysToRemove.push(key);
-                }
-            }
-            
-            // Remove session keys
-            sessionKeysToRemove.forEach(key => {
-                console.log('Removing sessionStorage key:', key);
-                sessionStorage.removeItem(key);
-            });
-            
-            // Set a flag to prevent demo data generation
-            window.ordersManuallyCleared = true;
-            localStorage.setItem('ordersManuallyCleared', 'true');
-            
-            // Create a visual confirmation if we're in a browser
-            if (typeof document !== 'undefined') {
-                // Check if we're on the orders page
-                if (window.location.href.includes('orders')) {
-                    // Try to find and clear the orders table
-                    const ordersTableBody = document.getElementById('ordersTableBody');
-                    if (ordersTableBody) {
-                        ordersTableBody.innerHTML = '<tr><td colspan="8" class="text-center">All orders have been cleared</td></tr>';
-                    }
-                    
-                    // Also show an alert
-                    alert('All orders data has been cleared!');
-                    
-                    // Reload the page after a brief delay
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    // Just show an alert if we're not on the orders page
-                    alert('All orders data has been cleared! Please navigate to the Orders page to see the effect.');
-                }
-            }
-            
-            console.log('All orders data successfully cleared');
-            return 'Orders cleared successfully';
-        } catch (error) {
-            console.error('Error clearing orders data:', error);
-            return 'Error clearing orders: ' + error.message;
-        }
+// Function to clear all orders data - exported as a global function
+function clearAllOrdersData() {
+    // Only allow clearing once per page load to prevent loops
+    if (window.ordersAlreadyCleared) {
+        console.log('Orders already cleared in this session');
+        return 'Orders already cleared in this session';
     }
     
-    // Execute the function
-    return clearAllOrdersData();
-})(); 
+    try {
+        // Clear from localStorage
+        localStorage.removeItem('bookings');
+        localStorage.removeItem('userBookings');
+        localStorage.removeItem('transportBookings');
+        localStorage.removeItem('bookingsArchive');
+        
+        // Check for any other order-related keys
+        const keysToRemove = [];
+        for(let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (
+                key.toLowerCase().includes('order') || 
+                key.toLowerCase().includes('book') ||
+                key.toLowerCase().includes('reservation')
+            )) {
+                keysToRemove.push(key);
+            }
+        }
+        
+        // Remove the found keys
+        keysToRemove.forEach(key => {
+            console.log('Removing localStorage key:', key);
+            localStorage.removeItem(key);
+        });
+        
+        // Also clear from sessionStorage
+        sessionStorage.removeItem('bookings');
+        sessionStorage.removeItem('userBookings');
+        sessionStorage.removeItem('transportBookings');
+        sessionStorage.removeItem('bookingsArchive');
+        
+        // Check for session storage keys too
+        const sessionKeysToRemove = [];
+        for(let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key && (
+                key.toLowerCase().includes('order') || 
+                key.toLowerCase().includes('book') ||
+                key.toLowerCase().includes('reservation')
+            )) {
+                sessionKeysToRemove.push(key);
+            }
+        }
+        
+        // Remove session keys
+        sessionKeysToRemove.forEach(key => {
+            console.log('Removing sessionStorage key:', key);
+            sessionStorage.removeItem(key);
+        });
+        
+        // Set a flag to prevent demo data generation
+        window.ordersManuallyCleared = true;
+        localStorage.setItem('ordersManuallyCleared', 'true');
+        
+        // Mark as already cleared to prevent loops
+        window.ordersAlreadyCleared = true;
+        
+        // Create a visual confirmation if we're in a browser
+        if (typeof document !== 'undefined') {
+            // Try to find and clear the orders table
+            const ordersTableBody = document.getElementById('ordersTableBody');
+            if (ordersTableBody) {
+                ordersTableBody.innerHTML = '<tr><td colspan="8" class="text-center">All orders have been cleared</td></tr>';
+            }
+        }
+        
+        console.log('All orders data successfully cleared');
+        return 'Orders cleared successfully';
+    } catch (error) {
+        console.error('Error clearing orders data:', error);
+        return 'Error clearing orders: ' + error.message;
+    }
+}
+
+// Make the function available globally
+window.clearAllOrdersData = clearAllOrdersData;
+
+// Check if this is the first page load with cleared state
+if (localStorage.getItem('ordersManuallyCleared') === 'true' && !window.ordersAlreadyCleared) {
+    console.log('Orders were previously cleared. Setting up cleared state.');
+    window.ordersManuallyCleared = true;
+    window.ordersAlreadyCleared = true;
+} 

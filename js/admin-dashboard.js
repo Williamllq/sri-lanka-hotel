@@ -828,20 +828,30 @@ function initOrderManagement() {
         return;
     }
 
-    // Clear all existing order data
-    clearAllOrderData();
-    
-    // Set a flag to prevent demo data from being shown
-    window.ordersManuallyCleared = true;
+    // Don't auto-clear orders data on every page load
+    // Instead, respect the global flag which is set by the clear-orders.js script
+    if (window.ordersManuallyCleared || localStorage.getItem('ordersManuallyCleared') === 'true') {
+        console.log('Orders have been manually cleared - respecting that flag');
+        window.ordersManuallyCleared = true; // Ensure the flag is set in memory
+    } else {
+        console.log('Orders management initialized without auto-clearing');
+    }
     
     console.log('Initializing order management...');
     
     // Debug localStorage content
     try {
-        console.log('localStorage bookings content after clearing:', localStorage.getItem('bookings'));
+        console.log('localStorage bookings content:', localStorage.getItem('bookings'));
         console.log('localStorage userBookings content:', localStorage.getItem('userBookings'));
     } catch (e) {
         console.error('Error accessing localStorage:', e);
+    }
+    
+    // Set up clear orders button if it exists
+    const clearOrdersBtn = document.getElementById('clearOrdersBtn');
+    if (clearOrdersBtn) {
+        console.log('Clear orders button found, setting up event listener');
+        // Note: We're not adding event listener here since it uses onclick in the HTML
     }
     
     // Get elements
@@ -891,6 +901,7 @@ function initOrderManagement() {
     // Function to load orders
     function loadOrders(searchTerm = '') {
         console.log('Loading orders with filter:', currentOrderFilter, 'and search term:', searchTerm);
+        console.log('Orders manually cleared flag:', window.ordersManuallyCleared);
         
         // Clear table
         if (ordersTableBody) {
@@ -912,7 +923,9 @@ function initOrderManagement() {
         
         // If no orders, show empty state instead of demo data if we've manually cleared
         if (!orders || orders.length === 0) {
-            if (window.ordersManuallyCleared) {
+            const showEmptyState = window.ordersManuallyCleared || localStorage.getItem('ordersManuallyCleared') === 'true';
+            
+            if (showEmptyState) {
                 console.log('No orders found and orders were manually cleared. Showing empty state.');
                 if (noOrdersMessage) {
                     noOrdersMessage.style.display = 'flex';
@@ -924,7 +937,7 @@ function initOrderManagement() {
             }
             
             // Only show demo data if not manually cleared
-            const showDemoData = !window.ordersManuallyCleared; 
+            const showDemoData = !showEmptyState;
             
             if (showDemoData) {
                 console.log('No orders found, creating demo data');
