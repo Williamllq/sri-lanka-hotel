@@ -62,21 +62,26 @@ img {
     
     /* 修复底部悬浮按钮位置 - 对称布局 */
     .feedback-btn, .show-ai-btn {
-        position: fixed;
+        position: fixed !important;
         transform: scale(0.9); /* 稍微缩小按钮 */
-        padding: 10px 15px;
-        border-radius: 50px;
-        box-shadow: 0 5px 15px rgba(0, 166, 166, 0.2);
-        z-index: 999;
-        bottom: 25px;
+        padding: 10px 15px !important;
+        border-radius: 50px !important;
+        box-shadow: 0 5px 15px rgba(0, 166, 166, 0.2) !important;
+        z-index: 999 !important;
+        bottom: 25px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     .feedback-btn {
-        left: 15px; /* 放在左下角 */
+        left: 15px !important; /* 放在左下角 */
+        right: auto !important; /* 确保不受右边距影响 */
     }
     
     .show-ai-btn {
-        right: 15px; /* 放在右下角 */
+        right: 15px !important; /* 放在右下角 */
+        left: auto !important; /* 确保不受左边距影响 */
     }
     
     /* 确保AI助手正确显示 */
@@ -114,14 +119,74 @@ img {
     .feedback-btn {
         left: 15px !important;
         bottom: 25px !important;
+        right: auto !important; /* 确保不受右边距影响 */
     }
     
     .show-ai-btn {
         right: 15px !important;
         bottom: 25px !important;
+        left: auto !important; /* 确保不受左边距影响 */
     }
     
     .feedback-btn i, .show-ai-btn i {
         font-size: 18px !important;
+    }
+}
+
+/* 专门针对iOS设备的修复 */
+@supports (-webkit-touch-callout: none) {
+    .feedback-btn, .show-ai-btn {
+        /* 确保按钮是完全独立的元素 */
+        display: flex !important;
+        position: fixed !important;
+        z-index: 999 !important;
+        width: auto !important;
+        min-width: 44px !important;
+        height: auto !important;
+        min-height: 44px !important;
+        border-radius: 50px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        bottom: 25px !important;
+        padding: 8px 15px !important;
+        /* 确保按钮不会有浮动或其他可能导致它们聚集的属性 */
+        float: none !important;
+        clear: both !important;
+        margin: 0 !important;
+        transform: none !important;
+    }
+    
+    .feedback-btn {
+        left: 15px !important;
+        right: auto !important; /* 确保不受右边距影响 */
+        background-color: var(--primary-color) !important;
+        color: var(--light-text) !important;
+    }
+    
+    .show-ai-btn {
+        right: 15px !important;
+        left: auto !important; /* 确保不受左边距影响 */
+        background-color: var(--primary-color) !important;
+        color: var(--light-text) !important;
+    }
+    
+    /* 针对按钮文本的修复 */
+    .feedback-btn span, .show-ai-btn span {
+        margin-left: 8px !important;
+        display: inline-block !important;
+    }
+    
+    /* 在小屏幕上隐藏文本 */
+    @media (max-width: 375px) {
+        .feedback-btn span, .show-ai-btn span {
+            display: none !important;
+        }
+        
+        .feedback-btn, .show-ai-btn {
+            width: 44px !important;
+            height: 44px !important;
+            border-radius: 50% !important;
+            padding: 0 !important;
+        }
     }
 } 

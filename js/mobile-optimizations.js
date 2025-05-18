@@ -402,6 +402,9 @@ function optimizeButtonPositions() {
     const aiBtn = document.getElementById('showAI');
     
     if (feedbackBtn && aiBtn) {
+        // 检测是否是iOS设备
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
         // 移除任何内联样式，让CSS完全控制按钮样式和位置
         feedbackBtn.style.removeProperty('bottom');
         aiBtn.style.removeProperty('bottom');
@@ -415,6 +418,62 @@ function optimizeButtonPositions() {
         // 设置相同的内边距
         feedbackBtn.style.padding = '0.7rem 1rem';
         aiBtn.style.padding = '0.7rem 1rem';
+        
+        // iOS特定修复
+        if (isIOS) {
+            console.log('Applying iOS-specific button fixes');
+            
+            // 确保按钮有固定位置
+            feedbackBtn.style.position = 'fixed';
+            aiBtn.style.position = 'fixed';
+            
+            // 明确设置位置以防止按钮组合在一起
+            feedbackBtn.style.left = '15px';
+            feedbackBtn.style.right = 'auto';
+            feedbackBtn.style.bottom = '25px';
+            
+            aiBtn.style.right = '15px';
+            aiBtn.style.left = 'auto';
+            aiBtn.style.bottom = '25px';
+            
+            // 设置显示样式
+            feedbackBtn.style.display = 'flex';
+            aiBtn.style.display = 'flex';
+            
+            feedbackBtn.style.alignItems = 'center';
+            aiBtn.style.alignItems = 'center';
+            
+            feedbackBtn.style.justifyContent = 'center';
+            aiBtn.style.justifyContent = 'center';
+            
+            // 添加背景色和颜色
+            feedbackBtn.style.backgroundColor = '#00a6a6';
+            aiBtn.style.backgroundColor = '#00a6a6';
+            
+            feedbackBtn.style.color = '#ffffff';
+            aiBtn.style.color = '#ffffff';
+            
+            // 设置层叠顺序
+            feedbackBtn.style.zIndex = '999';
+            aiBtn.style.zIndex = '999';
+            
+            // 重置任何可能导致问题的属性
+            feedbackBtn.style.float = 'none';
+            aiBtn.style.float = 'none';
+            
+            feedbackBtn.style.margin = '0';
+            aiBtn.style.margin = '0';
+            
+            // 设置高度自动以适应内容
+            feedbackBtn.style.height = 'auto';
+            aiBtn.style.height = 'auto';
+            
+            // 确保最小点击区域
+            feedbackBtn.style.minHeight = '44px';
+            aiBtn.style.minHeight = '44px';
+            feedbackBtn.style.minWidth = '44px';
+            aiBtn.style.minWidth = '44px';
+        }
     }
 }
 
@@ -522,17 +581,83 @@ function handleResizeForMobileNav() {
 document.addEventListener('DOMContentLoaded', function() {
     // 确保按钮布局一致
     optimizeButtonPositions();
+    fixIOSButtonLayout();
     
     // 在页面加载后延迟再次应用，以防其他脚本覆盖了我们的样式
     setTimeout(optimizeButtonPositions, 500);
+    setTimeout(fixIOSButtonLayout, 500);
     setTimeout(optimizeButtonPositions, 1000);
+    setTimeout(fixIOSButtonLayout, 1000);
+    setTimeout(optimizeButtonPositions, 2000);
+    setTimeout(fixIOSButtonLayout, 2000);
     
     // 也在窗口大小改变时应用
-    window.addEventListener('resize', optimizeButtonPositions);
+    window.addEventListener('resize', function() {
+        optimizeButtonPositions();
+        fixIOSButtonLayout();
+    });
 });
 
 // 强制执行一次布局优化
 window.addEventListener('load', function() {
     // 在页面完全加载后强制执行修复
     optimizeButtonPositions();
-}); 
+    fixIOSButtonLayout();
+    
+    // 延迟再次执行，以防加载后的脚本覆盖样式
+    setTimeout(optimizeButtonPositions, 500);
+    setTimeout(fixIOSButtonLayout, 500);
+});
+
+// 修复iOS按钮布局问题
+function fixIOSButtonLayout() {
+    const feedbackBtn = document.getElementById('showFeedback');
+    const aiBtn = document.getElementById('showAI');
+    
+    if (feedbackBtn && aiBtn) {
+        // 检测是否是iOS设备
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
+        if (isIOS) {
+            console.log('Applying additional iOS layout fixes');
+            
+            // 检查按钮是否有共同的父元素导致它们被一起包裹
+            const feedbackParent = feedbackBtn.parentElement;
+            const aiParent = aiBtn.parentElement;
+            
+            // 确保按钮直接附加到body以避免共同包裹容器的影响
+            if (feedbackParent === aiParent && feedbackParent !== document.body) {
+                console.log('Detected common parent container for buttons, moving to body');
+                
+                // 把按钮直接放到body上以避免父容器布局影响
+                document.body.appendChild(feedbackBtn);
+                document.body.appendChild(aiBtn);
+            }
+            
+            // 检查是否有任何包裹器阻止按钮正确定位
+            let currentWrapper = document.querySelector('.button-wrapper, .fixed-buttons, .bottom-buttons');
+            if (currentWrapper) {
+                console.log('Detected button wrapper, fixing layout');
+                
+                // 如果发现包裹器，则确保按钮在包裹器外部
+                if (currentWrapper.contains(feedbackBtn) || currentWrapper.contains(aiBtn)) {
+                    document.body.appendChild(feedbackBtn);
+                    document.body.appendChild(aiBtn);
+                }
+                
+                // 添加样式以防止包裹器影响
+                currentWrapper.style.position = 'static';
+                currentWrapper.style.display = 'none';
+            }
+            
+            // 通过改变DOM中的顺序确保按钮不会聚在一起
+            if (feedbackBtn.nextElementSibling === aiBtn) {
+                console.log('Buttons are adjacent in DOM, separating them');
+                // 在两个按钮之间插入一个空的div来分隔它们
+                const spacer = document.createElement('div');
+                spacer.style.display = 'none';
+                feedbackBtn.parentNode.insertBefore(spacer, aiBtn);
+            }
+        }
+    }
+} 

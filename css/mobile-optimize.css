@@ -704,23 +704,48 @@ html {
 
 @supports (-webkit-overflow-scrolling: touch) {
     html {
-        position: static;
-        overflow: auto;
+        position: static !important;
+        overflow: auto !important;
     }
     
     body {
-        -webkit-overflow-scrolling: touch;
+        -webkit-overflow-scrolling: touch !important;
     }
     
+    /* iOS按钮修复 */
     .feedback-btn, .show-ai-btn {
-        bottom: 30px !important;
+        display: flex !important;
+        position: fixed !important;
+        width: auto !important;
+        padding: 8px 15px !important;
+        bottom: 25px !important;
+        z-index: 999 !important;
+        float: none !important;
+        margin: 0 !important;
     }
     
     .feedback-btn {
         left: 15px !important;
+        right: auto !important; /* 确保不会受到右侧影响 */
     }
     
     .show-ai-btn {
         right: 15px !important;
+        left: auto !important; /* 确保不会受到左侧影响 */
+    }
+    
+    /* Fix for Safari 14+ where the buttons might combine */
+    #showFeedback {
+        position: fixed !important;
+        left: 15px !important;
+        right: auto !important;
+        bottom: 25px !important;
+    }
+    
+    #showAI {
+        position: fixed !important;
+        right: 15px !important;
+        left: auto !important;
+        bottom: 25px !important;
     }
 } 
