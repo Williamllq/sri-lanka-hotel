@@ -14,96 +14,70 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
     if (!localStorage.getItem('adminToken')) {
-        // For development purposes, set a temporary token
         localStorage.setItem('adminToken', 'temp_dev_token');
         localStorage.setItem('adminLastLogin', new Date().toISOString());
         console.log('Created temporary admin token for development');
     }
 
-    // Initialize UI elements
     const sidebarToggle = document.getElementById('sidebarToggle');
     const adminLayout = document.querySelector('.admin-layout');
     const lastLoginTime = document.getElementById('lastLoginTime');
     const logoutButton = document.getElementById('logoutButton');
     const sidebarMenuItems = document.querySelectorAll('.sidebar-menu li');
     const adminSections = document.querySelectorAll('.admin-section');
-    
-    // Update last login time
+
     if (lastLoginTime) {
         const lastLogin = localStorage.getItem('adminLastLogin');
         if (lastLogin) {
-            const date = new Date(lastLogin);
-            lastLoginTime.textContent = 'Last login: ' + date.toLocaleString();
+            lastLoginTime.textContent = 'Last login: ' + new Date(lastLogin).toLocaleString();
         }
     }
-    
-    // Manually setup click handler for hotel section
-    const hotelLink = document.querySelector('a[data-section="hotelsSection"]');
-    if (hotelLink) {
-        hotelLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Remove active class from all menu items and sections
-            sidebarMenuItems.forEach(menuItem => menuItem.classList.remove('active'));
-            adminSections.forEach(section => section.classList.remove('active'));
-            
-            // Make parent li active
-            this.closest('li').classList.add('active');
-            
-            // Show hotels section
-            const hotelSection = document.getElementById('hotelsSection');
-            if (hotelSection) {
-                hotelSection.classList.add('active');
-                console.log('Activated hotelsSection');
-            } else {
-                console.error('Hotels section not found');
-            }
-        });
-    } else {
-        console.warn('Hotel section link not found');
-    }
-    
-    // Initialize charts if the dashboard section is present
-    if (document.getElementById('dashboardSection')) {
-        initCharts();
-        initDashboardStats();
-    }
-    
-    // Initialize content management if the content section is present
-    if (document.getElementById('contentSection')) {
-        initContentManagement();
-    }
-    
-    // Initialize hotel management if the hotels section is present
-    if (document.getElementById('hotelsSection')) {
-        initHotelManagement();
+
+    // Function to initialize a specific section
+    function initializeSection(sectionId) {
+        console.log('Initializing section:', sectionId);
+        switch (sectionId) {
+            case 'dashboardSection':
+                if (document.getElementById('dashboardSection')) {
+                    initCharts();
+                    initDashboardStats();
+                }
+                break;
+            case 'contentSection':
+                if (document.getElementById('contentSection')) initContentManagement();
+                break;
+            case 'picturesSection': // Assuming pictures have their own top-level section ID for init
+                if (document.getElementById('picturesSection')) initPictureManagement();
+                break;
+            case 'carouselSection': // Assuming carousel has its own top-level section ID for init
+                 if (document.getElementById('carouselSection')) initCarouselManagement();
+                 break;
+            case 'hotelsSection':
+                if (document.getElementById('hotelsSection')) initHotelManagement();
+                break;
+            case 'ordersSection':
+                if (document.getElementById('ordersSection')) initOrderManagement();
+                break;
+            case 'transportSettingsSection':
+                if (document.getElementById('transportSettingsSection')) initTransportSettings();
+                break;
+            case 'settingsSection':
+                if (document.getElementById('settingsSection')) initSettings();
+                break;
+            default:
+                console.warn('No specific initialization logic for section:', sectionId);
+        }
+        // General modal handling might still be needed globally or re-triggered.
+        // For now, let's assume it's safe to call once or its internal guards are sufficient.
+        // initModalHandling(); // Consider if this needs to be here or is fine as a one-time call
     }
 
-    // Initialize order management if the orders section is present
-    if (document.getElementById('ordersSection')) {
-        initOrderManagement();
-    }
-
-    // Initialize transport settings if the transport settings section is present
-    if (document.getElementById('transportSettingsSection')) {
-        initTransportSettings();
-    }
-
-    // Initialize settings if the settings section is present
-    if (document.getElementById('settingsSection')) {
-        initSettings();
-    }
-    
-    // Initialize sidebar toggle
+    // Initialize general UI elements (sidebar, logout, modals)
     if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
-            adminLayout.classList.toggle('sidebar-collapsed');
-        });
+        sidebarToggle.addEventListener('click', () => adminLayout.classList.toggle('sidebar-collapsed'));
     }
-    
-    // Logout button
     if (logoutButton) {
-        logoutButton.addEventListener('click', function(e) {
+        logoutButton.addEventListener('click', (e) => {
             e.preventDefault();
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('adminToken');
@@ -112,40 +86,57 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+    initModalHandling(); // Initialize modal handling once globally
+
     // Handle sidebar navigation
     sidebarMenuItems.forEach(item => {
-        const dataSection = item.getAttribute('data-section');
-        if (!dataSection) return; // Skip items without data-section (like our hotel link now)
-        
+        const dataSectionAttribute = item.getAttribute('data-section');
+        if (!dataSectionAttribute) return;
+
+        const sectionId = dataSectionAttribute.endsWith('Section') ? dataSectionAttribute : dataSectionAttribute + 'Section';
+
         item.addEventListener('click', function(event) {
             if (this.classList.contains('logout')) return;
-            
             event.preventDefault();
-            
-            // Remove active class from all menu items and sections
+
             sidebarMenuItems.forEach(menuItem => menuItem.classList.remove('active'));
             adminSections.forEach(section => section.classList.remove('active'));
-            
-            // Add active class to clicked item
+
             this.classList.add('active');
-            
-            // Show corresponding section
-            document.getElementById(dataSection + 'Section').classList.add('active');
-            
-            // On mobile, collapse sidebar after selection
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                initializeSection(sectionId); // Initialize the section when it's made active
+            } else {
+                console.error('Target section not found:', sectionId);
+            }
+
             if (window.innerWidth < 992) {
                 adminLayout.classList.add('sidebar-collapsed');
             }
         });
     });
-    
-    // Activate default section (dashboard)
-    if (document.querySelector('.sidebar-menu li.active') === null) {
-        const defaultSection = document.querySelector('.sidebar-menu li[data-section="dashboard"]');
-        if (defaultSection) {
-            defaultSection.classList.add('active');
-            document.getElementById('dashboardSection').classList.add('active');
+
+    // Activate default section (dashboard) and initialize it
+    let defaultSectionActivated = false;
+    const currentHash = window.location.hash.substring(1);
+    if (currentHash) {
+        const sectionFromHash = document.querySelector(`.sidebar-menu li[data-section='${currentHash}']`);
+        if (sectionFromHash) {
+            sectionFromHash.click(); // Simulate click to activate and initialize
+            defaultSectionActivated = true;
+        }
+    }
+
+    if (!defaultSectionActivated) {
+        const defaultSidebarItem = document.querySelector('.sidebar-menu li[data-section="dashboard"]');
+        if (defaultSidebarItem) {
+            defaultSidebarItem.classList.add('active');
+            const dashboardSection = document.getElementById('dashboardSection');
+            if (dashboardSection) {
+                dashboardSection.classList.add('active');
+                initializeSection('dashboardSection'); // Initialize dashboard by default
+            }
         }
     }
 });
