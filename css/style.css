@@ -689,17 +689,17 @@ footer {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 40px;
+    gap: 10px;
+    margin-bottom: 30px;
 }
 
 .gallery-filter-btn {
     background-color: transparent;
     border: 2px solid #4CAF50;
     color: #4CAF50;
-    padding: 10px 25px;
+    padding: 8px 20px;
     border-radius: 30px;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -708,7 +708,7 @@ footer {
 .gallery-filter-btn:hover, .gallery-filter-btn.active {
     background-color: #4CAF50;
     color: white;
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
 }
 
@@ -718,39 +718,57 @@ footer {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 20px;
 }
 
 .featured-image-container {
     position: relative;
     width: 100%;
-    height: 500px;
-    border-radius: 0;
+    height: 400px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
-.featured-image {
+.featured-image-container .featured-image {
     width: 100%;
     height: 100%;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    transition: transform 0.7s ease;
-    image-rendering: -webkit-optimize-contrast; /* 提高图片渲染质量 */
-    image-rendering: crisp-edges;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.featured-image img {
+.featured-image-container .featured-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* 确保图片充满容器，必要时裁剪 */
-    object-position: center; /* 居中显示图片 */
+    object-fit: cover;
     display: block;
+    border-radius: 10px;
 }
 
-.featured-image-container:hover .featured-image {
-    transform: scale(1.05);
+.featured-image-container .empty-gallery-placeholder {
+    width:100%; 
+    height:100%; 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    justify-content:center; 
+    background-color:#e9ecef;
+    text-align: center;
+}
+
+.featured-image-container .empty-gallery-placeholder img {
+    max-width:60%; 
+    max-height:150px;
+    object-fit:contain; 
+    opacity:0.4;
+}
+
+.featured-image-container .empty-gallery-placeholder p {
+    color:#6c757d;
+    margin-top:10px; 
+    font-size:0.9rem;
 }
 
 .featured-caption {
@@ -758,160 +776,109 @@ footer {
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: 30px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
     color: white;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 .featured-title {
-    font-size: 28px;
-    margin-bottom: 10px;
+    font-size: 1.75rem;
+    margin-bottom: 8px;
     font-weight: 600;
 }
 
 .featured-desc {
-    font-size: 16px;
+    font-size: 0.95rem;
     opacity: 0.9;
-    max-width: 80%;
+    max-width: 100%;
 }
 
 .gallery-thumbnails {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
 .gallery-thumbnail {
-    height: 150px;
-    border-radius: 10px;
+    height: 80px;
+    border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
     position: relative;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    background-color: #f0f0f0;
 }
 
 .gallery-thumbnail:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
 
 .gallery-thumbnail img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* 改为cover确保缩略图也充满容器 */
-    transition: transform 0.5s ease;
-    image-rendering: -webkit-optimize-contrast; /* 提高图片渲染质量 */
-    image-rendering: crisp-edges;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
 }
 
 .gallery-thumbnail:hover img {
-    transform: scale(1.1);
+    transform: scale(1.08);
 }
 
 .gallery-thumbnail.active {
-    border: 3px solid #4CAF50;
+    border: 3px solid var(--accent-color);
+    box-shadow: 0 0 0 3px var(--accent-color-transparent, rgba(249, 188, 96, 0.5));
 }
 
-.gallery-navigation {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 20px;
-}
-
-.nav-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background-color: #f5f5f5;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.nav-btn:hover {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.category-indicator {
-    background-color: #f5f5f5;
-    padding: 10px 25px;
-    border-radius: 30px;
-    font-weight: 600;
-    color: #333;
-}
-
-.current-category {
-    color: #4CAF50;
-}
-
-/* Responsive adjustments */
+/* Responsive adjustments from style.css (original) - simplified and integrated */
 @media (max-width: 768px) {
     .featured-image-container {
-        height: 350px;
+        height: 300px;
     }
-    
     .featured-title {
-        font-size: 22px;
+        font-size: 1.5rem;
     }
-    
     .featured-desc {
-        font-size: 14px;
-        max-width: 100%;
+        font-size: 0.9rem;
     }
-    
     .gallery-thumbnails {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     }
-    
     .gallery-thumbnail {
-        height: 120px;
-    }
-    
-    .nav-btn span {
-        display: none;
-    }
-    
-    .nav-btn {
-        padding: 10px;
+        height: 70px;
     }
 }
 
 @media (max-width: 480px) {
-    .featured-image-container {
-        height: 250px;
-    }
-    
-    .gallery-thumbnails {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    }
-    
-    .gallery-thumbnail {
-        height: 100px;
-    }
-    
     .gallery-filter-btn {
-        padding: 8px 15px;
-        font-size: 14px;
+        padding: 6px 15px;
+        font-size: 0.9rem;
+    }
+    .featured-image-container {
+        height: 220px;
+    }
+     .featured-title {
+        font-size: 1.25rem;
+    }
+    .featured-desc {
+        font-size: 0.8rem;
+    }
+    .gallery-thumbnails {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    }
+    .gallery-thumbnail {
+        height: 60px;
     }
 }
 
-/* Image Showcase Styles */
-.image-showcase {
-    margin-top: 4rem;
-}
-
-.image-showcase h3 {
-    text-align: center;
-    margin-bottom: 2rem;
-    font-size: 2rem;
-    font-weight: 300;
+/* Ensure this is at the end or after other gallery styles */
+.gallery-grid {
+    display: none !important;
 }
 
 /* New Discover More Section Styles */

@@ -130,25 +130,26 @@
   function getDefaultPictures() {
     const defaultPics = [];
     
-    // 从隐藏的gallery-grid中获取图片
-    const galleryItems = document.querySelectorAll('.gallery-grid .gallery-item');
+    // 从隐藏的gallery-grid中获取图片 (修正路径)
+    const galleryItems = [
+        { name: "Nine Arch Bridge", category: "scenery", description: "Iconic railway bridge in Ella, surrounded by lush tea plantations", url: "images/gallery/scenic-mountains.jpg" },
+        { name: "Temple of the Sacred Tooth", category: "culture", description: "Ancient Buddhist temple in Kandy housing Buddha's sacred tooth relic", url: "images/gallery/temple.jpg" },
+        { name: "Unawatuna Beach", category: "beach", description: "Pristine golden beaches with crystal clear waters", url: "images/gallery/beach.jpg" },
+        { name: "Yala National Park", category: "wildlife", description: "Home to the highest density of leopards in the world", url: "images/gallery/wildlife.jpg" },
+        { name: "Local Cuisine", category: "food", description: "Discover the rich flavors of authentic Sri Lankan dishes", url: "images/gallery/food.jpg" },
+        { name: "Sigiriya Rock Fortress", category: "scenery", description: "Ancient palace and fortress complex with stunning views", url: "images/gallery/sri-lanka-default.jpg" }
+    ];
+
     if (galleryItems && galleryItems.length > 0) {
-      console.log(`Loading ${galleryItems.length} default pictures`);
+      console.log(`Loading ${galleryItems.length} default pictures from predefined list`);
       
       galleryItems.forEach((item, index) => {
-        const img = item.querySelector('img');
-        if (!img || !img.src) return;
-        
-        const title = item.querySelector('.gallery-item-title');
-        const desc = item.querySelector('.gallery-item-desc');
-        const category = item.getAttribute('data-category') || 'scenery';
-        
         defaultPics.push({
-          id: `default_${index}`,
-          name: title ? title.textContent : 'Sri Lanka',
-          category: category.toLowerCase(),
-          description: desc ? desc.textContent : 'Discover Sri Lanka',
-          url: img.src
+          id: `default_${index}_${Date.now()}`, // Ensure unique ID
+          name: item.name || 'Sri Lanka',
+          category: (item.category || 'scenery').toLowerCase(),
+          description: item.description || 'Discover Sri Lanka',
+          url: item.url // Already prefixed
         });
       });
     }
@@ -273,30 +274,41 @@
    * 显示图库
    */
   function displayGallery(pictures) {
-    const featuredImage = document.querySelector('.featured-image');
-    const featuredTitle = document.querySelector('.featured-title');
-    const featuredDesc = document.querySelector('.featured-desc');
+    const featuredImageContainer = document.querySelector('.featured-image-container .featured-image');
+    const featuredTitle = document.querySelector('.featured-caption .featured-title');
+    const featuredDesc = document.querySelector('.featured-caption .featured-desc');
     const thumbnailsContainer = document.querySelector('.gallery-thumbnails');
     
-    if (!featuredImage || !featuredTitle || !featuredDesc || !thumbnailsContainer) {
-      console.error('Gallery containers not found');
+    if (!featuredImageContainer || !featuredTitle || !featuredDesc || !thumbnailsContainer) {
+      console.error('Gallery containers not found. Featured Image Container:', featuredImageContainer, 'Title:', featuredTitle, 'Desc:', featuredDesc, 'Thumbnails:', thumbnailsContainer);
+      showEmptyGallery(); // Attempt to show empty state even if some parts are missing
       return;
     }
     
     // 显示第一张图片作为特色图片
     const mainPic = pictures[0];
-    featuredImage.innerHTML = `<img src="${mainPic.url}" alt="${mainPic.name}" onerror="this.src='images/placeholder.jpg'">`;
-    featuredTitle.textContent = mainPic.name;
-    featuredDesc.textContent = mainPic.description || '';
+    if (mainPic && mainPic.url) {
+        featuredImageContainer.innerHTML = `<img src="${mainPic.url}" alt="${mainPic.name || 'Featured Image'}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.src='images/placeholder.jpg'; console.error('Failed to load featured image: ${mainPic.url}')">`;
+        featuredTitle.textContent = mainPic.name || 'Image';
+        featuredDesc.textContent = mainPic.description || '';
+    } else {
+        console.warn('First picture for gallery is invalid or missing URL:', mainPic);
+        showEmptyGallery(); // Show empty state if first pic is invalid
+        return;
+    }
     
     // 清空并重新填充缩略图
     thumbnailsContainer.innerHTML = '';
     
     // 显示缩略图
     pictures.forEach((pic, index) => {
+      if (!pic || !pic.url) {
+          console.warn('Skipping invalid picture for thumbnail:', pic);
+          return;
+      }
       const thumbElem = document.createElement('div');
       thumbElem.className = 'gallery-thumbnail' + (index === 0 ? ' active' : '');
-      thumbElem.innerHTML = `<img src="${pic.url}" alt="${pic.name}" onerror="this.src='images/placeholder.jpg'">`;
+      thumbElem.innerHTML = `<img src="${pic.url}" alt="${pic.name || 'Thumbnail'}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.src='images/placeholder.jpg'; console.warn('Failed to load thumbnail: ${pic.url}')">`;
       
       // 点击缩略图时更新特色图片
       thumbElem.addEventListener('click', () => {
@@ -306,40 +318,46 @@
         thumbElem.classList.add('active');
         
         // 更新特色图片
-        featuredImage.innerHTML = `<img src="${pic.url}" alt="${pic.name}" onerror="this.src='images/placeholder.jpg'">`;
-        featuredTitle.textContent = pic.name;
+        featuredImageContainer.innerHTML = `<img src="${pic.url}" alt="${pic.name || 'Featured Image'}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.src='images/placeholder.jpg'; console.error('Failed to load featured image on click: ${pic.url}')">`;
+        featuredTitle.textContent = pic.name || 'Image';
         featuredDesc.textContent = pic.description || '';
         
         // 重置轮播计时器
         stopCarousel();
-        startCarousel(pictures);
+        startCarousel(pictures, index); // Pass current index to restart carousel from this image
       });
       
       thumbnailsContainer.appendChild(thumbElem);
     });
+     // Ensure the first thumbnail is marked active
+    if (thumbnailsContainer.firstChild) {
+        thumbnailsContainer.firstChild.classList.add('active');
+    }
   }
   
   /**
    * 显示空图库提示
    */
   function showEmptyGallery() {
-    const featuredImage = document.querySelector('.featured-image');
-    const featuredTitle = document.querySelector('.featured-title');
-    const featuredDesc = document.querySelector('.featured-desc');
+    const featuredImageContainer = document.querySelector('.featured-image-container .featured-image');
+    const featuredTitle = document.querySelector('.featured-caption .featured-title');
+    const featuredDesc = document.querySelector('.featured-caption .featured-desc');
     const thumbnailsContainer = document.querySelector('.gallery-thumbnails');
     
-    if (featuredImage) {
-      featuredImage.innerHTML = `
-        <div class="empty-category">
-          <i class="fas fa-images"></i>
-          <p>No images in this category</p>
+    console.log('Showing empty gallery state.');
+
+    if (featuredImageContainer) {
+      featuredImageContainer.innerHTML = `
+        <div class="empty-gallery-placeholder" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background-color:#f0f0f0;">
+          <img src="images/placeholder.jpg" alt="No image available" style="max-width:80%; max-height:200px; object-fit:contain; opacity:0.5;">
+          <p style="color:#888; margin-top:15px; font-size:1rem;">No images currently available in this category.</p>
         </div>
       `;
     }
     
     if (featuredTitle) featuredTitle.textContent = 'No Images Available';
-    if (featuredDesc) featuredDesc.textContent = 'Please upload images in the admin panel';
-    if (thumbnailsContainer) thumbnailsContainer.innerHTML = '';
+    if (featuredDesc) featuredDesc.textContent = 'Please check back later or select another category.';
+    if (thumbnailsContainer) thumbnailsContainer.innerHTML = '<p style="text-align:center; color:#888; width:100%;">No thumbnails to display.</p>';
   }
   
   // 轮播相关变量
@@ -349,12 +367,14 @@
   /**
    * 启动轮播
    */
-  function startCarousel(pictures) {
+  function startCarousel(pictures, startIndex = 0) {
     if (!pictures || pictures.length <= 1) return;
     
     // 清除现有定时器
     stopCarousel();
     
+    currentIndex = startIndex; // Start from the provided index
+
     // 创建新定时器
     carouselTimer = setInterval(() => {
       currentIndex = (currentIndex + 1) % pictures.length;
