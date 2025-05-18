@@ -913,8 +913,8 @@ function initOrderManagement() {
         
         // Sort orders by date (newest first)
         orders.sort((a, b) => {
-            const dateA = new Date(a.timestamp || 0);
-            const dateB = new Date(b.timestamp || 0);
+            const dateA = new Date(a.timestamp || a.journeyDate || 0); // Fallback to journeyDate
+            const dateB = new Date(b.timestamp || b.journeyDate || 0); // Fallback to journeyDate
             return dateB - dateA;
         });
         
@@ -936,8 +936,13 @@ function initOrderManagement() {
                 updateOrderInStorage(order);
             }
             
-            // Format date
-            const orderDate = order.timestamp ? new Date(order.timestamp).toLocaleDateString() : 'N/A';
+            // Format date - Prefer timestamp, fallback to journeyDate
+            let orderDateDisplay = 'N/A';
+            if (order.timestamp) {
+                orderDateDisplay = new Date(order.timestamp).toLocaleDateString();
+            } else if (order.journeyDate) {
+                orderDateDisplay = new Date(order.journeyDate).toLocaleDateString();
+            }
             
             // Format amount
             const amount = order.totalFare ? `$${parseFloat(order.totalFare).toFixed(2)}` : 'N/A';
@@ -947,7 +952,7 @@ function initOrderManagement() {
             row.innerHTML = `
                 <td>${orderId}</td>
                 <td>${order.customerName || 'Anonymous Customer'}</td>
-                <td>${orderDate}</td>
+                <td>${orderDateDisplay}</td>
                 <td>${order.pickupLocation || 'N/A'}</td>
                 <td>${order.destination || 'N/A'}</td>
                 <td>${amount}</td>
@@ -1277,35 +1282,69 @@ function initOrderManagement() {
     // Function to delete an order
     function deleteOrder(orderId) {
         if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+            console.log('Order deletion cancelled by user for ID:', orderId);
             return;
         }
         
-        console.log('Deleting order:', orderId);
+        console.log('Attempting to delete order with ID:', orderId, typeof orderId);
         
         // Get orders from localStorage
         let orders = [];
         try {
             const storedOrders = localStorage.getItem('bookings');
+            console.log('Raw bookings from localStorage:', storedOrders);
             if (storedOrders) {
                 orders = JSON.parse(storedOrders);
+                console.log('Parsed orders from localStorage (before deletion):', JSON.parse(JSON.stringify(orders)));
+            } else {
+                console.warn('No bookings found in localStorage to delete from.');
+                return;
             }
         } catch (error) {
-            console.error('Error loading orders:', error);
+            console.error('Error loading orders for deletion:', error);
+            alert('Error loading orders. Deletion failed.');
             return;
         }
         
+        const initialOrderCount = orders.length;
         // Remove the specific order
-        const filteredOrders = orders.filter(o => o.id !== orderId);
+        // Ensure consistent type for comparison if order.id might be number
+        const filteredOrders = orders.filter(o => String(o.id) !== String(orderId));
+        const finalOrderCount = filteredOrders.length;
+
+        console.log(`Initial order count: ${initialOrderCount}, Orders after filtering for ID ${orderId}: ${finalOrderCount}`);
+        
+        if (initialOrderCount === finalOrderCount) {
+            console.warn(`Order ID ${orderId} not found in the list. No order deleted.`);
+            // It's possible the ID passed doesn't match any existing order.
+            // Check if the demo data is being used and if the ID matches demo data format.
+            const isDemoOrder = orders.some(o => o.id === orderId && o.serviceType); // A simple check for demo orders
+            if (isDemoOrder) {
+                 console.log(`Order ID ${orderId} might be a demo order. Ensure deletion logic handles this or data is persistent.`);
+            }
+            // alert(`Order with ID ${orderId} not found. Nothing deleted.`);
+            // We still call loadOrders() to refresh the view in case the table was out of sync.
+        }
         
         // Save to localStorage
         try {
             localStorage.setItem('bookings', JSON.stringify(filteredOrders));
+            console.log('Orders saved to localStorage after attempting deletion:', JSON.parse(JSON.stringify(filteredOrders)));
             
             // Reload orders
+            console.log('Reloading orders table after deletion attempt...');
             loadOrders();
+            console.log('Orders table reload initiated.');
+            if (initialOrderCount > finalOrderCount) {
+                alert('Order deleted successfully!');
+            } else if (initialOrderCount === finalOrderCount) {
+                // alert('Order not found or already deleted.'); // Consider if this alert is needed
+                console.log(`Order ID ${orderId} was not present or already removed.`);
+            }
+
         } catch (error) {
-            console.error('Error deleting order:', error);
-            alert('Failed to delete order');
+            console.error('Error saving orders after deletion or reloading table:', error);
+            alert('Failed to delete order or refresh table.');
         }
     }
     
