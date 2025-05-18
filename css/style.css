@@ -2251,4 +2251,57 @@ select:focus {
             left: auto !important;
         }
     }
+}
+
+/* Contact Section */
+#contact {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+    padding: 4rem 0; /* Added padding for better spacing */
+}
+
+#contact .section-title {
+    color: var(--light-text);
+    margin-bottom: 2rem;
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column; /* Changed to column for better alignment */
+    align-items: center; /* Center items */
+    gap: 1.5rem;
+}
+
+.contact-details {
+    text-align: center; /* Center text within details */
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center items horizontally */
+    gap: 1rem;
+    margin-bottom: 1rem; /* Spacing between items */
+    font-size: 1.1rem; /* Slightly larger font */
+}
+
+.contact-item i {
+    font-size: 1.5rem; /* Larger icons */
+    color: var(--accent-color); /* Use accent color for icons */
+}
+
+.contact-item p {
+    margin: 0; /* Remove default paragraph margin */
+    color: var(--light-text); /* Ensure text is light */
+}
+
+/* Ensure links in contact section are also light */
+.contact-item a {
+    color: var(--light-text);
+    text-decoration: none;
+}
+
+.contact-item a:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
 } 
