@@ -163,8 +163,13 @@
         // Initial sync
         syncAdminToGallery();
         
-        // Re-sync periodically (every 5 seconds) to catch any missed updates
-        setInterval(syncAdminToGallery, 5000);
+        // Check if critical fix is loaded, if so, don't set up interval to prevent conflicts
+        if (!window.adminCriticalFixLoaded) {
+            // Re-sync periodically (every 30 seconds) to catch any missed updates
+            window.gallerySyncInterval = setInterval(syncAdminToGallery, 30000);
+        } else {
+            console.log('Admin Critical Fix is loaded, gallery sync interval disabled to prevent conflicts');
+        }
         
         console.log('Gallery Sync Fix initialized successfully');
     }

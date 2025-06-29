@@ -751,14 +751,32 @@
     </div>
 
     <!-- Admin Dashboard Scripts -->
+    <!-- CRITICAL FIX: Load this first to prevent conflicts and infinite loops -->
+    <script src="js/admin-critical-fix.js"></script>
+    
+    <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     
+    <!-- Configuration and Core -->
     <script src="js/config.js"></script>
     <script src="js/cloud-storage.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+    
+    <!-- Specific Features (only essential ones) -->
+    <script src="js/admin-hotels.js"></script>
+    <script src="js/admin-content.js"></script>
+    <script src="js/transport-settings.js"></script>
+    <script src="js/mobile-optimizations.js"></script>
+    
+    <!-- Enhanced Upload Functionality -->
+    <script src="js/cloudinary-upload-fix.js"></script>
+    
+    <!-- DISABLED: These scripts are causing conflicts and are replaced by admin-critical-fix.js -->
+    <!--
     <script src="js/image-storage-upgrade.js"></script>
     <script src="js/admin-pictures-button-fix.js"></script>
     <script src="js/admin-modal-fix.js"></script>
@@ -767,13 +785,8 @@
     <script src="js/admin-pictures-edit-fix.js"></script>
     <script src="js/admin-pictures.js"></script>
     <script src="js/admin-pictures-data-fix.js"></script>
-    <script src="js/admin-dashboard.js"></script>
-    <script src="js/admin-hotels.js"></script>
-    <script src="js/admin-content.js"></script>
     <script src="js/admin-orders-fix.js"></script>
     <script src="js/admin-pictures-loading-fix.js"></script>
-    <script src="js/transport-settings.js"></script>
-    <script src="js/mobile-optimizations.js"></script>
     <script src="js/admin-ui-enhance.js"></script>
     <script src="js/admin-analytics-enhance.js"></script>
     <script src="js/admin-pictures-enhance.js"></script>
@@ -781,7 +794,7 @@
     <script src="js/production-fixes.js"></script>
     <script src="js/gallery-sync-fix.js"></script>
     <script src="js/admin-upload-complete-fix.js"></script>
-    <script src="js/cloudinary-upload-fix.js"></script>
+    -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // ... existing code ...
