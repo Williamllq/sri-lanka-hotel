@@ -44,6 +44,7 @@
     <script src="js/translations.js"></script>
     <script src="js/indexed-db.js"></script>
     <script src="js/image-manager.js"></script>
+    <script src="js/image-storage-upgrade.js"></script>
     <script src="js/main.js"></script>
     
     <!-- Service Worker Registration -->
@@ -151,6 +152,7 @@
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#transport">Transport</a></li>
+                <li><a href="hotels.html">Hotels</a></li>
                 <li><a href="#explore">Explore</a></li>
                 <li><a href="#contact">Contact</a></li>
                 <li><a href="#" id="authToggleBtn" class="nav-login-btn"><i class="fas fa-user"></i> <span id="authBtnText">Login</span></a></li>
@@ -170,6 +172,18 @@
             <div class="hero-content">
                 <h2 class="fade-in" data-i18n="hero-title">Best Travel - Best Choice</h2>
                 <p class="fade-in" data-i18n="hero-subtitle">Your premium travel experience in Sri Lanka</p>
+                
+                <!-- Quick Search -->
+                <div class="quick-search fade-in" style="max-width: 600px; margin: 2rem auto;">
+                    <form id="quickSearchForm" style="display: flex; gap: 10px; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);">
+                        <input type="text" id="quickSearchInput" placeholder="Search hotels, locations, or transport services..." 
+                               style="flex: 1; border: none; padding: 12px 20px; font-size: 16px; background: transparent; outline: none;">
+                        <button type="submit" style="background: var(--accent-color); color: white; border: none; padding: 12px 30px; border-radius: 30px; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </form>
+                </div>
+                
                 <div class="hero-buttons">
                     <a href="#transport" class="btn fade-in" data-i18n="book-transport">Book Transport</a>
                     <a href="#explore" class="btn-secondary fade-in" data-i18n="explore-lanka">Explore Sri Lanka</a>

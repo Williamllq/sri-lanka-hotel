@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotels - Sri Lanka Stay & Explore</title>
+    <meta name="description" content="Find and book the best hotels in Sri Lanka. From luxury resorts to budget-friendly accommodations.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom Hotel Styles -->
+    <style>
+        .hotel-hero {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('images/hotel/cmbmc-room-3686-hor-clsc.webp') center/cover;
+            padding: 150px 0 80px;
+            color: white;
+            text-align: center;
+        }
+        
+        .hotel-search {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin: -50px auto 50px;
+            max-width: 1200px;
+        }
+        
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+        
+        .search-form input, .search-form select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .search-form button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-form button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        
+        .hotels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .hotel-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .hotel-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        }
+        
+        .hotel-image {
+            height: 250px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .hotel-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .hotel-card:hover .hotel-image img {
+            transform: scale(1.1);
+        }
+        
+        .hotel-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .hotel-content {
+            padding: 1.5rem;
+        }
+        
+        .hotel-name {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .hotel-location {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 1rem;
+        }
+        
+        .hotel-location i {
+            color: var(--accent-color);
+            margin-right: 5px;
+        }
+        
+        .hotel-rating {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .stars {
+            color: #FFD700;
+            margin-right: 10px;
+        }
+        
+        .rating-text {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .hotel-amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        
+        .amenity {
+            background: #f5f5f5;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .amenity i {
+            margin-right: 5px;
+            color: var(--primary-color);
+        }
+        
+        .hotel-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .price {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .price-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .book-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .book-btn:hover {
+            background: #d63031;
+            transform: translateY(-2px);
+        }
+        
+        .filters-sidebar {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+        
+        .filter-section {
+            margin-bottom: 2rem;
+        }
+        
+        .filter-section h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .filter-option input {
+            margin-right: 0.5rem;
+        }
+        
+        .price-range {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .price-range input {
+            width: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .hotels-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <header>
+        <nav class="main-nav">
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="transport.html">Transport</a></li>
+                <li><a href="hotels.html" class="active">Hotels</a></li>
+                <li><a href="index.html#explore">Explore</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+                <li><a href="#" id="authToggleBtn" class="nav-login-btn"><i class="fas fa-user"></i> <span id="authBtnText">Login</span></a></li>
+                <li id="myBookingsNavItem"><a href="#" id="navMyBookingsBtn"><i class="fas fa-receipt"></i> My Bookings</a></li>
+            </ul>
+            <div class="logo">
+                <a href="index.html">
+                    <img src="./images/ranga_bandara_logo_v2.png" alt="Ranga Bandara Logo" id="site-logo">
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hotel-hero">
+        <div class="container">
+            <h1>Find Your Perfect Stay in Sri Lanka</h1>
+            <p>From luxury beach resorts to cozy mountain retreats</p>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <div class="container">
+        <div class="hotel-search">
+            <form class="search-form" id="hotelSearchForm">
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" placeholder="Where are you going?" required>
+                </div>
+                <div class="form-group">
+                    <label for="checkIn">Check-in</label>
+                    <input type="date" id="checkIn" required>
+                </div>
+                <div class="form-group">
+                    <label for="checkOut">Check-out</label>
+                    <input type="date" id="checkOut" required>
+                </div>
+                <div class="form-group">
+                    <label for="guests">Guests</label>
+                    <select id="guests">
+                        <option value="1">1 Guest</option>
+                        <option value="2">2 Guests</option>
+                        <option value="3">3 Guests</option>
+                        <option value="4">4 Guests</option>
+                        <option value="5+">5+ Guests</option>
+                    </select>
+                </div>
+                <button type="submit"><i class="fas fa-search"></i> Search Hotels</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hotels Section -->
+    <section class="section">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: 250px 1fr; gap: 2rem;">
+                <!-- Filters Sidebar -->
+                <aside class="filters-sidebar">
+                    <div class="filter-section">
+                        <h3>Price Range</h3>
+                        <div class="price-range">
+                            <input type="range" id="priceRange" min="0" max="500" value="250">
+                            <span id="priceValue">$250</span>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <h3>Star Rating</h3>
+                        <div class="filter-option">
+                            <input type="checkbox" id="5stars" value="5">
+                            <label for="5stars">⭐⭐⭐⭐⭐ 5 Stars</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="4stars" value="4">
+                            <label for="4stars">⭐⭐⭐⭐ 4 Stars</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="3stars" value="3">
+                            <label for="3stars">⭐⭐⭐ 3 Stars</label>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <h3>Amenities</h3>
+                        <div class="filter-option">
+                            <input type="checkbox" id="wifi" value="wifi">
+                            <label for="wifi">Free WiFi</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="pool" value="pool">
+                            <label for="pool">Swimming Pool</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="spa" value="spa">
+                            <label for="spa">Spa & Wellness</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="restaurant" value="restaurant">
+                            <label for="restaurant">Restaurant</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="parking" value="parking">
+                            <label for="parking">Free Parking</label>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Hotels Grid -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2>Available Hotels</h2>
+                        <select id="sortBy">
+                            <option value="recommended">Recommended</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="rating">Highest Rating</option>
+                        </select>
+                    </div>
+                    
+                    <div class="hotels-grid" id="hotelsGrid">
+                        <!-- Hotels will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About Us</h3>
+                    <p>Your trusted partner for authentic Sri Lankan travel experiences.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="transport.html">Transport</a></li>
+                        <li><a href="hotels.html">Hotels</a></li>
+                        <li><a href="index.html#explore">Explore</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p>Email: info@srilankastayexplore.com</p>
+                    <p>Phone: +94 77 760 5921</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Sri Lanka Stay & Explore. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/translations.js"></script>
+    <script src="js/user-auth.js"></script>
+    <script src="js/hotels.js"></script>
+</body>
+</html> 

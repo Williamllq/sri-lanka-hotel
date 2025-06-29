@@ -39,6 +39,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize testimonials
     initTestimonials();
+    
+    // Initialize quick search
+    initQuickSearch();
 });
 
 // Initialize the tabs in the Discover More section
@@ -1030,4 +1033,139 @@ function initTestimonials() {
             });
         }
     });
+}
+
+// Initialize quick search functionality
+function initQuickSearch() {
+    const searchForm = document.getElementById('quickSearchForm');
+    const searchInput = document.getElementById('quickSearchInput');
+    
+    if (!searchForm || !searchInput) return;
+    
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const searchQuery = searchInput.value.trim().toLowerCase();
+        if (!searchQuery) return;
+        
+        // Determine search type based on keywords
+        if (searchQuery.includes('hotel') || searchQuery.includes('stay') || searchQuery.includes('accommodation')) {
+            // Redirect to hotels page with search query
+            window.location.href = `hotels.html?search=${encodeURIComponent(searchQuery)}`;
+        } else if (searchQuery.includes('transport') || searchQuery.includes('car') || searchQuery.includes('taxi') || searchQuery.includes('driver')) {
+            // Scroll to transport section
+            document.getElementById('transport')?.scrollIntoView({ behavior: 'smooth' });
+            
+            // Pre-fill transport search if it includes location
+            const locations = ['colombo', 'kandy', 'galle', 'ella', 'sigiriya', 'yala', 'mirissa', 'nuwara eliya'];
+            const foundLocation = locations.find(loc => searchQuery.includes(loc));
+            if (foundLocation) {
+                const pickupInput = document.getElementById('pickupLocation');
+                if (pickupInput) {
+                    pickupInput.value = foundLocation.charAt(0).toUpperCase() + foundLocation.slice(1);
+                }
+            }
+        } else {
+            // Search in available content
+            performGeneralSearch(searchQuery);
+        }
+    });
+    
+    // Add search suggestions (optional enhancement)
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        if (query.length > 2) {
+            // You could show suggestions here
+            showSearchSuggestions(query);
+        }
+    });
+}
+
+// Perform general search across the site
+function performGeneralSearch(query) {
+    const results = [];
+    
+    // Search in hotels
+    const hotels = JSON.parse(localStorage.getItem('siteHotels') || '[]');
+    hotels.forEach(hotel => {
+        if (hotel.name.toLowerCase().includes(query) || 
+            hotel.location.toLowerCase().includes(query) ||
+            hotel.description.toLowerCase().includes(query)) {
+            results.push({
+                type: 'hotel',
+                title: hotel.name,
+                description: hotel.description,
+                link: `hotels.html?hotelId=${hotel.id}`
+            });
+        }
+    });
+    
+    // Search in locations
+    const popularLocations = [
+        { name: 'Colombo', description: 'Capital city with modern attractions' },
+        { name: 'Kandy', description: 'Cultural capital with Temple of the Tooth' },
+        { name: 'Galle', description: 'Historic fort city by the sea' },
+        { name: 'Ella', description: 'Mountain town with scenic train rides' },
+        { name: 'Sigiriya', description: 'Ancient rock fortress' },
+        { name: 'Yala', description: 'National park with wildlife safaris' }
+    ];
+    
+    popularLocations.forEach(location => {
+        if (location.name.toLowerCase().includes(query) || 
+            location.description.toLowerCase().includes(query)) {
+            results.push({
+                type: 'location',
+                title: location.name,
+                description: location.description,
+                link: '#explore'
+            });
+        }
+    });
+    
+    // Display results
+    if (results.length > 0) {
+        displaySearchResults(results);
+    } else {
+        alert(`No results found for "${query}". Try searching for hotels, transport, or popular destinations.`);
+    }
+}
+
+// Display search results in a modal or redirect
+function displaySearchResults(results) {
+    // For now, just show the first result
+    if (results.length > 0) {
+        const firstResult = results[0];
+        if (firstResult.type === 'hotel') {
+            window.location.href = firstResult.link;
+        } else {
+            // Scroll to explore section
+            document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+}
+
+// Show search suggestions (optional)
+function showSearchSuggestions(query) {
+    // This could be implemented to show a dropdown with suggestions
+    // For now, we'll keep it simple
+    const suggestions = [];
+    
+    // Add hotel suggestions
+    const hotels = JSON.parse(localStorage.getItem('siteHotels') || '[]');
+    hotels.forEach(hotel => {
+        if (hotel.name.toLowerCase().includes(query)) {
+            suggestions.push({ text: hotel.name, type: 'hotel' });
+        }
+    });
+    
+    // Add location suggestions
+    const locations = ['Colombo', 'Kandy', 'Galle', 'Ella', 'Sigiriya', 'Yala', 'Mirissa', 'Nuwara Eliya'];
+    locations.forEach(loc => {
+        if (loc.toLowerCase().includes(query)) {
+            suggestions.push({ text: loc, type: 'location' });
+        }
+    });
+    
+    // You could display these suggestions in a dropdown
+    console.log('Search suggestions:', suggestions);
 } 
