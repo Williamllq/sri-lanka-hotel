@@ -24,6 +24,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Prevent duplicate form handling by marking forms as initialized
     preventDuplicateHandling();
+    
+    // Initialize cloud storage integration
+    if (window.cloudStorage) {
+        console.log('Cloud storage available, initializing UI...');
+        initCloudStorageUI();
+    }
     }).catch(error => {
         console.error('Failed to initialize image database:', error);
         alert('初始化图片数据库失败。请使用更现代的浏览器或清除浏览器缓存后重试。');
@@ -2056,4 +2062,297 @@ function fixPictureUploadForm(form) {
     });
     
     console.log('Picture upload form fixed');
-} 
+}
+
+/**
+ * Initialize cloud storage UI elements
+ */
+function initCloudStorageUI() {
+    // Add cloud storage status indicator
+    const pictureSection = document.getElementById('picturesSection');
+    if (pictureSection) {
+        const header = pictureSection.querySelector('.admin-header') || pictureSection.querySelector('h2');
+        if (header) {
+            const statusIndicator = document.createElement('div');
+            statusIndicator.className = 'cloud-storage-status';
+            statusIndicator.innerHTML = `
+                <i class="fas fa-cloud"></i>
+                <span>Cloud Storage: <span class="status-text">Ready</span></span>
+                <button class="btn btn-sm btn-info" id="migrateToCloudBtn">
+                    <i class="fas fa-cloud-upload-alt"></i> Migrate to Cloud
+                </button>
+            `;
+            statusIndicator.style.cssText = `
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                margin-left: 20px;
+                padding: 5px 15px;
+                background: #e3f2fd;
+                border-radius: 20px;
+                font-size: 14px;
+            `;
+            header.appendChild(statusIndicator);
+            
+            // Add migrate button handler
+            document.getElementById('migrateToCloudBtn').addEventListener('click', migrateImagesToCloud);
+        }
+    }
+    
+    // Update upload form to use cloud storage
+    const uploadForm = document.getElementById('uploadPictureForm');
+    if (uploadForm && !uploadForm.hasAttribute('data-cloud-enhanced')) {
+        uploadForm.setAttribute('data-cloud-enhanced', 'true');
+        
+        // Add cloud upload option
+        const cloudOption = document.createElement('div');
+        cloudOption.className = 'form-group';
+        cloudOption.innerHTML = `
+            <label>
+                <input type="checkbox" id="useCloudStorage" checked>
+                Use Cloud Storage (Recommended)
+            </label>
+            <small class="form-text text-muted">
+                Cloud storage provides better performance and unlimited capacity
+            </small>
+        `;
+        
+        // Insert before submit button
+        const submitBtn = uploadForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.parentElement.insertBefore(cloudOption, submitBtn);
+        }
+    }
+}
+
+/**
+ * Migrate existing images to cloud storage
+ */
+async function migrateImagesToCloud() {
+    const btn = document.getElementById('migrateToCloudBtn');
+    if (!btn) return;
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Migrating...';
+    btn.disabled = true;
+    
+    try {
+        // Show progress modal
+        const progressModal = createProgressModal();
+        document.body.appendChild(progressModal);
+        progressModal.style.display = 'flex';
+        
+        // Get all metadata
+        const metadata = await getAllMetadata();
+        const totalImages = metadata.length;
+        let processed = 0;
+        let successful = 0;
+        let failed = 0;
+        
+        // Process each image
+        for (const meta of metadata) {
+            try {
+                // Skip if already has cloud URL
+                if (meta.cloudUrl) {
+                    processed++;
+                    successful++;
+                    updateProgress(progressModal, processed, totalImages, `Skipping ${meta.name} (already in cloud)`);
+                    continue;
+                }
+                
+                // Get image data
+                const imageData = await getImageData(meta.id);
+                if (!imageData || !imageData.imageUrl) {
+                    processed++;
+                    failed++;
+                    updateProgress(progressModal, processed, totalImages, `Failed: ${meta.name} (no image data)`);
+                    continue;
+                }
+                
+                // Upload to cloud
+                updateProgress(progressModal, processed, totalImages, `Uploading ${meta.name}...`);
+                const result = await window.cloudStorage.uploadImage(imageData.imageUrl, {
+                    folder: meta.category || 'general',
+                    tags: ['migrated', 'admin-upload']
+                });
+                
+                if (result.success) {
+                    // Update metadata with cloud info
+                    meta.cloudUrl = result.data.secure_url;
+                    meta.cloudPublicId = result.data.public_id;
+                    meta.cloudUrls = result.data.urls;
+                    
+                    // Save updated metadata
+                    await saveMetadata(meta);
+                    
+                    successful++;
+                } else {
+                    failed++;
+                }
+                
+                processed++;
+                updateProgress(progressModal, processed, totalImages, `Processed ${meta.name}`);
+                
+            } catch (error) {
+                console.error(`Failed to migrate ${meta.name}:`, error);
+                failed++;
+                processed++;
+            }
+        }
+        
+        // Show results
+        progressModal.querySelector('.progress-message').innerHTML = `
+            <div style="text-align: center;">
+                <h3>Migration Complete!</h3>
+                <p>Total: ${totalImages} | Success: ${successful} | Failed: ${failed}</p>
+                <button class="btn btn-primary" onclick="this.closest('.progress-modal').remove()">Close</button>
+            </div>
+        `;
+        
+        // Update UI
+        loadAndDisplayPictures();
+        
+    } catch (error) {
+        console.error('Migration failed:', error);
+        alert('Migration failed: ' + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+/**
+ * Create progress modal
+ */
+function createProgressModal() {
+    const modal = document.createElement('div');
+    modal.className = 'progress-modal';
+    modal.innerHTML = `
+        <div class="progress-content">
+            <h2>Migrating Images to Cloud</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" style="width: 0%"></div>
+            </div>
+            <div class="progress-info">
+                <span class="progress-text">0 / 0</span>
+                <span class="progress-percentage">0%</span>
+            </div>
+            <div class="progress-message">Initializing...</div>
+        </div>
+    `;
+    
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .progress-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .progress-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            min-width: 400px;
+            max-width: 600px;
+        }
+        .progress-bar-container {
+            background: #e0e0e0;
+            height: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            background: #4CAF50;
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 15px;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .progress-message {
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    return modal;
+}
+
+/**
+ * Update progress modal
+ */
+function updateProgress(modal, current, total, message) {
+    const percentage = Math.round((current / total) * 100);
+    modal.querySelector('.progress-bar').style.width = percentage + '%';
+    modal.querySelector('.progress-text').textContent = `${current} / ${total}`;
+    modal.querySelector('.progress-percentage').textContent = percentage + '%';
+    modal.querySelector('.progress-message').textContent = message;
+}
+
+/**
+ * Override the original upload function to use cloud storage
+ */
+const originalProcessImageFile = window.processImageFile || processImageFile;
+window.processImageFile = async function(file, callback) {
+    const useCloud = document.getElementById('useCloudStorage')?.checked;
+    
+    if (useCloud && window.cloudStorage) {
+        try {
+            // Show loading indicator
+            const uploadBtn = document.querySelector('button[type="submit"]');
+            const originalText = uploadBtn?.innerHTML;
+            if (uploadBtn) {
+                uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading to cloud...';
+                uploadBtn.disabled = true;
+            }
+            
+            // Upload to cloud
+            const result = await window.cloudStorage.uploadImage(file, {
+                folder: document.getElementById('uploadCategory')?.value || 'general',
+                tags: ['admin-upload', new Date().toISOString()]
+            });
+            
+            if (result.success) {
+                // Use cloud URLs
+                callback({
+                    thumbnailUrl: result.data.urls.thumbnail,
+                    imageUrl: result.data.urls.original,
+                    cloudUrl: result.data.secure_url,
+                    cloudPublicId: result.data.public_id,
+                    cloudUrls: result.data.urls
+                });
+            } else {
+                throw new Error(result.error || 'Upload failed');
+            }
+            
+            // Restore button
+            if (uploadBtn) {
+                uploadBtn.innerHTML = originalText;
+                uploadBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Cloud upload failed:', error);
+            alert('Cloud upload failed. Falling back to local storage.');
+            
+            // Fall back to original method
+            originalProcessImageFile(file, callback);
+        }
+    } else {
+        // Use original method
+        originalProcessImageFile(file, callback);
+    }
+}; 
