@@ -5,15 +5,18 @@
 
 class CloudStorageManager {
     constructor() {
-        // In production, use real cloud service like Cloudinary, AWS S3, etc.
-        // For demo, we'll simulate cloud storage with enhanced features
-        this.cloudName = 'sri-lanka-travel';
-        this.uploadPreset = 'unsigned_preset';
+        // Cloudinary configuration
+        this.cloudName = 'dmpfjul1j'; // Your Cloudinary cloud name
+        this.uploadPreset = 'sri_lanka_unsigned'; // You'll need to create this in Cloudinary dashboard
         this.cloudinaryUrl = `https://api.cloudinary.com/v1_1/${this.cloudName}/image/upload`;
         
-        // Simulated cloud storage for development
-        this.useSimulation = true; // Switch to false when using real Cloudinary
-        this.simulatedStorage = new Map();
+        // Use real Cloudinary service
+        this.useSimulation = false; // Now using real Cloudinary!
+        this.simulatedStorage = new Map(); // Keep for fallback
+        
+        // Note: API Secret should NEVER be exposed in client-side code
+        // It should only be used in server-side operations
+        this.apiKey = '476146554929449'; // Public API key is safe for client-side
     }
 
     /**
@@ -235,6 +238,10 @@ class CloudStorageManager {
         // Build transformation string
         const transforms = [];
         
+        // Always add automatic format and quality for optimization
+        transforms.push('f_auto');
+        transforms.push('q_auto');
+        
         if (transformations.width) {
             transforms.push(`w_${transformations.width}`);
         }
@@ -249,6 +256,11 @@ class CloudStorageManager {
         }
         if (transformations.format) {
             transforms.push(`f_${transformations.format}`);
+        }
+        
+        // Add device pixel ratio for retina displays
+        if (transformations.dpr) {
+            transforms.push(`dpr_${transformations.dpr}`);
         }
 
         const transformString = transforms.join(',');
