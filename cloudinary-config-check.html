@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudinary Configuration Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .code {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .test-upload {
+            margin-top: 20px;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        .instructions {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .instructions ol {
+            margin: 10px 0;
+        }
+        .instructions li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Cloudinary Configuration Checker</h1>
+        
+        <div class="section">
+            <h2>Current Configuration</h2>
+            <div id="configStatus"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Connection Test</h2>
+            <button onclick="testConnection()">Test Cloudinary Connection</button>
+            <div id="connectionStatus"></div>
+        </div>
+        
+        <div class="section test-upload">
+            <h2>Upload Test</h2>
+            <input type="file" id="testFile" accept="image/*">
+            <button onclick="testUpload()">Test Upload</button>
+            <div id="uploadStatus"></div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 How to Fix Cloudinary Configuration</h3>
+            <ol>
+                <li>
+                    <strong>Login to Cloudinary:</strong>
+                    <a href="https://cloudinary.com/console" target="_blank">https://cloudinary.com/console</a>
+                </li>
+                <li>
+                    <strong>Create an Unsigned Upload Preset:</strong>
+                    <ul>
+                        <li>Go to Settings → Upload</li>
+                        <li>Click "Add upload preset"</li>
+                        <li>Set name: <code>sri_lanka_unsigned</code></li>
+                        <li>Set Signing Mode: <strong>Unsigned</strong></li>
+                        <li>Save the preset</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Verify Your Cloud Name:</strong>
+                    <ul>
+                        <li>Your cloud name is shown in the dashboard</li>
+                        <li>Current configured: <code id="cloudNameDisplay">Not loaded</code></li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Update Configuration if needed:</strong>
+                    <ul>
+                        <li>Edit <code>js/config.js</code></li>
+                        <li>Update <code>CLOUDINARY_CLOUD_NAME</code></li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+    </div>
+    
+    <script src="js/config.js"></script>
+    <script>
+        // Display current configuration
+        function displayConfig() {
+            const configDiv = document.getElementById('configStatus');
+            const cloudNameDisplay = document.getElementById('cloudNameDisplay');
+            
+            if (typeof CLOUDINARY_CONFIG !== 'undefined') {
+                cloudNameDisplay.textContent = CLOUDINARY_CONFIG.CLOUD_NAME || 'Not set';
+                
+                configDiv.innerHTML = `
+                    <div class="status info">
+                        <strong>Cloud Name:</strong> ${CLOUDINARY_CONFIG.CLOUD_NAME || 'Not set'}
+                    </div>
+                    <div class="status info">
+                        <strong>API Key:</strong> ${CLOUDINARY_CONFIG.API_KEY ? '***' + CLOUDINARY_CONFIG.API_KEY.slice(-4) : 'Not set'}
+                    </div>
+                    <div class="status info">
+                        <strong>Upload Preset:</strong> sri_lanka_unsigned (default)
+                    </div>
+                `;
+            } else {
+                configDiv.innerHTML = '<div class="status error">Configuration not found. Please check js/config.js</div>';
+            }
+        }
+        
+        // Test connection to Cloudinary
+        async function testConnection() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = '<div class="status info">Testing connection...</div>';
+            
+            try {
+                const cloudName = CLOUDINARY_CONFIG?.CLOUD_NAME || 'dmpfjul1j';
+                const url = `https://res.cloudinary.com/${cloudName}/image/upload/v1/sample.jpg`;
+                
+                const response = await fetch(url, { method: 'HEAD' });
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = '<div class="status success">✅ Cloud name is valid and accessible</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">❌ Cloud name might be invalid</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Connection failed: ${error.message}</div>`;
+            }
+        }
+        
+        // Test upload functionality
+        async function testUpload() {
+            const fileInput = document.getElementById('testFile');
+            const statusDiv = document.getElementById('uploadStatus');
+            
+            if (!fileInput.files[0]) {
+                statusDiv.innerHTML = '<div class="status warning">Please select a file first</div>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            statusDiv.innerHTML = '<div class="status info">Uploading test image...</div>';
+            
+            try {
+                const cloudName = CLOUDINARY_CONFIG?.CLOUD_NAME || 'dmpfjul1j';
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', 'sri_lanka_unsigned');
+                
+                const response = await fetch(
+                    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    statusDiv.innerHTML = `
+                        <div class="status success">
+                            ✅ Upload successful!
+                            <div class="code">URL: ${result.secure_url}</div>
+                        </div>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    let errorMessage = 'Upload failed';
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.error?.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = errorText;
+                    }
+                    
+                    statusDiv.innerHTML = `
+                        <div class="status error">
+                            ❌ Upload failed: ${errorMessage}
+                            ${errorMessage.includes('preset') ? 
+                                '<div class="warning" style="margin-top: 10px;">⚠️ The upload preset "sri_lanka_unsigned" might not exist or is not unsigned. Please create it in your Cloudinary settings.</div>' : 
+                                ''}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Upload error: ${error.message}</div>`;
+            }
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            displayConfig();
+        });
+    </script>
+</body>
+</html> 
