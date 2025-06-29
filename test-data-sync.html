@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Sync Test - Sri Lanka Stay & Explore</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .data-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        pre {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔄 Data Sync Test Page</h1>
+    
+    <div class="sync-indicator" id="syncIndicator">
+        Syncing...
+    </div>
+    
+    <div class="container">
+        <h2>📊 Data Sync Status</h2>
+        <div id="syncStatus" class="status info">
+            Checking data synchronization service...
+        </div>
+        
+        <div class="data-section">
+            <h3>🖼️ Pictures Sync</h3>
+            <p>Admin Pictures: <span id="adminPictureCount">0</span></p>
+            <p>Site Pictures: <span id="sitePictureCount">0</span></p>
+            <p>Sync Status: <span id="pictureSyncStatus">Checking...</span></p>
+            <button onclick="testPictureSync()">Test Picture Sync</button>
+            <button onclick="addTestPicture()">Add Test Picture</button>
+        </div>
+        
+        <div class="data-section">
+            <h3>🏨 Hotels Sync</h3>
+            <p>Total Hotels: <span id="hotelCount">0</span></p>
+            <p>Active Hotels: <span id="activeHotelCount">0</span></p>
+            <button onclick="testHotelSync()">Test Hotel Sync</button>
+            <button onclick="addTestHotel()">Add Test Hotel</button>
+        </div>
+        
+        <div class="data-section">
+            <h3>📋 Data Overview</h3>
+            <button onclick="showAllData()">Show All Data</button>
+            <button onclick="forceSync()">Force Sync All</button>
+            <button onclick="clearTestData()">Clear Test Data</button>
+            <div id="dataDisplay"></div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>🧪 Test Instructions</h2>
+        <ol>
+            <li>Open this page in one tab</li>
+            <li>Open the admin dashboard in another tab</li>
+            <li>Make changes in the admin dashboard (add pictures, hotels, etc.)</li>
+            <li>Watch this page update automatically!</li>
+            <li>Or click "Force Sync All" to manually trigger synchronization</li>
+        </ol>
+        
+        <p><strong>Note:</strong> The data sync service runs automatically every 30 seconds and also responds to storage events for real-time updates across tabs.</p>
+    </div>
+    
+    <script src="js/data-sync-service.js"></script>
+    <script>
+        // Check if data sync service is loaded
+        function checkSyncService() {
+            const statusEl = document.getElementById('syncStatus');
+            if (typeof DataSyncService !== 'undefined') {
+                statusEl.className = 'status success';
+                statusEl.textContent = '✅ Data Sync Service is loaded and running!';
+                updateCounts();
+            } else {
+                statusEl.className = 'status warning';
+                statusEl.textContent = '⚠️ Data Sync Service not found. Please check if the script is loaded.';
+            }
+        }
+        
+        // Update counts
+        function updateCounts() {
+            // Pictures
+            const adminPictures = JSON.parse(localStorage.getItem('adminPicturesMetadata') || '[]');
+            const sitePictures = JSON.parse(localStorage.getItem('sitePictures') || '[]');
+            document.getElementById('adminPictureCount').textContent = adminPictures.length;
+            document.getElementById('sitePictureCount').textContent = sitePictures.length;
+            
+            // Check if synced
+            const pictureSyncStatus = adminPictures.length === sitePictures.length ? 
+                '✅ Synced' : '⚠️ Not synced';
+            document.getElementById('pictureSyncStatus').textContent = pictureSyncStatus;
+            
+            // Hotels
+            const hotels = JSON.parse(localStorage.getItem('siteHotels') || '[]');
+            const activeHotels = hotels.filter(h => h.isActive !== false);
+            document.getElementById('hotelCount').textContent = hotels.length;
+            document.getElementById('activeHotelCount').textContent = activeHotels.length;
+        }
+        
+        // Test picture sync
+        function testPictureSync() {
+            console.log('Testing picture sync...');
+            showSyncIndicator();
+            
+            // Add a test picture to admin
+            const adminPictures = JSON.parse(localStorage.getItem('adminPicturesMetadata') || '[]');
+            const testPicture = {
+                id: 'test_pic_' + Date.now(),
+                name: 'Test Picture ' + new Date().toLocaleTimeString(),
+                category: 'scenery',
+                description: 'Added from sync test page',
+                imageUrl: './images/placeholder.jpg',
+                uploadDate: new Date().toISOString(),
+                uploadedBy: 'test',
+                isActive: true
+            };
+            adminPictures.push(testPicture);
+            localStorage.setItem('adminPicturesMetadata', JSON.stringify(adminPictures));
+            
+            // Wait for sync
+            setTimeout(() => {
+                updateCounts();
+                hideSyncIndicator();
+                alert('Picture added to admin storage. Check if it synced to site pictures!');
+            }, 1000);
+        }
+        
+        // Add test picture
+        function addTestPicture() {
+            const name = prompt('Enter picture name:', 'Beautiful Sri Lanka');
+            if (name) {
+                const pictures = JSON.parse(localStorage.getItem('sitePictures') || '[]');
+                pictures.push({
+                    id: 'pic_' + Date.now(),
+                    name: name,
+                    category: 'scenery',
+                    imageUrl: './images/placeholder.jpg',
+                    uploadDate: new Date().toISOString(),
+                    isActive: true
+                });
+                localStorage.setItem('sitePictures', JSON.stringify(pictures));
+                updateCounts();
+            }
+        }
+        
+        // Test hotel sync
+        function testHotelSync() {
+            console.log('Testing hotel sync...');
+            showSyncIndicator();
+            
+            // Trigger hotel sync
+            if (DataSyncService) {
+                DataSyncService.syncHotels();
+                setTimeout(() => {
+                    updateCounts();
+                    hideSyncIndicator();
+                    alert('Hotel sync completed!');
+                }, 1000);
+            }
+        }
+        
+        // Add test hotel
+        function addTestHotel() {
+            const name = prompt('Enter hotel name:', 'Test Resort Sri Lanka');
+            if (name) {
+                const hotels = JSON.parse(localStorage.getItem('siteHotels') || '[]');
+                hotels.push({
+                    id: 'hotel_' + Date.now(),
+                    name: name,
+                    location: 'Colombo',
+                    description: 'Test hotel added from sync page',
+                    rating: 4.5,
+                    pricePerNight: 100,
+                    image: './images/placeholder.jpg',
+                    amenities: ['wifi', 'pool'],
+                    isActive: true
+                });
+                localStorage.setItem('siteHotels', JSON.stringify(hotels));
+                updateCounts();
+            }
+        }
+        
+        // Show all data
+        function showAllData() {
+            const display = document.getElementById('dataDisplay');
+            const data = {
+                pictures: {
+                    admin: JSON.parse(localStorage.getItem('adminPicturesMetadata') || '[]'),
+                    site: JSON.parse(localStorage.getItem('sitePictures') || '[]')
+                },
+                hotels: JSON.parse(localStorage.getItem('siteHotels') || '[]'),
+                rooms: JSON.parse(localStorage.getItem('siteRooms') || '[]'),
+                bookings: JSON.parse(localStorage.getItem('bookings') || '[]')
+            };
+            
+            display.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+        
+        // Force sync
+        function forceSync() {
+            if (DataSyncService) {
+                showSyncIndicator();
+                DataSyncService.forceSync();
+                setTimeout(() => {
+                    updateCounts();
+                    hideSyncIndicator();
+                }, 2000);
+            }
+        }
+        
+        // Clear test data
+        function clearTestData() {
+            if (confirm('This will remove all test data. Are you sure?')) {
+                // Remove test pictures
+                let pictures = JSON.parse(localStorage.getItem('sitePictures') || '[]');
+                pictures = pictures.filter(p => !p.id.startsWith('test_') && !p.name.includes('Test'));
+                localStorage.setItem('sitePictures', JSON.stringify(pictures));
+                
+                let adminPictures = JSON.parse(localStorage.getItem('adminPicturesMetadata') || '[]');
+                adminPictures = adminPictures.filter(p => !p.id.startsWith('test_') && !p.name.includes('Test'));
+                localStorage.setItem('adminPicturesMetadata', JSON.stringify(adminPictures));
+                
+                // Remove test hotels
+                let hotels = JSON.parse(localStorage.getItem('siteHotels') || '[]');
+                hotels = hotels.filter(h => !h.name.includes('Test'));
+                localStorage.setItem('siteHotels', JSON.stringify(hotels));
+                
+                updateCounts();
+                alert('Test data cleared!');
+            }
+        }
+        
+        // Show/hide sync indicator
+        function showSyncIndicator() {
+            document.getElementById('syncIndicator').style.display = 'block';
+        }
+        
+        function hideSyncIndicator() {
+            document.getElementById('syncIndicator').style.display = 'none';
+        }
+        
+        // Listen for storage changes
+        window.addEventListener('storage', (e) => {
+            console.log('Storage changed:', e.key);
+            updateCounts();
+        });
+        
+        // Listen for sync events
+        window.addEventListener('galleryUpdate', () => {
+            console.log('Gallery update event received');
+            updateCounts();
+        });
+        
+        window.addEventListener('hotelsUpdate', () => {
+            console.log('Hotels update event received');
+            updateCounts();
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(checkSyncService, 1000);
+            setInterval(updateCounts, 5000); // Update counts every 5 seconds
+        });
+    </script>
+</body>
+</html> 
