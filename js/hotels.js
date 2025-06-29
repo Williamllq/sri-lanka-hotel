@@ -5,6 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeHotels();
+    setupDataListeners();
 });
 
 // Global variables
@@ -29,6 +30,33 @@ function initializeHotels() {
 }
 
 /**
+ * Setup data listeners for real-time sync
+ */
+function setupDataListeners() {
+    // 监听酒店更新事件（来自数据同步服务）
+    window.addEventListener('hotelsUpdate', (event) => {
+        console.log('Hotels update event received');
+        if (event.detail && event.detail.hotels) {
+            // 更新酒店列表
+            allHotels = event.detail.hotels;
+            filteredHotels = [...allHotels];
+            
+            // 重新应用当前的过滤和排序
+            filterHotels();
+        }
+    });
+    
+    // 监听存储变化（跨标签页）
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'siteHotels') {
+            console.log('Hotels storage updated, reloading...');
+            loadHotels();
+            displayHotels();
+        }
+    });
+}
+
+/**
  * Load hotels from localStorage or use default data
  */
 function loadHotels() {
@@ -36,6 +64,8 @@ function loadHotels() {
     
     if (storedHotels) {
         allHotels = JSON.parse(storedHotels);
+        // 过滤只显示激活的酒店
+        allHotels = allHotels.filter(hotel => hotel.isActive !== false);
     } else {
         // Default hotel data
         allHotels = [
@@ -48,7 +78,8 @@ function loadHotels() {
                 pricePerNight: 150,
                 image: 'images/hotel/cmbmc-room-3686-hor-clsc.webp',
                 amenities: ['wifi', 'pool', 'spa', 'restaurant', 'parking'],
-                featured: true
+                featured: true,
+                isActive: true
             },
             {
                 id: 'h002',
@@ -59,7 +90,8 @@ function loadHotels() {
                 pricePerNight: 280,
                 image: 'images/hotel/cmbmc-superior-0033-hor-clsc.webp',
                 amenities: ['wifi', 'pool', 'spa', 'restaurant', 'parking', 'beach'],
-                featured: true
+                featured: true,
+                isActive: true
             },
             {
                 id: 'h003',
@@ -70,7 +102,8 @@ function loadHotels() {
                 pricePerNight: 85,
                 image: 'images/hotel/cmbmc-balcony-0037-hor-clsc.avif',
                 amenities: ['wifi', 'restaurant', 'parking'],
-                featured: false
+                featured: false,
+                isActive: true
             },
             {
                 id: 'h004',
@@ -81,7 +114,8 @@ function loadHotels() {
                 pricePerNight: 120,
                 image: 'images/hotel/cmbmc-room-3686-hor-clsc.webp',
                 amenities: ['wifi', 'pool', 'spa', 'restaurant', 'parking', 'beach'],
-                featured: false
+                featured: false,
+                isActive: true
             },
             {
                 id: 'h005',
@@ -92,7 +126,8 @@ function loadHotels() {
                 pricePerNight: 200,
                 image: 'images/hotel/cmbmc-superior-0033-hor-clsc.webp',
                 amenities: ['wifi', 'pool', 'restaurant', 'parking', 'safari'],
-                featured: true
+                featured: true,
+                isActive: true
             },
             {
                 id: 'h006',
@@ -103,7 +138,8 @@ function loadHotels() {
                 pricePerNight: 450,
                 image: 'images/hotel/cmbmc-balcony-0037-hor-clsc.avif',
                 amenities: ['wifi', 'pool', 'spa', 'restaurant', 'parking', 'beach'],
-                featured: true
+                featured: true,
+                isActive: true
             },
             {
                 id: 'h007',
@@ -114,7 +150,8 @@ function loadHotels() {
                 pricePerNight: 350,
                 image: 'images/hotel/cmbmc-room-3686-hor-clsc.webp',
                 amenities: ['wifi', 'spa', 'restaurant', 'parking', 'tea-plantation'],
-                featured: false
+                featured: false,
+                isActive: true
             },
             {
                 id: 'h008',
@@ -125,7 +162,8 @@ function loadHotels() {
                 pricePerNight: 320,
                 image: 'images/hotel/cmbmc-superior-0033-hor-clsc.webp',
                 amenities: ['wifi', 'pool', 'spa', 'restaurant', 'parking', 'beach'],
-                featured: false
+                featured: false,
+                isActive: true
             }
         ];
         
@@ -133,47 +171,7 @@ function loadHotels() {
         localStorage.setItem('siteHotels', JSON.stringify(allHotels));
     }
     
-    // Sync with admin hotels
-    syncWithAdminHotels();
-    
     filteredHotels = [...allHotels];
-}
-
-/**
- * Sync with hotels added from admin panel
- */
-function syncWithAdminHotels() {
-    const adminHotels = localStorage.getItem('adminHotels');
-    if (adminHotels) {
-        try {
-            const parsedAdminHotels = JSON.parse(adminHotels);
-            
-            // Add admin hotels that aren't already in our list
-            parsedAdminHotels.forEach(adminHotel => {
-                const exists = allHotels.some(h => h.id === adminHotel.id);
-                if (!exists) {
-                    // Format admin hotel data to match our structure
-                    const formattedHotel = {
-                        id: adminHotel.id,
-                        name: adminHotel.name,
-                        location: adminHotel.location,
-                        description: adminHotel.description,
-                        rating: parseFloat(adminHotel.rating) || 4.0,
-                        pricePerNight: parseFloat(adminHotel.price) || 100,
-                        image: adminHotel.image || 'images/hotel/cmbmc-room-3686-hor-clsc.webp',
-                        amenities: adminHotel.amenities ? adminHotel.amenities.split(',').map(a => a.trim()) : [],
-                        featured: false
-                    };
-                    allHotels.push(formattedHotel);
-                }
-            });
-            
-            // Save updated list
-            localStorage.setItem('siteHotels', JSON.stringify(allHotels));
-        } catch (error) {
-            console.error('Error syncing admin hotels:', error);
-        }
-    }
 }
 
 /**
