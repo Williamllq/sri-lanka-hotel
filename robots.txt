@@ -1,0 +1,30 @@
+# Robots.txt for Sri Lanka Stay & Explore
+
+User-agent: *
+Allow: /
+
+# Directories
+Allow: /css/
+Allow: /js/
+Allow: /images/
+Allow: /document/
+
+# Files
+Allow: /index.html
+Allow: /hotels.html
+Allow: /transport.html
+Allow: /user-manual.html
+
+# Admin sections (allow indexing but discourage crawling)
+Crawl-delay: 10
+Disallow: /admin-dashboard.html
+Disallow: /admin-login.html
+Disallow: /admin-manual.html
+
+# Test pages
+Disallow: /test-*.html
+Disallow: /download-*.html
+Disallow: /initialize-*.html
+
+# Sitemap
+Sitemap: https://sri-lanka-stay-explore.netlify.app/sitemap.xml 

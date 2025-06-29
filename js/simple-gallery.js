@@ -74,12 +74,12 @@
         if (allPictures.length === 0) {
             allPictures = getDefaultPictures();
         }
-    }
-    
-    /**
-     * 获取默认图片
-     */
-    function getDefaultPictures() {
+  }
+  
+  /**
+   * 获取默认图片
+   */
+  function getDefaultPictures() {
         return [
             {
                 id: 'default1',

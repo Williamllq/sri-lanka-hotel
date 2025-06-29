@@ -1,0 +1,298 @@
+/**
+ * 视觉增强样式
+ * 提升网站的视觉吸引力和专业度
+ */
+
+/* 1. 改进按钮样式 */
+.btn, button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn:before, button:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover:before, button:hover:before {
+    width: 300px;
+    height: 300px;
+}
+
+/* 2. 卡片悬停效果 */
+.transport-card, .feature-card, .room-card, .hotel-card, .testimonial-card {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.transport-card:hover, .feature-card:hover, .room-card:hover, .hotel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* 3. 输入框聚焦效果 */
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent-color, #ff6b6b);
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+/* 4. 导航栏优化 */
+.main-nav {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav-links a {
+    position: relative;
+}
+
+.nav-links a:after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--accent-color, #ff6b6b);
+    transform: translateX(-50%);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover:after {
+    width: 80%;
+}
+
+/* 5. 标题装饰 */
+.section-title {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 2rem;
+}
+
+.section-title:after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(to right, #ff6b6b, #feca57);
+    border-radius: 2px;
+}
+
+/* 6. 图片覆盖效果 */
+.gallery-item, .hotel-image, .room-image {
+    position: relative;
+    overflow: hidden;
+}
+
+.gallery-item img, .hotel-image img, .room-image img {
+    transition: transform 0.5s ease;
+}
+
+.gallery-item:hover img, .hotel-image:hover img, .room-image:hover img {
+    transform: scale(1.1);
+}
+
+/* 7. 加载骨架屏 */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* 8. 徽章样式 */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 9. 引用框样式 */
+blockquote, .testimonial-text {
+    position: relative;
+    padding-left: 2rem;
+    border-left: 3px solid var(--accent-color, #ff6b6b);
+    font-style: italic;
+}
+
+/* 10. 图标动画 */
+.fas, .fab, .far {
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover .fas,
+.service-features:hover .fas {
+    transform: scale(1.2) rotate(5deg);
+}
+
+/* 11. 表单美化 */
+.form-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+/* 12. 工具提示 */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:hover:after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    background: #333;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    z-index: 1000;
+    opacity: 0;
+    animation: tooltipFade 0.3s ease forwards;
+}
+
+@keyframes tooltipFade {
+    to { opacity: 1; transform: translateX(-50%) translateY(-5px); }
+}
+
+/* 13. 进度条 */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #ff6b6b, #feca57);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+/* 14. 价格标签美化 */
+.price, .hotel-price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ff6b6b;
+    position: relative;
+}
+
+.price:before {
+    content: '$';
+    font-size: 1rem;
+    vertical-align: super;
+}
+
+/* 15. 星级评分美化 */
+.rating {
+    color: #feca57;
+}
+
+.rating .fas {
+    margin-right: 2px;
+    font-size: 0.9rem;
+}
+
+/* 16. 页面过渡效果 */
+main {
+    animation: pageLoad 0.5s ease;
+}
+
+@keyframes pageLoad {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 17. 响应式图片容器 */
+.responsive-img-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 比例 */
+    overflow: hidden;
+}
+
+.responsive-img-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 18. 文字渐变效果 */
+.gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* 19. 阴影优化 */
+.card, .transport-card, .hotel-card, .room-card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07),
+                0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* 20. 移动端触摸反馈 */
+@media (max-width: 768px) {
+    .btn, button, .card {
+        -webkit-tap-highlight-color: rgba(255, 107, 107, 0.1);
+    }
+    
+    .btn:active, button:active {
+        transform: scale(0.98);
+    }
+} 
