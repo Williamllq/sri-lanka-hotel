@@ -6,17 +6,17 @@
 class CloudStorageManager {
     constructor() {
         // Cloudinary configuration
-        this.cloudName = 'dmpfjul1j'; // Your Cloudinary cloud name
-        this.uploadPreset = 'sri_lanka_unsigned'; // You'll need to create this in Cloudinary dashboard
-        this.cloudinaryUrl = `https://api.cloudinary.com/v1_1/${this.cloudName}/image/upload`;
+        this.config = {
+            cloudName: 'dmpfjul1j',
+            apiKey: '476146554929449', 
+            uploadPreset: 'ml_default', // 临时使用默认预设，如果已创建 'sri_lanka_unsigned' 预设，请改为该值
+            // uploadPreset: 'sri_lanka_unsigned', // 创建专属预设后启用此行
+            uploadUrl: 'https://api.cloudinary.com/v1_1/dmpfjul1j/image/upload'
+        };
         
         // Use real Cloudinary service
         this.useSimulation = false; // Now using real Cloudinary!
         this.simulatedStorage = new Map(); // Keep for fallback
-        
-        // Note: API Secret should NEVER be exposed in client-side code
-        // It should only be used in server-side operations
-        this.apiKey = '476146554929449'; // Public API key is safe for client-side
     }
 
     /**
@@ -113,7 +113,7 @@ class CloudStorageManager {
         }
 
         // Add upload parameters
-        formData.append('upload_preset', this.uploadPreset);
+        formData.append('upload_preset', this.config.uploadPreset);
         
         if (options.folder) {
             formData.append('folder', options.folder);
@@ -128,7 +128,7 @@ class CloudStorageManager {
         formData.append('eager_async', 'true');
 
         try {
-            const response = await fetch(this.cloudinaryUrl, {
+            const response = await fetch(this.config.uploadUrl, {
                 method: 'POST',
                 body: formData
             });
@@ -176,11 +176,11 @@ class CloudStorageManager {
         } else {
             // Construct Cloudinary URL
             return {
-                secure_url: `https://res.cloudinary.com/${this.cloudName}/image/upload/${publicId}`,
+                secure_url: `https://res.cloudinary.com/${this.config.cloudName}/image/upload/${publicId}`,
                 urls: {
-                    thumbnail: `https://res.cloudinary.com/${this.cloudName}/image/upload/c_fill,h_150,w_150/${publicId}`,
-                    medium: `https://res.cloudinary.com/${this.cloudName}/image/upload/c_fill,h_400,w_600/${publicId}`,
-                    large: `https://res.cloudinary.com/${this.cloudName}/image/upload/c_fill,h_800,w_1200/${publicId}`
+                    thumbnail: `https://res.cloudinary.com/${this.config.cloudName}/image/upload/c_fill,h_150,w_150/${publicId}`,
+                    medium: `https://res.cloudinary.com/${this.config.cloudName}/image/upload/c_fill,h_400,w_600/${publicId}`,
+                    large: `https://res.cloudinary.com/${this.config.cloudName}/image/upload/c_fill,h_800,w_1200/${publicId}`
                 }
             };
         }
@@ -231,7 +231,7 @@ class CloudStorageManager {
     getOptimizedUrl(publicId, transformations = {}) {
         const baseUrl = this.useSimulation 
             ? this.simulatedStorage.get(publicId)?.secure_url 
-            : `https://res.cloudinary.com/${this.cloudName}/image/upload`;
+            : `https://res.cloudinary.com/${this.config.cloudName}/image/upload`;
 
         if (!baseUrl) return null;
 
