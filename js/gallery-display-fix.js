@@ -1,149 +1,319 @@
 /**
- * Gallery Display Fix
- * 修复前端网站不能正确显示管理员上传图片的问题
+ * Gallery Display Fix - 修复画廊显示问题
+ * 确保管理员上传的图片正确显示在前端画廊中
  */
 
 (function() {
     'use strict';
     
-    console.log('Gallery Display Fix loaded');
+    console.log('Gallery Display Fix loading...');
     
-    // 页面加载后初始化
-    document.addEventListener('DOMContentLoaded', function() {
-        // 立即执行一次gallery初始化
-        setTimeout(initializeGallery, 500);
-        
-        // 监听图片同步事件
-        document.addEventListener('picturesSynced', function(e) {
-            console.log('Pictures synced event received, refreshing gallery...');
-            initializeGallery();
-        });
-        
-        // 监听画廊刷新事件
-        document.addEventListener('galleryRefresh', function() {
-            console.log('Gallery refresh event received');
-            initializeGallery();
-        });
-    });
+    // 防止重复执行
+    if (window.galleryDisplayFixLoaded) {
+        console.log('Gallery Display Fix already loaded, skipping...');
+        return;
+    }
+    window.galleryDisplayFixLoaded = true;
     
-    /**
-     * 初始化画廊，加载管理员上传的图片
-     */
-    function initializeGallery() {
-        console.log('Initializing gallery with admin pictures...');
+    const GalleryDisplayFix = {
         
-        const galleryGrid = document.querySelector('.gallery-grid');
-        if (!galleryGrid) {
-            console.log('Gallery grid not found, skipping initialization');
-            return;
-        }
-        
-        // 获取图片数据
-        const pictures = getSitePictures();
-        
-        console.log(`Found ${pictures.length} pictures to display`);
-        
-        // 清空现有内容
-        galleryGrid.innerHTML = '';
-        
-        if (pictures.length === 0) {
-            galleryGrid.innerHTML = '<div class="no-images-message">No images found. Please upload some images in the admin panel.</div>';
-            return;
-        }
-        
-        // 创建画廊项
-        pictures.forEach(function(picture) {
-            // 创建图片项元素
-            const galleryItem = document.createElement('div');
-            galleryItem.className = 'gallery-item';
-            galleryItem.setAttribute('data-category', picture.category);
+        // 初始化
+        init() {
+            console.log('Initializing gallery display fixes...');
             
-            // 创建图片项内容
-            galleryItem.innerHTML = `
-                <img src="${picture.url}" alt="${picture.name || 'Gallery Image'}">
-                <div class="gallery-item-info">
-                    <h3 class="gallery-item-title">${picture.name || 'Sri Lanka Image'}</h3>
-                    <p class="gallery-item-desc">${picture.description || 'Discover the beauty of Sri Lanka'}</p>
+            // 立即更新画廊显示
+            this.updateGalleryDisplay();
+            
+            // 监听数据变化
+            this.setupDataChangeListeners();
+            
+            // 设置定期检查（每10秒检查一次是否需要更新）
+            this.setupPeriodicCheck();
+            
+            console.log('Gallery display fixes initialized');
+        },
+        
+        // 更新画廊显示
+        updateGalleryDisplay() {
+            try {
+                // 获取画廊数据
+                const galleryImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
+                const adminPictures = JSON.parse(localStorage.getItem('adminPictures') || '[]');
+                
+                console.log(`Found ${galleryImages.length} gallery images and ${adminPictures.length} admin pictures`);
+                
+                // 如果画廊为空但管理员有图片，进行同步
+                if (galleryImages.length === 0 && adminPictures.length > 0) {
+                    this.syncAdminToGallery();
+                    return;
+                }
+                
+                // 如果有画廊数据，更新DOM
+                if (galleryImages.length > 0) {
+                    this.updateDOM(galleryImages);
+                } else {
+                    console.log('No gallery images found, using fallback images');
+                    this.createFallbackImages();
+                }
+                
+            } catch (error) {
+                console.error('Error updating gallery display:', error);
+                this.createFallbackImages();
+            }
+        },
+        
+        // 同步管理员图片到画廊
+        syncAdminToGallery() {
+            try {
+                const adminPictures = JSON.parse(localStorage.getItem('adminPictures') || '[]');
+                const galleryImages = adminPictures.map(pic => ({
+                    id: pic.id,
+                    url: pic.imageUrl || pic.url,
+                    title: pic.title || 'Beautiful Sri Lanka',
+                    description: pic.description || '',
+                    category: pic.category || 'scenery',
+                    uploadDate: pic.uploadDate
+                }));
+                
+                localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
+                this.updateDOM(galleryImages);
+                
+                console.log(`Synced ${galleryImages.length} images from admin to gallery`);
+                
+            } catch (error) {
+                console.error('Error syncing admin to gallery:', error);
+            }
+        },
+        
+        // 更新DOM中的图片
+        updateDOM(images) {
+            // 方法1：更新explore部分的画廊项目
+            this.updateExploreSection(images);
+            
+            // 方法2：更新任何使用gallery类的容器
+            this.updateGalleryContainers(images);
+            
+            // 方法3：触发现有的画廊脚本更新
+            this.triggerGalleryUpdate(images);
+        },
+        
+        // 更新explore部分
+        updateExploreSection(images) {
+            const exploreSection = document.querySelector('#explore');
+            if (!exploreSection) return;
+            
+            const galleryItems = exploreSection.querySelectorAll('.gallery-item, .explore-item');
+            
+            console.log(`Updating ${galleryItems.length} gallery items with ${images.length} images`);
+            
+            galleryItems.forEach((item, index) => {
+                if (index < images.length) {
+                    const image = images[index];
+                    this.updateGalleryItem(item, image);
+                }
+            });
+        },
+        
+        // 更新单个画廊项目
+        updateGalleryItem(item, imageData) {
+            try {
+                // 更新图片src
+                const img = item.querySelector('img');
+                if (img && imageData.url && imageData.url !== 'images/placeholder.jpg') {
+                    const oldSrc = img.src;
+                    img.src = imageData.url;
+                    img.alt = imageData.title || imageData.alt || 'Sri Lanka';
+                    
+                    console.log(`Updated image: ${oldSrc} -> ${imageData.url}`);
+                    
+                    // 设置错误处理
+                    img.onerror = () => {
+                        console.warn(`Failed to load image: ${imageData.url}`);
+                        img.src = 'images/placeholder.jpg';
+                    };
+                }
+                
+                // 更新标题
+                const title = item.querySelector('h3, .gallery-title, .item-title');
+                if (title && imageData.title) {
+                    title.textContent = imageData.title;
+                }
+                
+                // 更新描述
+                const description = item.querySelector('p, .gallery-description, .item-description');
+                if (description && imageData.description) {
+                    description.textContent = imageData.description;
+                }
+                
+                // 更新类别
+                const category = item.querySelector('.category, .gallery-category');
+                if (category && imageData.category) {
+                    category.textContent = imageData.category;
+                    category.className = `category ${imageData.category}`;
+                }
+                
+            } catch (error) {
+                console.error('Error updating gallery item:', error);
+            }
+        },
+        
+        // 更新画廊容器
+        updateGalleryContainers(images) {
+            const galleryContainers = document.querySelectorAll('.gallery-grid, .gallery-container, .image-grid');
+            
+            galleryContainers.forEach(container => {
+                this.updateGalleryContainer(container, images);
+            });
+        },
+        
+        // 更新画廊容器
+        updateGalleryContainer(container, images) {
+            try {
+                // 如果容器为空，创建画廊项目
+                if (container.children.length === 0) {
+                    images.forEach(image => {
+                        const item = this.createGalleryItem(image);
+                        container.appendChild(item);
+                    });
+                } else {
+                    // 更新现有项目
+                    const items = container.querySelectorAll('.gallery-item, .image-item');
+                    items.forEach((item, index) => {
+                        if (index < images.length) {
+                            this.updateGalleryItem(item, images[index]);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error updating gallery container:', error);
+            }
+        },
+        
+        // 创建画廊项目
+        createGalleryItem(imageData) {
+            const item = document.createElement('div');
+            item.className = 'gallery-item image-item';
+            item.innerHTML = `
+                <div class="image-container">
+                    <img src="${imageData.url}" alt="${imageData.title}" loading="lazy"
+                         onerror="this.src='images/placeholder.jpg'">
+                </div>
+                <div class="item-content">
+                    <h3 class="item-title">${imageData.title}</h3>
+                    <p class="item-description">${imageData.description}</p>
+                    <span class="category ${imageData.category}">${imageData.category}</span>
                 </div>
             `;
+            return item;
+        },
+        
+        // 触发画廊更新事件
+        triggerGalleryUpdate(images) {
+            // 触发自定义事件
+            window.dispatchEvent(new CustomEvent('galleryUpdate', {
+                detail: { images: images }
+            }));
             
-            // 添加到画廊
-            galleryGrid.appendChild(galleryItem);
-        });
-        
-        // 添加过滤器功能
-        setupCategoryFilters();
-        
-        // 触发画廊更新完成事件
-        const event = new CustomEvent('galleryInitialized', {
-            detail: { count: pictures.length }
-        });
-        document.dispatchEvent(event);
-    }
-    
-    /**
-     * 设置类别过滤功能
-     */
-    function setupCategoryFilters() {
-        const filterButtons = document.querySelectorAll('.gallery-filter-btn');
-        if (!filterButtons.length) return;
-        
-        filterButtons.forEach(function(button) {
-            // 移除旧的事件监听器
-            const newButton = button.cloneNode(true);
-            button.parentNode.replaceChild(newButton, button);
+            // 触发存储事件
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'galleryImages',
+                newValue: JSON.stringify(images),
+                url: window.location.href
+            }));
             
-            // 添加新的事件监听器
-            newButton.addEventListener('click', function() {
-                // 切换活动状态
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                newButton.classList.add('active');
-                
-                // 获取类别值
-                const category = newButton.getAttribute('data-filter');
-                
-                // 过滤画廊项
-                const galleryItems = document.querySelectorAll('.gallery-item');
-                galleryItems.forEach(function(item) {
-                    if (category === 'all' || item.getAttribute('data-category') === category) {
-                        item.style.display = '';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-                
-                console.log(`Filtered gallery by category: ${category}`);
+            // 如果存在画廊初始化函数，调用它
+            if (typeof window.initGallery === 'function') {
+                setTimeout(() => window.initGallery(), 100);
+            }
+            
+            if (typeof window.loadGalleryImages === 'function') {
+                setTimeout(() => window.loadGalleryImages(), 100);
+            }
+        },
+        
+        // 创建备用图片
+        createFallbackImages() {
+            const fallbackImages = [
+                {
+                    id: 'fallback_1',
+                    url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                    title: 'Pristine Beaches',
+                    description: 'Crystal clear waters and golden sandy beaches',
+                    category: 'beach'
+                },
+                {
+                    id: 'fallback_2',
+                    url: 'https://images.unsplash.com/photo-1588598198321-9735fd58f0e6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                    title: 'Ancient Temples',
+                    description: 'Sacred Buddhist temples with rich history',
+                    category: 'culture'
+                },
+                {
+                    id: 'fallback_3',
+                    url: 'https://images.unsplash.com/photo-1596895111956-bf1cf0599ce5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                    title: 'Wildlife Safari',
+                    description: 'Magnificent elephants in their natural habitat',
+                    category: 'wildlife'
+                },
+                {
+                    id: 'fallback_4',
+                    url: 'https://images.unsplash.com/photo-1566296440929-898ae2baae1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                    title: 'Tea Plantations',
+                    description: 'Lush green tea estates in the hill country',
+                    category: 'scenery'
+                }
+            ];
+            
+            localStorage.setItem('galleryImages', JSON.stringify(fallbackImages));
+            this.updateDOM(fallbackImages);
+            
+            console.log('Created fallback images');
+        },
+        
+        // 设置数据变化监听器
+        setupDataChangeListeners() {
+            // 监听localStorage变化
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'galleryImages' || e.key === 'adminPictures') {
+                    console.log('Gallery data changed, updating display...');
+                    setTimeout(() => this.updateGalleryDisplay(), 100);
+                }
             });
-        });
+            
+            // 监听自定义事件
+            window.addEventListener('galleryUpdate', (e) => {
+                console.log('Gallery update event received');
+                if (e.detail && e.detail.images) {
+                    this.updateDOM(e.detail.images);
+                }
+            });
+        },
         
-        // 默认选中第一个按钮
-        if (filterButtons[0]) {
-            filterButtons[0].click();
+        // 设置定期检查
+        setupPeriodicCheck() {
+            setInterval(() => {
+                // 检查是否有placeholder图片需要更新
+                const placeholderImages = document.querySelectorAll('img[src*="placeholder.jpg"]');
+                if (placeholderImages.length > 0) {
+                    console.log(`Found ${placeholderImages.length} placeholder images, updating gallery...`);
+                    this.updateGalleryDisplay();
+                }
+            }, 10000); // 每10秒检查一次
         }
-    }
-    
-    /**
-     * 获取前端图片数据
-     */
-    function getSitePictures() {
-        try {
-            // 尝试从localStorage获取图片
-            const data = localStorage.getItem('sitePictures');
-            if (!data) return [];
-            
-            const pictures = JSON.parse(data);
-            if (!Array.isArray(pictures)) return [];
-            
-            return pictures;
-        } catch (e) {
-            console.error('Error getting site pictures:', e);
-            return [];
-        }
-    }
-    
-    // 暴露公共函数
-    window.galleryDisplayFix = {
-        initializeGallery: initializeGallery,
-        getSitePictures: getSitePictures
     };
+    
+    // 暴露到全局
+    window.GalleryDisplayFix = GalleryDisplayFix;
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => GalleryDisplayFix.init(), 200);
+        });
+    } else {
+        setTimeout(() => GalleryDisplayFix.init(), 200);
+    }
+    
+    console.log('Gallery Display Fix loaded successfully');
+    
 })(); 
