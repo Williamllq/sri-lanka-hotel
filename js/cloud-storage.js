@@ -9,8 +9,7 @@ class CloudStorageManager {
         this.config = {
             cloudName: 'dmpfjul1j',
             apiKey: '476146554929449', 
-            uploadPreset: 'ml_default', // 临时使用默认预设，如果已创建 'sri_lanka_unsigned' 预设，请改为该值
-            // uploadPreset: 'sri_lanka_unsigned', // 创建专属预设后启用此行
+            uploadPreset: 'sri_lanka_unsigned', // 使用您创建的无签名预设
             uploadUrl: 'https://api.cloudinary.com/v1_1/dmpfjul1j/image/upload'
         };
         

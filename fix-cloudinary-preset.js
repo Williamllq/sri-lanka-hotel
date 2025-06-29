@@ -1,16 +1,16 @@
 /**
- * 临时修复 Cloudinary 上传预设问题
- * 使用 Cloudinary 的默认无签名预设 'ml_default'
+ * 修复 Cloudinary 上传预设配置
+ * 使用已创建的无签名预设 'sri_lanka_unsigned'
  */
 
-// 修改云存储配置使用默认预设
+// 修改云存储配置使用正确的预设
 if (window.cloudStorage && window.cloudStorage.config) {
-    console.log('修复 Cloudinary 上传预设...');
+    console.log('配置 Cloudinary 上传预设...');
     
-    // 使用 Cloudinary 的默认无签名预设
-    window.cloudStorage.config.uploadPreset = 'ml_default';
+    // 使用已创建的无签名预设
+    window.cloudStorage.config.uploadPreset = 'sri_lanka_unsigned';
     
-    console.log('已将上传预设更改为 ml_default');
+    console.log('已将上传预设设置为 sri_lanka_unsigned');
     console.log('当前配置:', window.cloudStorage.config);
 }
 
@@ -18,7 +18,7 @@ if (window.cloudStorage && window.cloudStorage.config) {
 const originalUploadImage = window.cloudStorage ? window.cloudStorage.uploadImage : null;
 if (originalUploadImage) {
     window.cloudStorage.uploadImage = async function(imageData, options = {}) {
-        // 确保使用 ml_default 预设
+        // 确保使用 sri_lanka_unsigned 预设
         const formData = new FormData();
         
         // 处理不同类型的图片数据
@@ -30,8 +30,8 @@ if (originalUploadImage) {
             formData.append('file', imageData, 'image.jpg');
         }
         
-        // 使用 ml_default 预设
-        formData.append('upload_preset', 'ml_default');
+        // 使用 sri_lanka_unsigned 预设
+        formData.append('upload_preset', 'sri_lanka_unsigned');
         
         // 添加其他选项
         if (options.folder) {
@@ -53,6 +53,7 @@ if (originalUploadImage) {
             const data = await response.json();
             
             if (response.ok && data.secure_url) {
+                console.log('图片上传成功:', data.secure_url);
                 return {
                     success: true,
                     data: {
@@ -86,7 +87,7 @@ if (originalUploadImage) {
         }
     };
     
-    console.log('云存储上传函数已修复');
+    console.log('云存储上传函数已配置为使用 sri_lanka_unsigned 预设');
 }
 
-console.log('Cloudinary 预设修复完成'); 
+console.log('Cloudinary 配置完成'); 
