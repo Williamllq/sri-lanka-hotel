@@ -1,0 +1,574 @@
+/**
+ * Modern Design Optimization for Sri Lanka Stay & Explore
+ * 现代化设计优化 - 提升用户体验和视觉效果
+ */
+
+/* ===== 1. 优化色彩方案 ===== */
+:root {
+    /* 主色调 - 更现代的色彩搭配 */
+    --primary-color: #0891b2;      /* 现代青色 */
+    --primary-dark: #0e7490;       /* 深青色 */
+    --primary-light: #22d3ee;      /* 浅青色 */
+    
+    --accent-color: #fbbf24;       /* 温暖黄色 */
+    --accent-hover: #f59e0b;       /* 悬停黄色 */
+    
+    --secondary-color: #ec4899;    /* 活力粉红 */
+    --success-color: #10b981;      /* 成功绿 */
+    --warning-color: #f59e0b;      /* 警告橙 */
+    --error-color: #ef4444;        /* 错误红 */
+    
+    /* 中性色 */
+    --text-primary: #1e293b;       /* 主文字 */
+    --text-secondary: #64748b;     /* 次要文字 */
+    --text-light: #ffffff;         /* 白色文字 */
+    
+    --bg-primary: #ffffff;         /* 主背景 */
+    --bg-secondary: #f8fafc;       /* 次要背景 */
+    --bg-tertiary: #f1f5f9;        /* 第三背景 */
+    
+    /* 边框和阴影 */
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    
+    /* 动画时长 */
+    --transition-fast: 150ms;
+    --transition-base: 300ms;
+    --transition-slow: 500ms;
+}
+
+/* ===== 2. 优化导航栏 ===== */
+.main-nav {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 5%;
+    transition: all var(--transition-base) ease;
+}
+
+.main-nav.scrolled {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: var(--shadow-md);
+    padding: 0.75rem 5%;
+}
+
+.nav-links a {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 1rem;
+    position: relative;
+    transition: color var(--transition-fast);
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transform: translateX(-50%);
+    transition: width var(--transition-base);
+}
+
+.nav-links a:hover {
+    color: var(--primary-color);
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+/* Logo 优化 */
+#site-logo {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: all var(--transition-base);
+}
+
+.main-nav.scrolled #site-logo {
+    height: 80px;
+}
+
+/* ===== 3. Hero Section 优化 ===== */
+.hero {
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.9), rgba(251, 191, 36, 0.9)),
+                url('../images/hero-bg.jpg') center/cover;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(251, 191, 36, 0.3) 0%, transparent 50%);
+    animation: heroGradient 20s ease infinite;
+}
+
+@keyframes heroGradient {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.1) rotate(180deg); }
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    animation: fadeInUp 1s ease;
+}
+
+.hero-content h2 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: -1px;
+}
+
+.hero-content p {
+    font-size: clamp(1.1rem, 2vw, 1.5rem);
+    font-weight: 300;
+    margin-bottom: 3rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Quick Search 优化 */
+.quick-search form {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 20px !important;
+}
+
+.quick-search input {
+    font-size: 16px !important;
+    color: var(--text-primary);
+}
+
+.quick-search button {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+    box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.quick-search button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(8, 145, 178, 0.4);
+}
+
+/* ===== 4. 按钮优化 ===== */
+.btn {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 1rem 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: var(--primary-color);
+    transition: width var(--transition-base);
+    z-index: -1;
+}
+
+.btn-secondary:hover {
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.btn-secondary:hover::before {
+    width: 100%;
+}
+
+/* ===== 5. 卡片设计优化 ===== */
+.room-card, .hotel-card, .transport-card {
+    background: var(--bg-primary);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all var(--transition-base);
+    border: 1px solid var(--border-color);
+    position: relative;
+}
+
+.room-card::before, .hotel-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--transition-base);
+}
+
+.room-card:hover::before, .hotel-card:hover::before {
+    transform: scaleX(1);
+}
+
+.room-card:hover, .hotel-card:hover, .transport-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* 图片容器优化 */
+.room-image, .hotel-image {
+    position: relative;
+    overflow: hidden;
+}
+
+.room-image::after, .hotel-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.6));
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.room-card:hover .room-image::after,
+.hotel-card:hover .hotel-image::after {
+    opacity: 1;
+}
+
+/* ===== 6. 表单设计优化 ===== */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    background: var(--bg-secondary);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+    transition: all var(--transition-fast);
+    width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.1);
+}
+
+/* 标签样式 */
+label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* ===== 7. 画廊优化 ===== */
+.gallery-item {
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+}
+
+.gallery-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.8), rgba(251, 191, 36, 0.8));
+    opacity: 0;
+    transition: opacity var(--transition-base);
+    z-index: 1;
+}
+
+.gallery-item:hover::before {
+    opacity: 1;
+}
+
+.gallery-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+    transform: translateY(100%);
+    transition: transform var(--transition-base);
+}
+
+.gallery-item:hover .gallery-info {
+    transform: translateY(0);
+}
+
+.gallery-info h3 {
+    color: white;
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.gallery-info p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+}
+
+/* ===== 8. 动画效果 ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.8s ease forwards;
+}
+
+.slide-in-right {
+    animation: slideInRight 0.8s ease forwards;
+}
+
+/* Stagger animation for lists */
+.stagger-animation > * {
+    opacity: 0;
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
+
+/* ===== 9. 加载状态 ===== */
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-tertiary) 50%, var(--bg-secondary) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ===== 10. 响应式优化 ===== */
+@media (max-width: 768px) {
+    :root {
+        font-size: 14px;
+    }
+    
+    .main-nav {
+        padding: 1rem 3%;
+    }
+    
+    .hero-content h2 {
+        font-size: 2rem;
+    }
+    
+    .section {
+        padding: 2rem 3%;
+    }
+    
+    .btn {
+        padding: 0.875rem 2rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* ===== 11. 深色模式支持 ===== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --border-color: #334155;
+    }
+    
+    .main-nav {
+        background: rgba(15, 23, 42, 0.8);
+    }
+    
+    .main-nav.scrolled {
+        background: rgba(15, 23, 42, 0.95);
+    }
+    
+    input, select, textarea {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+}
+
+/* ===== 12. 微交互 ===== */
+.clickable {
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+}
+
+.clickable:active {
+    transform: scale(0.98);
+}
+
+/* 悬浮提示 */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-5px);
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all var(--transition-base);
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+/* ===== 13. 性能优化 ===== */
+.lazy-load {
+    opacity: 0;
+    transition: opacity var(--transition-slow);
+}
+
+.lazy-load.loaded {
+    opacity: 1;
+}
+
+/* GPU 加速 */
+.gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* ===== 14. 可访问性改进 ===== */
+:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+    :root {
+        --primary-color: #0066cc;
+        --text-primary: #000000;
+        --bg-primary: #ffffff;
+    }
+}
+
+/* 减少动画 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+} 
