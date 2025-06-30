@@ -342,4 +342,279 @@
         fixPictureButtons: fixPictureButtons,
         fixModalHandling: fixModalHandling
     };
-})(); 
+})();
+
+// Add enhanced styles for picture action buttons
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Applying enhanced button styles for picture actions');
+    
+    // Create enhanced styles for buttons
+    const enhancedStyles = document.createElement('style');
+    enhancedStyles.innerHTML = `
+        /* Enhanced Picture Action Buttons */
+        .picture-actions {
+            padding: 10px !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            gap: 10px !important;
+            background-color: #f8f9fa !important;
+            border-top: 1px solid #e9ecef !important;
+        }
+        
+        .picture-actions button {
+            flex: 1 !important;
+            padding: 8px 12px !important;
+            border: none !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 5px !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            min-width: 70px !important;
+            height: 36px !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+        
+        /* Edit button styling */
+        .picture-actions .edit-picture {
+            background-color: #007bff !important;
+            color: white !important;
+        }
+        
+        .picture-actions .edit-picture:hover {
+            background-color: #0056b3 !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,123,255,0.3) !important;
+        }
+        
+        .picture-actions .edit-picture:active {
+            transform: translateY(0) !important;
+        }
+        
+        /* Delete button styling */
+        .picture-actions .delete-picture {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        
+        .picture-actions .delete-picture:hover {
+            background-color: #c82333 !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(220,53,69,0.3) !important;
+        }
+        
+        .picture-actions .delete-picture:active {
+            transform: translateY(0) !important;
+        }
+        
+        /* Icon styling */
+        .picture-actions button i {
+            font-size: 16px !important;
+            margin: 0 !important;
+        }
+        
+        /* Add text labels to buttons */
+        .picture-actions .edit-picture::after {
+            content: " Edit";
+            font-family: Arial, sans-serif;
+            margin-left: 5px;
+        }
+        
+        .picture-actions .delete-picture::after {
+            content: " Delete";
+            font-family: Arial, sans-serif;
+            margin-left: 5px;
+        }
+        
+        /* Ripple effect on click */
+        .picture-actions button::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .picture-actions button:active::before {
+            width: 200px;
+            height: 200px;
+        }
+        
+        /* Fix picture card layout */
+        .picture-card {
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            min-height: 320px !important;
+        }
+        
+        .picture-info {
+            flex-grow: 1 !important;
+            padding: 12px !important;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .picture-actions {
+                padding: 8px !important;
+                gap: 5px !important;
+            }
+            
+            .picture-actions button {
+                padding: 6px 8px !important;
+                font-size: 12px !important;
+                min-width: 60px !important;
+                height: 32px !important;
+            }
+            
+            .picture-actions button i {
+                font-size: 14px !important;
+            }
+        }
+        
+        /* Additional hover effects */
+        .picture-card:hover .picture-actions {
+            background-color: #e9ecef !important;
+        }
+        
+        /* Focus styles for accessibility */
+        .picture-actions button:focus {
+            outline: 2px solid #80bdff !important;
+            outline-offset: 2px !important;
+        }
+        
+        /* Loading state */
+        .picture-actions button:disabled {
+            opacity: 0.6 !important;
+            cursor: not-allowed !important;
+        }
+        
+        .picture-actions button:disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+    `;
+    
+    document.head.appendChild(enhancedStyles);
+    
+    // Add delete picture function if not exists
+    if (typeof window.deletePicture === 'undefined') {
+        window.deletePicture = function(pictureId) {
+            if (confirm('Are you sure you want to delete this picture?')) {
+                console.log('Deleting picture:', pictureId);
+                
+                // Try different methods to delete the picture
+                if (typeof deleteImageAndMetadata === 'function') {
+                    deleteImageAndMetadata(pictureId).then(() => {
+                        console.log('Picture deleted successfully');
+                        if (typeof loadAndDisplayPictures === 'function') {
+                            loadAndDisplayPictures();
+                        }
+                    }).catch(error => {
+                        console.error('Error deleting picture:', error);
+                        alert('Error deleting picture: ' + error.message);
+                    });
+                } else {
+                    // Fallback deletion method
+                    try {
+                        // Remove from localStorage
+                        const picturesStr = localStorage.getItem('adminPictures');
+                        if (picturesStr) {
+                            let pictures = JSON.parse(picturesStr);
+                            pictures = pictures.filter(pic => pic.id !== pictureId);
+                            localStorage.setItem('adminPictures', JSON.stringify(pictures));
+                        }
+                        
+                        // Remove from metadata
+                        const metadataStr = localStorage.getItem('adminPicturesMetadata');
+                        if (metadataStr) {
+                            let metadata = JSON.parse(metadataStr);
+                            metadata = metadata.filter(meta => meta.id !== pictureId);
+                            localStorage.setItem('adminPicturesMetadata', JSON.stringify(metadata));
+                        }
+                        
+                        // Remove from site pictures
+                        const sitePicturesStr = localStorage.getItem('sitePictures');
+                        if (sitePicturesStr) {
+                            let sitePictures = JSON.parse(sitePicturesStr);
+                            sitePictures = sitePictures.filter(pic => pic.id !== pictureId);
+                            localStorage.setItem('sitePictures', JSON.stringify(sitePictures));
+                        }
+                        
+                        // Reload pictures
+                        if (typeof loadAndDisplayPictures === 'function') {
+                            loadAndDisplayPictures();
+                        } else {
+                            location.reload();
+                        }
+                        
+                        console.log('Picture deleted successfully');
+                    } catch (error) {
+                        console.error('Error deleting picture:', error);
+                        alert('Error deleting picture: ' + error.message);
+                    }
+                }
+            }
+        };
+    }
+    
+    // Re-attach event listeners to existing buttons
+    function attachButtonListeners() {
+        // Edit buttons
+        document.querySelectorAll('.edit-picture').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const pictureId = this.getAttribute('data-id');
+                console.log('Edit button clicked for picture:', pictureId);
+                if (typeof editPicture === 'function') {
+                    editPicture(pictureId);
+                } else {
+                    alert('Edit functionality is being loaded...');
+                }
+            };
+        });
+        
+        // Delete buttons
+        document.querySelectorAll('.delete-picture').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const pictureId = this.getAttribute('data-id');
+                console.log('Delete button clicked for picture:', pictureId);
+                if (typeof window.deletePicture === 'function') {
+                    window.deletePicture(pictureId);
+                }
+            };
+        });
+    }
+    
+    // Initial attachment
+    attachButtonListeners();
+    
+    // Re-attach listeners when DOM changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                setTimeout(attachButtonListeners, 100);
+            }
+        });
+    });
+    
+    const pictureGrid = document.getElementById('pictureGrid');
+    if (pictureGrid) {
+        observer.observe(pictureGrid, { childList: true, subtree: true });
+    }
+    
+    console.log('Picture action buttons enhanced successfully');
+}); 
