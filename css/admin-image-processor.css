@@ -1,5 +1,14 @@
 /* Admin Image Processor Styles */
 
+/* Disable conflicting animations that may cause lag */
+* {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
 /* Drop Zone Styles */
 .image-drop-zone {
   border: 2px dashed #ccc;
@@ -368,13 +377,13 @@
     padding: 20px;
     margin: 20px 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    animation: slideDown 0.3s ease-out;
+    animation: slideDown 0.2s ease-out;
 }
 
 @keyframes slideDown {
     from {
         opacity: 0;
-        transform: translateY(-20px);
+        transform: translateY(-10px);
     }
     to {
         opacity: 1;
@@ -406,22 +415,32 @@
     flex-wrap: wrap;
 }
 
-.cloudinary-setup-notice button {
-    background: #1a73e8;
-    color: white;
+.cloudinary-setup-notice .setup-actions button {
+    padding: 8px 16px;
     border: none;
-    padding: 10px 20px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    transition: background-color 0.15s ease;
+    text-decoration: none;
+    display: inline-block;
 }
 
-.cloudinary-setup-notice button:hover {
-    background: #1557b0;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+.cloudinary-setup-notice .btn-primary {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.cloudinary-setup-notice .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.cloudinary-setup-notice .btn-primary:hover {
+    background-color: #1557b0;
+}
+
+.cloudinary-setup-notice .btn-secondary:hover {
+    background-color: #545b62;
 }
 
 /* Enhanced upload modal styles */
@@ -627,6 +646,7 @@
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
+    contain: layout style;
 }
 
 .admin-modal.active {
@@ -643,6 +663,7 @@
     overflow: auto;
     transform: scale(0.9);
     transition: transform 0.3s ease;
+    will-change: transform;
 }
 
 .admin-modal.active .modal-content {
@@ -775,4 +796,53 @@
     background: #ffebee;
     color: #c62828;
     border: 1px solid #ef9a9a;
+}
+
+/* Optimized picture cards for better performance */
+.picture-card {
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+.picture-actions {
+    will-change: auto;
+}
+
+.picture-actions button {
+    will-change: transform, background-color;
+    contain: layout style;
+}
+
+/* Quick response indicator */
+.picture-actions button.loading::after {
+    content: "⋯";
+    animation: dots 0.5s infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: "⋯"; }
+    40% { content: "⋯⋯"; }
+    60%, 100% { content: "⋯⋯⋯"; }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .cloudinary-setup-notice {
+        animation: none;
+    }
+    
+    .picture-actions button {
+        transition: none;
+    }
+}
+
+/* High performance mode for slower devices */
+@media (max-width: 768px) {
+    .picture-actions button {
+        transition: background-color 0.1s ease;
+    }
+    
+    .cloudinary-setup-notice {
+        animation-duration: 0.1s;
+    }
 } 

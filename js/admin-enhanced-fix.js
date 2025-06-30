@@ -151,8 +151,13 @@
             container.appendChild(card);
         },
         
-        // 设置图片卡片事件
+        // 设置图片卡片事件 - DISABLED to prevent conflicts with optimized button fix
         setupPictureCardEvents() {
+            // This function is disabled to prevent conflicts with admin-pictures-button-fix.js
+            // The optimized button fix script handles all button events more efficiently
+            console.log('Picture card events handled by optimized button fix script');
+            
+            /* ORIGINAL CODE DISABLED TO PREVENT BUTTON CONFLICTS:
             // 编辑按钮
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -182,6 +187,7 @@
                     this.viewPicture(img.src, img.alt);
                 });
             });
+            */
         },
         
         // 创建示例图片
