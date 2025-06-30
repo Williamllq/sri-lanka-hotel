@@ -11,11 +11,11 @@
 // Cloudinary Configuration
 // IMPORTANT: Replace these with your actual Cloudinary credentials
 const CLOUDINARY_CONFIG = {
-    cloudName: 'YOUR_CLOUD_NAME', // Replace with your Cloudinary cloud name
-    uploadPreset: 'YOUR_UPLOAD_PRESET', // Replace with your unsigned upload preset
+    cloudName: 'dmpfjul1j', // 您的实际Cloud Name
+    uploadPreset: 'sri_lanka_unsigned', // 您刚创建的preset
     apiKey: 'YOUR_API_KEY', // Optional: Only needed for signed uploads
     folder: 'sri-lanka-tourism', // Folder in Cloudinary to organize images
-    maxFileSize: 10485760, // 10MB max file size
+    maxFileSize: 10485760, // 10MB
     allowedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
     transformations: {
         thumbnail: 'c_fill,w_400,h_300,q_auto,f_auto',
