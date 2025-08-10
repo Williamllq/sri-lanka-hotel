@@ -816,13 +816,29 @@ function calculatePrice() {
         }
     };
     
-    const settings = JSON.parse(localStorage.getItem('transportSettings') || JSON.stringify(defaultSettings));
+    // 兼容旧结构并合并默认值
+    const saved = localStorage.getItem('transportSettings') || sessionStorage.getItem('transportSettings');
+    let settings = defaultSettings;
+    try {
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            const vehicleRates = parsed.vehicleRates || {
+                sedan: parsed.sedanRate ?? defaultSettings.vehicleRates.sedan,
+                suv: parsed.suvRate ?? defaultSettings.vehicleRates.suv,
+                van: parsed.vanRate ?? defaultSettings.vehicleRates.van,
+                luxury: parsed.luxuryRate ?? defaultSettings.vehicleRates.luxury
+            };
+            settings = { ...defaultSettings, ...parsed, vehicleRates };
+        }
+    } catch (e) {
+        console.warn('Failed to parse transport settings, using defaults', e);
+    }
     
     // Calculate base price
     let price = settings.baseFare + (distance * settings.ratePerKm);
     
     // Apply vehicle type multiplier
-    price *= settings.vehicleRates[vehicleType];
+    price *= settings.vehicleRates[vehicleType] ?? 1.0;
     
     // Check if rush hour, night time, or weekend
     if (tripDate && tripTime) {

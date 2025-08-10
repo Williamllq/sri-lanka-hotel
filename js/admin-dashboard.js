@@ -29,7 +29,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (lastLoginTime) {
         const lastLogin = localStorage.getItem('adminLastLogin');
         if (lastLogin) {
-            lastLoginTime.textContent = 'Last login: ' + new Date(lastLogin).toLocaleString();
+            try {
+                lastLoginTime.textContent = 'Last login: ' + new Date(lastLogin).toLocaleString();
+            } catch (e) {
+                lastLoginTime.textContent = 'Last login: N/A';
+            }
         }
     }
 
@@ -58,8 +62,8 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'ordersSection':
                 if (document.getElementById('ordersSection')) initOrderManagement();
                 break;
-            case 'transportSettingsSection':
-                if (document.getElementById('transportSettingsSection')) initTransportSettings();
+            case 'transportSection':
+                if (document.getElementById('transportSection')) initTransportSettings();
                 break;
             case 'settingsSection':
                 if (document.getElementById('settingsSection')) initSettings();

@@ -435,39 +435,45 @@ function deg2rad(deg) {
  * Calculate fare based on distance and service type
  */
 function calculateFare(distance, serviceType) {
-    // Get transport settings from localStorage
-    let settings = {
-        baseFare: 30,          // 默认基础价格
-        ratePerKm: 0.5,        // 默认每公里价格
+    // 标准化读取并兼容旧结构
+    const defaultSettings = {
+        baseFare: 30,
+        ratePerKm: 0.5,
         rushHourMultiplier: 1.5,
         nightMultiplier: 1.3,
         weekendMultiplier: 1.2,
-        sedanRate: 1.0,
-        suvRate: 1.5,
-        vanRate: 1.8,
-        luxuryRate: 2.2
+        vehicleRates: { sedan: 1.0, suv: 1.5, van: 1.8, luxury: 2.2 }
     };
-    
-    // 尝试从localStorage读取设置
+
+    let settings = defaultSettings;
+
     try {
-        const savedSettings = localStorage.getItem('transportSettings');
-        if (savedSettings) {
-            const parsedSettings = JSON.parse(savedSettings);
-            // 使用保存的设置替换默认值
-            settings = { ...settings, ...parsedSettings };
+        const raw = localStorage.getItem('transportSettings') || sessionStorage.getItem('transportSettings');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            // 兼容旧字段（sedanRate/suvRate/vanRate/luxuryRate）
+            const vehicleRates = parsed.vehicleRates || {
+                sedan: parsed.sedanRate ?? defaultSettings.vehicleRates.sedan,
+                suv: parsed.suvRate ?? defaultSettings.vehicleRates.suv,
+                van: parsed.vanRate ?? defaultSettings.vehicleRates.van,
+                luxury: parsed.luxuryRate ?? defaultSettings.vehicleRates.luxury
+            };
+            settings = { ...defaultSettings, ...parsed, vehicleRates };
         }
-    } catch (error) {
-        console.error('Error loading transport settings, using defaults:', error);
+    } catch (e) {
+        console.error('Error loading transport settings, using defaults:', e);
     }
-    
-    // 使用设置中的基本价格
+
+    // 基础价格
     let fare = settings.baseFare + (distance * settings.ratePerKm);
-    
-    // 应用服务类型倍率
+
+    // 服务类型倍率（使用 vehicleRates）
     if (serviceType === 'airport') {
-        fare *= settings.suvRate; // 机场接送使用SUV费率
+        fare *= settings.vehicleRates.suv;
     } else if (serviceType === 'custom') {
-        fare *= settings.vanRate; // 自定义行程使用面包车费率
+        fare *= settings.vehicleRates.van;
+    } else {
+        fare *= settings.vehicleRates.sedan;
     }
     
     // 检查是否是周末
